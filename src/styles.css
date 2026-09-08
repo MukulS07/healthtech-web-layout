@@ -19,7 +19,7 @@
  */
 
 @theme inline {
-  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -168,17 +168,18 @@
   body {
     background-color: var(--color-background);
     color: var(--color-ink);
-    font-family: "Figtree", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
-    letter-spacing: 0;
+    font-family: "Sora", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
   }
 }
+
 
 @utility no-scrollbar {
   scrollbar-width: none;
