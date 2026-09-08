@@ -1,20 +1,20 @@
 import { ChevronDown, MapPin, Phone, Search, Menu, HeartPulse } from "lucide-react";
 import { Container, OrangeButton } from "./primitives";
 
-const specialties = [
-  "Proctology",
-  "Laparoscopy",
-  "Gynaecology",
-  "ENT",
-  "Urology",
-  "Vascular",
-  "Aesthetics",
-  "Orthopedics",
-  "Ophthalmology",
-  "Fertility",
-  "Weight Loss",
-  "Dermatology",
-  "Our Hospitals",
+const specialtyNav = [
+  { label: "Proctology", href: "/specialities/proctology" },
+  { label: "Laparoscopy", href: "/specialities/laparoscopy" },
+  { label: "Gynaecology", href: "/specialities/gynaecology" },
+  { label: "ENT", href: "/specialities/ent" },
+  { label: "Urology", href: "/specialities/urology" },
+  { label: "Vascular", href: "/specialities/vascular" },
+  { label: "Aesthetics", href: "/specialities/aesthetics" },
+  { label: "Orthopedics", href: "/specialities/orthopedics" },
+  { label: "Ophthalmology", href: "/specialities/ophthalmology" },
+  { label: "Fertility", href: "/specialities/fertility" },
+  { label: "Weight Loss", href: "/specialities/weight-loss" },
+  { label: "Dermatology", href: "/specialities/dermatology" },
+  { label: "Our Hospitals", href: "/hospitals" },
 ];
 
 export function Header() {
@@ -23,7 +23,7 @@ export function Header() {
       <div className="text-navy">
         <Container className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-3 lg:flex lg:justify-between">
           <div className="flex min-w-0 items-center gap-6">
-            <a href="#top" className="flex shrink-0 items-center gap-2">
+            <a href="/" className="flex shrink-0 items-center gap-2">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
                 <HeartPulse className="h-5 w-5" />
               </span>
@@ -41,16 +41,18 @@ export function Header() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-4">
-            <button className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex">
-              For Patients <ChevronDown className="h-4 w-4" />
-            </button>
-            <button className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex">
-              Our Company <ChevronDown className="h-4 w-4" />
-            </button>
-            <a href="#book" className="hidden items-center gap-2 text-sm font-semibold text-navy sm:flex">
+            <a href="/faqs" className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex hover:text-navy">
+              For Patients
+            </a>
+            <a href="/about" className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex hover:text-navy">
+              Our Company
+            </a>
+            <a href="tel:18000001234" className="hidden items-center gap-2 text-sm font-semibold text-navy sm:flex">
               <Phone className="h-4 w-4 text-brand-orange" /> 1800 000 1234
             </a>
-            <OrangeButton className="hidden px-4 py-2.5 md:inline-flex">Book Free Consultation</OrangeButton>
+            <a href="/contact">
+              <OrangeButton className="hidden px-4 py-2.5 md:inline-flex">Book Free Consultation</OrangeButton>
+            </a>
             <button aria-label="Menu" className="lg:hidden">
               <Menu className="h-6 w-6" />
             </button>
@@ -60,13 +62,14 @@ export function Header() {
       <div className="border-t border-border bg-cream/70">
         <Container>
           <nav className="no-scrollbar flex gap-6 overflow-x-auto py-3">
-            {specialties.map((s) => (
-              <button
-                key={s}
+            {specialtyNav.map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
                 className="flex shrink-0 items-center gap-1 whitespace-nowrap text-sm font-medium text-ink/80 transition-colors hover:text-brand-orange"
               >
-                {s} <ChevronDown className="h-3.5 w-3.5" />
-              </button>
+                {s.label}
+              </a>
             ))}
           </nav>
         </Container>
