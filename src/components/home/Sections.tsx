@@ -52,10 +52,10 @@ export function FindCare() {
           eyebrow="Care near you"
           title={
             <>
-              Find Specialized Care <span className="text-brand-orange">Near You</span>
+              Explore Care That <span className="text-primary">Fits Your Needs</span>
             </>
           }
-          subtitle="Specialized care for 50+ diseases with advanced technology and faster recovery."
+          subtitle="Browse trusted specialists, treatments and support for every stage of health."
         />
         <div className="mx-auto max-w-3xl">
           <div className="mx-auto flex w-fit gap-1 rounded-full bg-cream p-1">
@@ -83,7 +83,7 @@ export function FindCare() {
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {tiles.map((tile) => (
-            <article key={tile.label} className="group relative overflow-hidden rounded-2xl">
+            <article key={tile.label} className="group relative overflow-hidden rounded-lg">
               <img
                 src={tile.img}
                 alt={tile.title}
@@ -92,7 +92,7 @@ export function FindCare() {
                 height={1000}
                 className="h-72 w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-[linear-gradient(to_top,oklch(0.195_0.042_233_/_0.92),transparent_60%)]" />
+               <div className="absolute inset-0 bg-navy/45" />
               <div className="absolute inset-x-0 bottom-0 p-5">
                 <Eyebrow tone="orange">{tile.label}</Eyebrow>
                 <p className="mt-1 text-lg font-bold text-navy-foreground">{tile.title}</p>
@@ -152,13 +152,13 @@ export function PatientExperiences() {
       <Container>
         <SectionHead
           align="center"
-          eyebrow="Voices of recovery"
-          title="Patient Experiences"
-          subtitle="Real stories of transformation and healing."
+        eyebrow="What care feels like"
+        title="Support Before, During & After Treatment"
+        subtitle="A coordinated experience designed around comfort, clarity and recovery."
         />
         <div className="grid gap-6 lg:grid-cols-3">
           {experiences.map((exp) => (
-            <article key={exp.tag} className="overflow-hidden rounded-2xl border border-border bg-background">
+            <article key={exp.tag} className="overflow-hidden rounded-lg border border-border bg-background">
               <div className="relative">
                 <img
                   src={exp.img}
@@ -211,20 +211,20 @@ const hospitals = [
 
 export function Hospitals() {
   return (
-    <section className="bg-[linear-gradient(120deg,var(--brand-blue-dark),var(--brand-blue))] py-14">
+    <section className="bg-navy py-14">
       <Container>
         <SectionHead
           tone="light"
-          eyebrow="End-to-end excellence"
-          title="Prime Super Specialty Hospitals"
-          subtitle="Modern infrastructure, accredited facilities and surgeons you can trust."
+          eyebrow="Care close to home"
+          title="A Trusted Network of Modern Hospitals"
+          subtitle="Accredited facilities, thoughtful teams and dependable support when it matters."
           action={<OutlineButton tone="light">Explore All Hospitals</OutlineButton>}
         />
         <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {hospitalFeatures.map((f) => (
             <div
               key={f.label}
-              className="flex min-w-0 items-center gap-3 rounded-xl bg-navy-foreground/10 px-4 py-3 text-navy-foreground"
+               className="flex min-w-0 items-center gap-3 rounded-lg bg-navy-foreground/10 px-4 py-3 text-navy-foreground"
             >
               <f.icon className="h-5 w-5 shrink-0 text-brand-orange" />
               <span className="truncate text-sm font-medium">{f.label}</span>
@@ -235,7 +235,7 @@ export function Hospitals() {
           {hospitals.map((h, i) => (
             <article
               key={i}
-              className="w-[280px] shrink-0 snap-start overflow-hidden rounded-2xl bg-background sm:w-[320px]"
+              className="w-[280px] shrink-0 snap-start overflow-hidden rounded-lg bg-background sm:w-[320px]"
             >
               <div className="relative">
                 <img
@@ -291,7 +291,7 @@ export function Journey() {
         />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {journey.map((step, i) => (
-            <article key={step.title} className="rounded-2xl border border-border bg-background p-5 shadow-sm">
+            <article key={step.title} className="rounded-lg border border-border bg-background p-5 shadow-sm">
               <span className="grid h-10 w-10 place-items-center rounded-full bg-navy text-sm font-bold text-navy-foreground">
                 {i + 1}
               </span>
@@ -335,7 +335,7 @@ export function Doctors() {
           {doctors.map((d, i) => (
             <article
               key={i}
-              className="w-[260px] shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-background sm:w-[300px]"
+              className="w-[260px] shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-background sm:w-[300px]"
             >
               <div className="relative">
                 <img
@@ -405,11 +405,11 @@ export function Insurance() {
         <div className="min-w-0">
           <Eyebrow>Cashless on 100+ insurers</Eyebrow>
           <h2 className="mt-2 text-2xl font-bold leading-tight text-navy sm:text-3xl lg:text-[34px]">
-            Cashless Surgery with <span className="text-brand-orange">30-Minute Approval</span>
+             Clear Insurance Support with <span className="text-primary">Fast Eligibility Help</span>
           </h2>
           <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Our insurance desk handles paperwork, pre-authorisation and claims so you can focus only on getting
-            better. No-cost EMI available if you are not insured.
+            Our insurance desk helps with paperwork, pre-authorisation and claims so you can focus on your health.
+            Flexible payment support is available when insurance does not apply.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <OrangeButton>Check Eligibility</OrangeButton>
@@ -448,7 +448,7 @@ export function Testimonials() {
         <SectionHead align="center" eyebrow="Patient stories" title="What Our Patients Say" />
         <div className="grid gap-5 lg:grid-cols-3">
           {testimonials.map((t) => (
-            <article key={t.name} className="rounded-2xl border border-border bg-background p-6">
+            <article key={t.name} className="rounded-lg border border-border bg-background p-6">
               <Quote className="h-7 w-7 text-brand-orange" />
               <p className="mt-4 text-sm italic text-ink/80">"{t.quote}"</p>
               <p className="mt-4 text-sm font-semibold text-navy">— {t.name}</p>
@@ -471,19 +471,18 @@ export function About() {
           <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">About Prime Care</h2>
           <div className="mt-4 space-y-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
             <p>
-              Prime Care is a surgical care network connecting patients with specialist surgeons, accredited
-              hospitals and insurance partners across 45+ cities. We handle the parts of surgery that usually
-              cause the most stress — finding the right doctor, understanding costs, insurance paperwork,
-              hospital admission and recovery support.
+              Prime Care is a connected health network bringing patients, specialists, accredited hospitals and
+              insurance partners together across 45+ cities. We simplify the parts of care that often feel
+              stressful — finding the right doctor, understanding options, paperwork and recovery support.
             </p>
             <p>
-              Every patient is assigned a dedicated care coordinator who stays with them from the first free
-              consultation until the final follow-up. Our surgeons use minimally invasive, USFDA-approved
-              techniques that mean smaller cuts, less pain and a faster return to normal life.
+              Every patient has a dedicated care coordinator from the first conversation to the final follow-up.
+              Our clinical teams prioritize clear guidance, proven techniques and a treatment plan shaped around
+              the individual rather than a one-size-fits-all pathway.
             </p>
             <p>
-              With 2M+ lives touched and a 4.8/5 average patient rating, our focus stays simple: safer surgeries,
-              transparent pricing and care that continues well beyond the operating room.
+              With 2M+ lives touched and a 4.8/5 average patient rating, our focus stays simple: dependable care,
+              transparent pricing and support that continues beyond the clinic.
             </p>
           </div>
         </div>
@@ -518,7 +517,7 @@ export function Healthfeed() {
           {posts.map((p) => (
             <article
               key={p.title}
-              className="flex w-[260px] shrink-0 snap-start flex-col rounded-2xl border border-border bg-background p-5 sm:w-[300px]"
+               className="flex w-[260px] shrink-0 snap-start flex-col rounded-lg border border-border bg-background p-5 sm:w-[300px]"
             >
               <span className="w-fit rounded-full bg-brand-orange-soft px-3 py-1 text-[11px] font-semibold text-brand-orange-dark">
                 {p.cat}
@@ -589,7 +588,7 @@ export function Faq() {
 
 export function DownloadApp() {
   return (
-    <section className="bg-[linear-gradient(120deg,var(--brand-blue-dark),var(--brand-blue))] py-14">
+    <section className="bg-navy py-14">
       <Container className="grid items-center gap-10 lg:grid-cols-2">
         <div className="min-w-0 text-navy-foreground">
           <Eyebrow tone="light">Prime Care app</Eyebrow>

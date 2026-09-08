@@ -17,9 +17,9 @@ import {
   DownloadApp,
 } from "@/components/home/Sections";
 
-const title = "Prime Care: Specialist Surgeons | Modern Hospitals | Safer Surgeries";
+const title = "Prime Care | Thoughtful Health Support";
 const description =
-  "Book a free consultation with specialist surgeons for 50+ conditions. Cashless surgery on 100+ insurers, free pick-up and drop, and dedicated recovery support across 45+ cities.";
+  "Connect with trusted specialists, modern hospitals and a dedicated care team for clear guidance from consultation through recovery.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
