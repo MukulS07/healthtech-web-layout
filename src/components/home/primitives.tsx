@@ -85,7 +85,7 @@ export function OrangeButton({
       type={type}
       onClick={onClick}
       className={cn(
-        "h-auto rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-none hover:bg-brand-orange-dark",
+        "h-auto rounded-lg border border-white/25 bg-primary/75 px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-black/10 backdrop-blur-xl transition-all hover:border-white/35 hover:bg-primary/90 hover:shadow-xl hover:shadow-black/15",
         className,
       )}
     >
@@ -107,10 +107,10 @@ export function OutlineButton({
     <Button
       type="button"
       className={cn(
-        "h-auto rounded-lg border px-5 py-3 text-sm font-semibold shadow-none",
+        "h-auto rounded-lg border px-5 py-3 text-sm font-semibold shadow-lg backdrop-blur-xl transition-all",
         tone === "light"
-          ? "border-navy-foreground/40 text-navy-foreground hover:bg-navy-foreground/10"
-          : "border-navy/25 text-navy hover:bg-navy/5",
+          ? "border-white/25 bg-white/10 text-navy-foreground shadow-black/10 hover:border-white/35 hover:bg-white/20 hover:shadow-black/15"
+          : "border-navy/20 bg-white/40 text-navy shadow-navy/5 hover:border-navy/30 hover:bg-white/60 hover:shadow-navy/10",
         className,
       )}
     >
@@ -141,7 +141,7 @@ export function Carousel({ children, className }: { children: ReactNode; classNa
           type="button"
           aria-label="Scroll left"
           onClick={() => scrollBy(-1)}
-          className="grid h-10 w-10 place-items-center rounded-full border border-border bg-background text-navy transition-colors hover:bg-cream"
+          className="grid h-10 w-10 place-items-center rounded-full border border-white/30 bg-white/40 text-navy shadow-md backdrop-blur-xl transition-all hover:bg-white/60 hover:shadow-lg"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -149,7 +149,7 @@ export function Carousel({ children, className }: { children: ReactNode; classNa
           type="button"
           aria-label="Scroll right"
           onClick={() => scrollBy(1)}
-          className="grid h-10 w-10 place-items-center rounded-full border border-border bg-background text-navy transition-colors hover:bg-cream"
+          className="grid h-10 w-10 place-items-center rounded-full border border-white/30 bg-white/40 text-navy shadow-md backdrop-blur-xl transition-all hover:bg-white/60 hover:shadow-lg"
         >
           <ChevronRight className="h-5 w-5" />
         </button>

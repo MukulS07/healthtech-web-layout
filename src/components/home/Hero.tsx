@@ -1,6 +1,6 @@
 import { Phone, Star, ShieldCheck, BadgeCheck, HeartHandshake, CalendarCheck } from "lucide-react";
 import heroDoctor from "@/assets/hero-doctor.png";
-import { Container, OrangeButton } from "./primitives";
+import { Container, OrangeButton, OutlineButton } from "./primitives";
 import { ConsultForm } from "./ConsultForm";
 
 const trustItems = [
@@ -37,9 +37,9 @@ export function Hero() {
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <OrangeButton>Find the right care</OrangeButton>
-              <a href="#book" className="inline-flex items-center gap-2 rounded-lg border border-navy-foreground/35 px-5 py-3 text-sm font-semibold text-navy-foreground hover:bg-navy-foreground/10">
+              <OutlineButton tone="light" className="gap-2">
                 <Phone className="h-4 w-4" /> Call our care team
-              </a>
+              </OutlineButton>
             </div>
             <div className="mt-auto grid grid-cols-3 gap-4 border-t border-navy-foreground/15 pt-6 sm:gap-8 lg:mt-10">
               {[
