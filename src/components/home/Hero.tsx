@@ -15,7 +15,7 @@ export function Hero() {
     <section id="top" className="bg-cream py-6 sm:py-8">
       <Container>
         <div className="grid gap-4 lg:grid-cols-12 lg:grid-rows-[260px_auto]">
-          <div className="min-w-0 rounded-lg bg-navy p-7 text-navy-foreground lg:col-span-7 lg:row-span-2 lg:p-10">
+          <div className="flex min-w-0 flex-col rounded-lg bg-navy p-7 text-navy-foreground lg:col-span-7 lg:row-span-2 lg:p-10">
             <div className="flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-1.5 text-xs font-semibold text-navy">
                 <span className="flex -space-x-2">
@@ -41,7 +41,20 @@ export function Hero() {
                 <Phone className="h-4 w-4" /> Call our care team
               </a>
             </div>
+            <div className="mt-auto grid grid-cols-3 gap-4 border-t border-navy-foreground/15 pt-6 sm:gap-8 lg:mt-10">
+              {[
+                { value: "1,200+", label: "Specialists on call" },
+                { value: "45 min", label: "Average response" },
+                { value: "60+", label: "Partner hospitals" },
+              ].map((stat) => (
+                <div key={stat.label} className="min-w-0">
+                  <p className="text-2xl font-bold text-brand-blue-light sm:text-3xl">{stat.value}</p>
+                  <p className="mt-1 truncate text-xs text-navy-foreground/70">{stat.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
+
 
           <div className="relative hidden overflow-hidden rounded-lg bg-brand-orange-soft lg:col-span-5 lg:flex">
             <img src={heroDoctor} alt="Care specialist ready to help" width={900} height={1100} className="h-full w-full object-contain object-bottom" />
