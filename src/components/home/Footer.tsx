@@ -1,4 +1,4 @@
-import { Phone, CalendarCheck } from "lucide-react";
+import { Phone, CalendarCheck, HeartPulse } from "lucide-react";
 import { Container } from "./primitives";
 
 const columns = [
@@ -43,8 +43,8 @@ export function Footer() {
           <div className="grid gap-10 lg:grid-cols-[1.2fr_repeat(4,minmax(0,1fr))]">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-orange text-sm font-extrabold text-primary-foreground">
-                  P
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
+                  <HeartPulse className="h-5 w-5" />
                 </span>
                 <span className="text-lg font-bold">Prime Care</span>
               </div>
