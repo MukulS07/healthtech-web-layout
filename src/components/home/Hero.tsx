@@ -14,7 +14,7 @@ export function Hero() {
   return (
     <section id="top" className="bg-cream py-6 sm:py-8">
       <Container>
-        <div className="grid gap-4 lg:grid-cols-12 lg:grid-rows-[220px_220px]">
+        <div className="grid gap-4 lg:grid-cols-12 lg:grid-rows-[260px_auto]">
           <div className="min-w-0 rounded-lg bg-navy p-7 text-navy-foreground lg:col-span-7 lg:row-span-2 lg:p-10">
             <div className="flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-1.5 text-xs font-semibold text-navy">
