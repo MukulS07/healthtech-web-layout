@@ -141,7 +141,7 @@ export function Carousel({ children, className }: { children: ReactNode; classNa
           type="button"
           aria-label="Scroll left"
           onClick={() => scrollBy(-1)}
-          className="grid h-10 w-10 place-items-center rounded-full border border-border bg-background text-navy transition-colors hover:bg-cream"
+          className="grid h-10 w-10 place-items-center rounded-full border border-white/30 bg-white/40 text-navy shadow-md backdrop-blur-xl transition-all hover:bg-white/60 hover:shadow-lg"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -149,7 +149,7 @@ export function Carousel({ children, className }: { children: ReactNode; classNa
           type="button"
           aria-label="Scroll right"
           onClick={() => scrollBy(1)}
-          className="grid h-10 w-10 place-items-center rounded-full border border-border bg-background text-navy transition-colors hover:bg-cream"
+          className="grid h-10 w-10 place-items-center rounded-full border border-white/30 bg-white/40 text-navy shadow-md backdrop-blur-xl transition-all hover:bg-white/60 hover:shadow-lg"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
