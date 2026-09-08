@@ -1,6 +1,6 @@
 import { Phone, Star, ShieldCheck, BadgeCheck, HeartHandshake, CalendarCheck } from "lucide-react";
 import heroDoctor from "@/assets/hero-doctor.png";
-import { Container, OrangeButton } from "./primitives";
+import { Container, OrangeButton, OutlineButton } from "./primitives";
 import { ConsultForm } from "./ConsultForm";
 
 const trustItems = [
