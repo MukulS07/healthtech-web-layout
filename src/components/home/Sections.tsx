@@ -359,7 +359,7 @@ export function Doctors() {
                 <p className="mt-2 text-xs font-semibold text-brand-blue">{d.exp} Experience</p>
                 <div className="mt-4 flex gap-2">
                   <OutlineButton className="flex-1 px-3 py-2 text-xs">Call</OutlineButton>
-                  <OrangeButton className="flex-1 px-3 py-2 text-xs">Book Appointment</OrangeButton>
+                  <OrangeButton className="flex-1 px-3 py-2 text-xs">Book Now</OrangeButton>
                 </div>
               </div>
             </article>
