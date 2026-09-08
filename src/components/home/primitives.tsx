@@ -1,6 +1,7 @@
 import { useRef, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function Container({
   children,
@@ -16,7 +17,7 @@ export function Eyebrow({ children, tone = "orange" }: { children: ReactNode; to
   return (
     <p
       className={cn(
-        "text-[11px] font-semibold uppercase tracking-[0.18em]",
+        "text-xs font-semibold uppercase tracking-[0.12em]",
         tone === "orange" ? "text-brand-orange" : "text-navy-foreground/70",
       )}
     >
@@ -80,16 +81,16 @@ export function OrangeButton({
   onClick?: () => void;
 }) {
   return (
-    <button
+    <Button
       type={type}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg bg-brand-orange px-5 py-3 text-sm font-semibold text-primary-foreground shadow-[0_8px_20px_-8px_var(--brand-orange)] transition-colors hover:bg-brand-orange-dark",
+        "h-auto rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-none hover:bg-brand-orange-dark",
         className,
       )}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -103,10 +104,10 @@ export function OutlineButton({
   tone?: "dark" | "light";
 }) {
   return (
-    <button
+    <Button
       type="button"
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-3 text-sm font-semibold transition-colors",
+        "h-auto rounded-lg border px-5 py-3 text-sm font-semibold shadow-none",
         tone === "light"
           ? "border-navy-foreground/40 text-navy-foreground hover:bg-navy-foreground/10"
           : "border-navy/25 text-navy hover:bg-navy/5",
@@ -114,7 +115,7 @@ export function OutlineButton({
       )}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 

@@ -22,14 +22,15 @@ export function ConsultForm({ className }: { className?: string }) {
   const [phone, setPhone] = useState("");
 
   const inputClass =
-    "w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted-foreground focus:border-brand-blue-light";
+    "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10";
 
   return (
-    <div className={cn("overflow-hidden rounded-2xl bg-background shadow-[0_24px_60px_-24px_oklch(0.245_0.045_233_/_0.55)]", className)}>
-      <div className="bg-navy px-5 py-4 text-center">
-        <p className="text-base font-bold text-navy-foreground">
-          Book <span className="text-brand-orange">FREE</span> Consultation
+    <div className={cn("overflow-hidden rounded-lg border border-navy/10 bg-background shadow-sm", className)}>
+      <div className="border-b border-border bg-brand-orange-soft px-5 py-4">
+        <p className="text-base font-bold text-navy">
+          Talk to a <span className="text-primary">care specialist</span>
         </p>
+        <p className="mt-1 text-xs text-muted-foreground">Share a few details. We’ll guide you to the right next step.</p>
       </div>
       <form
         className="space-y-3 p-5"
@@ -72,7 +73,7 @@ export function ConsultForm({ className }: { className?: string }) {
           ))}
         </select>
         <OrangeButton type="submit" className="w-full">
-          Book Free Consultation
+          Request a free consultation
         </OrangeButton>
         <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
           <Lock className="h-3 w-3" /> Your data is secured. We prioritize your medical privacy.
