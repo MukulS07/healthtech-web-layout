@@ -1,4 +1,4 @@
-import { ChevronDown, MapPin, Phone, Search, Menu, HeartPulse, Database } from "lucide-react";
+import { ChevronDown, MapPin, Phone, Search, Menu, HeartPulse, UserRound } from "lucide-react";
 import { Container, OrangeButton } from "./primitives";
 import {
   DropdownMenu,
@@ -51,12 +51,6 @@ export function Header() {
           </div>
           <div className="flex shrink-0 items-center gap-4">
             <a
-              href="/db-status"
-              className="hidden items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-full px-2.5 py-1 sm:flex"
-            >
-              <Database className="h-3.5 w-3.5" /> Hospital Availability
-            </a>
-            <a
               href="/faqs"
               className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex hover:text-navy"
             >
@@ -67,6 +61,12 @@ export function Header() {
               className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex hover:text-navy"
             >
               Our Company
+            </a>
+            <a
+              href="/account"
+              className="hidden items-center gap-1.5 text-sm font-semibold text-navy hover:text-brand-orange sm:flex"
+            >
+              <UserRound className="h-4 w-4 text-brand-orange" /> My Appointments
             </a>
             <a
               href="tel:18000001234"

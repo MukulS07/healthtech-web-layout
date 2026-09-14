@@ -1,6 +1,7 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
 export interface IConsultation extends Document {
+  userId?: Types.ObjectId;
   name: string;
   phone: string;
   email?: string;
@@ -14,6 +15,8 @@ export interface IConsultation extends Document {
 
 const ConsultationSchema = new Schema<IConsultation>(
   {
+    // Set when the booking was made while logged in; guest bookings have no owner.
+    userId: { type: Schema.Types.ObjectId, ref: "User", index: true },
     name: { type: String, required: true, trim: true },
     phone: { type: String, required: true, trim: true },
     email: { type: String, trim: true },

@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Phone, Mail, MapPin, Clock, Lock, Loader2, Database } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Phone, Mail, MapPin, Clock, Lock, Loader2, UserRound, LogOut } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
+import { AuthPanel } from "@/components/auth/AuthPanel";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { toast } from "sonner";
 import { submitConsultationFn } from "@/lib/server-functions/consultations";
 
@@ -82,6 +85,16 @@ function ContactPage() {
   const [city, setCity] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user, isLoading, logout } = useCurrentUser();
+  const queryClient = useQueryClient();
+
+  // Prefill contact details from the account once the patient logs in.
+  useEffect(() => {
+    if (!user) return;
+    setName((v) => v || user.name);
+    setPhone((v) => v || user.phone);
+    setEmail((v) => v || user.email);
+  }, [user]);
 
   const inputClass =
     "w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10";
@@ -107,12 +120,10 @@ function ContactPage() {
       });
 
       if (res.success) {
-        toast.success(
-          "Request saved to database! Our care coordinator will call you within 30 minutes.",
-        );
-        setName("");
-        setPhone("");
-        setEmail("");
+        queryClient.invalidateQueries({ queryKey: ["my-consultations"] });
+        toast.success("Consultation booked! Track its status in My Appointments.", {
+          action: { label: "View", onClick: () => (window.location.href = "/account") },
+        });
         setTreatment("");
         setCity("");
         setMessage("");
@@ -149,114 +160,152 @@ function ContactPage() {
             {/* Full form */}
             <div>
               <SectionHead eyebrow="Get in touch" title="Tell us how we can help" />
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-navy">
-                      Full Name *
-                    </label>
-                    <input
-                      className={inputClass}
-                      placeholder="Your full name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-navy">
-                      Phone Number *
-                    </label>
-                    <input
-                      className={inputClass}
-                      placeholder="+91 98765 43210"
-                      inputMode="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required
-                    />
-                  </div>
+
+              {isLoading ? (
+                <div className="flex justify-center py-16">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-navy">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    className={inputClass}
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+              ) : !user ? (
+                // Booking requires an account so every appointment can be saved and tracked later.
+                <div className="max-w-md">
+                  <p className="mb-4 text-sm text-ink">
+                    <span className="font-semibold text-navy">Log in or create a free account</span>{" "}
+                    to book — this is how we save your appointment and let you check its status
+                    anytime.
+                  </p>
+                  <AuthPanel />
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-navy">
-                      Treatment / Concern *
-                    </label>
-                    <select
-                      className={inputClass}
-                      value={treatment}
-                      onChange={(e) => setTreatment(e.target.value)}
-                      required
+              ) : (
+                <>
+                  <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-cream px-4 py-3">
+                    <p className="flex items-center gap-2 text-sm text-ink">
+                      <UserRound className="h-4 w-4 text-brand-orange" />
+                      Booking as <span className="font-semibold text-navy">{user.name}</span>
+                    </p>
+                    <div className="flex items-center gap-4 text-sm font-semibold">
+                      <a href="/account" className="text-navy hover:text-brand-orange">
+                        My Appointments
+                      </a>
+                      <button
+                        type="button"
+                        onClick={logout}
+                        className="inline-flex items-center gap-1 text-muted-foreground hover:text-navy"
+                      >
+                        <LogOut className="h-3.5 w-3.5" /> Log out
+                      </button>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-1.5 block text-xs font-semibold text-navy">
+                          Full Name *
+                        </label>
+                        <input
+                          className={inputClass}
+                          placeholder="Your full name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-xs font-semibold text-navy">
+                          Phone Number *
+                        </label>
+                        <input
+                          className={inputClass}
+                          placeholder="+91 98765 43210"
+                          inputMode="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-navy">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        className={inputClass}
+                        placeholder="your@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-1.5 block text-xs font-semibold text-navy">
+                          Treatment / Concern *
+                        </label>
+                        <select
+                          className={inputClass}
+                          value={treatment}
+                          onChange={(e) => setTreatment(e.target.value)}
+                          required
+                        >
+                          <option value="" disabled>
+                            Select treatment
+                          </option>
+                          {treatments.map((t) => (
+                            <option key={t}>{t}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-xs font-semibold text-navy">
+                          Your City *
+                        </label>
+                        <select
+                          className={inputClass}
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          required
+                        >
+                          <option value="" disabled>
+                            Select city
+                          </option>
+                          {cities.map((c) => (
+                            <option key={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-navy">
+                        Additional details (optional)
+                      </label>
+                      <textarea
+                        className={`${inputClass} resize-none`}
+                        rows={4}
+                        placeholder="Describe your symptoms, how long you've had them, or any questions…"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                      />
+                    </div>
+                    <OrangeButton
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-3 text-base"
                     >
-                      <option value="" disabled>
-                        Select treatment
-                      </option>
-                      {treatments.map((t) => (
-                        <option key={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-navy">
-                      Your City *
-                    </label>
-                    <select
-                      className={inputClass}
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      required
-                    >
-                      <option value="" disabled>
-                        Select city
-                      </option>
-                      {cities.map((c) => (
-                        <option key={c}>{c}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-navy">
-                    Additional details (optional)
-                  </label>
-                  <textarea
-                    className={`${inputClass} resize-none`}
-                    rows={4}
-                    placeholder="Describe your symptoms, how long you've had them, or any questions…"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                  />
-                </div>
-                <OrangeButton
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3 text-base"
-                >
-                  {isSubmitting ? (
-                    <span className="inline-flex items-center justify-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Saving to MongoDB...
-                    </span>
-                  ) : (
-                    "Request Free Consultation"
-                  )}
-                </OrangeButton>
-                <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-                  <Lock className="h-3 w-3" /> Your data is secured in MongoDB. We never share your
-                  information.
-                </p>
-              </form>
+                      {isSubmitting ? (
+                        <span className="inline-flex items-center justify-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" /> Sending your request...
+                        </span>
+                      ) : (
+                        "Request Free Consultation"
+                      )}
+                    </OrangeButton>
+                    <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Lock className="h-3 w-3" /> Your data is encrypted and handled with strict
+                      medical privacy.
+                    </p>
+                  </form>
+                </>
+              )}
             </div>
 
             {/* Contact info */}
