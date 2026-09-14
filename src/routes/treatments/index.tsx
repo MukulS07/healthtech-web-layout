@@ -34,8 +34,7 @@ export const Route = createFileRoute("/treatments/")({
       { title: "All Treatments & Procedures | Prime Care" },
       {
         name: "description",
-        content:
-          "Browse surgical treatments across specialties fetched live from MongoDB database.",
+        content: "Browse surgical treatments across specialties.",
       },
     ],
   }),
@@ -64,7 +63,7 @@ function TreatmentsPage() {
           setTreatments(res.treatments);
         }
       } catch (err) {
-        console.error("Failed to load treatments from MongoDB:", err);
+        console.error("Failed to load treatments:", err);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -89,12 +88,12 @@ function TreatmentsPage() {
                   All Treatments & Procedures
                 </h1>
                 <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-                  Surgical treatments and procedures fetched live directly from MongoDB.
+                  Surgical treatments and procedures across our network.
                 </p>
               </div>
               <div className="rounded-xl border border-white/20 bg-white/10 p-4 text-navy-foreground backdrop-blur">
                 <p className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
-                  <Database className="h-4 w-4" /> Live MongoDB Procedures
+                  <Database className="h-4 w-4" /> Live Availability
                 </p>
                 <p className="mt-1 text-2xl font-extrabold">{treatments.length}</p>
                 <p className="text-[11px] text-navy-foreground/70">Treatments Loaded</p>
@@ -132,12 +131,10 @@ function TreatmentsPage() {
             </div>
 
             <div className="mb-6 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                {treatments.length} treatments found in MongoDB database
-              </p>
+              <p className="text-sm text-muted-foreground">{treatments.length} treatments found</p>
               {isLoading && (
                 <span className="flex items-center gap-1.5 text-xs text-brand-orange font-medium">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Querying MongoDB...
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Searching...
                 </span>
               )}
             </div>
@@ -146,7 +143,7 @@ function TreatmentsPage() {
               <div className="py-16 text-center">
                 <Database className="mx-auto h-10 w-10 text-muted-foreground/40" />
                 <p className="mt-3 text-muted-foreground">
-                  No treatments match your search in MongoDB — try a different query.
+                  No treatments match your search — try a different query.
                 </p>
               </div>
             ) : (
@@ -188,8 +185,7 @@ function TreatmentsPage() {
                 Talk to a specialist — it's free
               </h2>
               <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-                Our care coordinators match you with the right specialist in under 30 minutes. Saved
-                directly to MongoDB.
+                Our care coordinators match you with the right specialist in under 30 minutes.
               </p>
             </div>
             <ConsultForm />

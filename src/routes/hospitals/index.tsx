@@ -35,8 +35,7 @@ export const Route = createFileRoute("/hospitals/")({
       { title: "Our Hospital Network | Prime Care" },
       {
         name: "description",
-        content:
-          "Explore accredited hospitals across cities fetched directly from MongoDB database.",
+        content: "Explore accredited hospitals across cities.",
       },
     ],
   }),
@@ -65,7 +64,7 @@ function HospitalsPage() {
           setHospitals(res.hospitals);
         }
       } catch (err) {
-        console.error("Failed to load hospitals from MongoDB:", err);
+        console.error("Failed to load hospitals:", err);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -90,12 +89,12 @@ function HospitalsPage() {
                   Trusted Hospitals Across India
                 </h1>
                 <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-                  Accredited facilities with advanced surgical suites fetched directly from MongoDB.
+                  Accredited facilities with advanced surgical suites.
                 </p>
               </div>
               <div className="rounded-xl border border-white/20 bg-white/10 p-4 text-navy-foreground backdrop-blur">
                 <p className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
-                  <Database className="h-4 w-4" /> Live MongoDB Hospitals
+                  <Database className="h-4 w-4" /> Live Availability
                 </p>
                 <p className="mt-1 text-2xl font-extrabold">{hospitals.length}</p>
                 <p className="text-[11px] text-navy-foreground/70">Partner Hospitals Loaded</p>
@@ -149,12 +148,10 @@ function HospitalsPage() {
         <section className="py-12">
           <Container>
             <div className="mb-6 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                {hospitals.length} hospitals found in MongoDB database
-              </p>
+              <p className="text-sm text-muted-foreground">{hospitals.length} hospitals found</p>
               {isLoading && (
                 <span className="flex items-center gap-1.5 text-xs text-brand-orange font-medium">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Querying MongoDB...
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Searching...
                 </span>
               )}
             </div>
@@ -163,7 +160,7 @@ function HospitalsPage() {
               <div className="py-16 text-center">
                 <Database className="mx-auto h-10 w-10 text-muted-foreground/40" />
                 <p className="mt-3 text-muted-foreground">
-                  No hospitals match your search in MongoDB — try a different query.
+                  No hospitals match your search — try a different query.
                 </p>
               </div>
             ) : (
