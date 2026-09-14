@@ -77,9 +77,13 @@ export function Footer() {
                 <span className="text-lg font-bold">Prime Care</span>
               </div>
               <p className="mt-4 max-w-xs text-sm text-navy-foreground/70">
-                Specialist surgeons, modern hospitals and safer surgeries across 45+ cities in India.
+                Specialist surgeons, modern hospitals and safer surgeries across 45+ cities in
+                India.
               </p>
-              <a href="tel:18000001234" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold">
+              <a
+                href="tel:18000001234"
+                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold"
+              >
                 <Phone className="h-4 w-4 text-brand-orange" /> 1800 000 1234
               </a>
             </div>
@@ -89,7 +93,10 @@ export function Footer() {
                 <ul className="mt-4 space-y-2">
                   {col.links.map((l) => (
                     <li key={l.label}>
-                      <a href={l.href} className="text-sm text-navy-foreground/70 transition-colors hover:text-brand-orange">
+                      <a
+                        href={l.href}
+                        className="text-sm text-navy-foreground/70 transition-colors hover:text-brand-orange"
+                      >
                         {l.label}
                       </a>
                     </li>
@@ -103,7 +110,11 @@ export function Footer() {
             <p className="text-sm font-bold">We are available in</p>
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
               {cities.map((c) => (
-                <a key={c.label} href={c.href} className="text-sm text-navy-foreground/70 hover:text-brand-orange">
+                <a
+                  key={c.label}
+                  href={c.href}
+                  className="text-sm text-navy-foreground/70 hover:text-brand-orange"
+                >
                   {c.label}
                 </a>
               ))}
@@ -114,9 +125,13 @@ export function Footer() {
       <div className="bg-navy-deep py-4 text-center text-xs text-navy-foreground/60">
         <Container>
           © {new Date().getFullYear()} Prime Care. Illustrative demo site.{" "}
-          <a href="/privacy" className="hover:text-brand-orange">Privacy Policy</a>
+          <a href="/privacy" className="hover:text-brand-orange">
+            Privacy Policy
+          </a>
           {" · "}
-          <a href="/terms" className="hover:text-brand-orange">Terms of Use</a>
+          <a href="/terms" className="hover:text-brand-orange">
+            Terms of Use
+          </a>
         </Container>
       </div>
 

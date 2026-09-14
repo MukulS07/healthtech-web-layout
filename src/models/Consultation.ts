@@ -26,7 +26,7 @@ const ConsultationSchema = new Schema<IConsultation>(
       default: "pending",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Consultation: Model<IConsultation> =

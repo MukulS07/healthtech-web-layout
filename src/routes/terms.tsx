@@ -103,7 +103,10 @@ export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
       { title: "Terms of Use | Prime Care" },
-      { name: "description", content: "Terms and conditions governing the use of Prime Care's website and services." },
+      {
+        name: "description",
+        content: "Terms and conditions governing the use of Prime Care's website and services.",
+      },
     ],
   }),
   component: TermsPage,
@@ -117,7 +120,9 @@ function TermsPage() {
         <section className="bg-navy py-12">
           <Container>
             <Eyebrow tone="light">Legal</Eyebrow>
-            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">Terms of Use</h1>
+            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
+              Terms of Use
+            </h1>
             <p className="mt-3 text-sm text-navy-foreground/70">Last updated: September 1, 2026</p>
           </Container>
         </section>
@@ -125,7 +130,9 @@ function TermsPage() {
         <section className="py-14">
           <Container className="max-w-3xl">
             <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Please read these Terms of Use carefully before using Prime Care's website or services. These Terms constitute a legally binding agreement between you and Prime Care Health Pvt. Ltd.
+              Please read these Terms of Use carefully before using Prime Care's website or
+              services. These Terms constitute a legally binding agreement between you and Prime
+              Care Health Pvt. Ltd.
             </p>
 
             <div className="mt-10 space-y-10">
@@ -142,7 +149,9 @@ function TermsPage() {
             </div>
 
             <div className="mt-12 rounded-xl border border-border bg-cream p-5 text-sm text-muted-foreground">
-              These Terms of Use were last reviewed and updated on 1 September 2026. By using Prime Care's website or services, you acknowledge that you have read, understood and agree to be bound by these Terms.
+              These Terms of Use were last reviewed and updated on 1 September 2026. By using Prime
+              Care's website or services, you acknowledge that you have read, understood and agree
+              to be bound by these Terms.
             </div>
           </Container>
         </section>

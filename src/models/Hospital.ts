@@ -26,8 +26,9 @@ const HospitalSchema = new Schema<IHospital>(
     description: { type: String },
     address: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Hospital: Model<IHospital> =
-  (mongoose.models["Hospital"] as Model<IHospital>) || mongoose.model<IHospital>("Hospital", HospitalSchema);
+  (mongoose.models["Hospital"] as Model<IHospital>) ||
+  mongoose.model<IHospital>("Hospital", HospitalSchema);

@@ -17,121 +17,123 @@ export interface RestoreArchiveResult {
 /**
  * Server function to inspect and restore database archive DATA/jobroomdb.archive into MongoDB.
  */
-export const restoreArchiveFn = createServerFn({ method: "POST" }).handler(async (): Promise<RestoreArchiveResult> => {
-  try {
-    const db = await connectToDatabase();
-    const archivePath = path.join(process.cwd(), "DATA", "jobroomdb.archive");
+export const restoreArchiveFn = createServerFn({ method: "POST" }).handler(
+  async (): Promise<RestoreArchiveResult> => {
+    try {
+      const db = await connectToDatabase();
+      const archivePath = path.join(process.cwd(), "DATA", "jobroomdb.archive");
 
-    if (!fs.existsSync(archivePath)) {
+      if (!fs.existsSync(archivePath)) {
+        return {
+          success: false,
+          archiveFound: false,
+          message: `Archive file not found at ${archivePath}`,
+        };
+      }
+
+      const stat = fs.statSync(archivePath);
+      const sizeMB = Number((stat.size / (1024 * 1024)).toFixed(2));
+      let buffer = fs.readFileSync(archivePath);
+
+      // Decompress if gzip
+      if (buffer[0] === 0x1f && buffer[1] === 0x8b) {
+        console.log("Decompressing gzip database archive...");
+        buffer = zlib.gunzipSync(buffer);
+      }
+
+      const BSON = mongoose.mongo.BSON;
+      const collectionsRestored: Record<string, number> = {};
+      let offset = 0;
+      const dbNative = db.connection.db;
+
+      if (!dbNative) {
+        throw new Error("Database connection is not ready.");
+      }
+
+      // Parse BSON documents embedded in the archive
+      let currentCollectionName = "restored_data";
+      const batchByCollection: Record<string, Array<Record<string, unknown>>> = {};
+
+      while (offset < buffer.length - 4) {
+        try {
+          const docSize = buffer.readInt32LE(offset);
+          if (docSize > 4 && docSize <= 16 * 1024 * 1024 && offset + docSize <= buffer.length) {
+            try {
+              const rawSub = buffer.subarray(offset, offset + docSize);
+              const doc = BSON.deserialize(rawSub) as Record<string, unknown>;
+
+              if (doc && typeof doc === "object") {
+                const record = doc as Record<string, unknown>;
+                const nsVal = record["ns"];
+                if (typeof nsVal === "string") {
+                  const parts = nsVal.split(".");
+                  if (parts.length > 1) {
+                    currentCollectionName = parts.slice(1).join(".");
+                  }
+                }
+
+                const docId = record["_id"];
+                if (docId !== undefined && docId !== null) {
+                  let targetArr = batchByCollection[currentCollectionName];
+                  if (!targetArr) {
+                    targetArr = [];
+                    batchByCollection[currentCollectionName] = targetArr;
+                  }
+                  targetArr.push(record);
+                }
+                offset += docSize;
+                continue;
+              }
+            } catch {
+              // Not a BSON doc at offset
+            }
+          }
+        } catch {
+          // Continue scanning
+        }
+        offset++;
+      }
+
+      // Insert restored document batches into MongoDB collections
+      for (const [collName, docs] of Object.entries(batchByCollection)) {
+        if (docs.length > 0) {
+          const collection = dbNative.collection(collName);
+          let inserted = 0;
+          for (const doc of docs) {
+            try {
+              await collection.updateOne(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                { _id: doc["_id"] as any },
+                { $set: doc },
+                { upsert: true },
+              );
+              inserted++;
+            } catch {
+              // ignore write error
+            }
+          }
+          collectionsRestored[collName] = inserted;
+        }
+      }
+
+      return {
+        success: true,
+        archiveFound: true,
+        archiveSizeMB: sizeMB,
+        collectionsRestored,
+        message: `Successfully restored archive (${sizeMB} MB) into MongoDB collections.`,
+      };
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : String(error);
       return {
         success: false,
-        archiveFound: false,
-        message: `Archive file not found at ${archivePath}`,
+        archiveFound: true,
+        error: errMessage,
+        message: "Failed to restore database archive.",
       };
     }
-
-    const stat = fs.statSync(archivePath);
-    const sizeMB = Number((stat.size / (1024 * 1024)).toFixed(2));
-    let buffer = fs.readFileSync(archivePath);
-
-    // Decompress if gzip
-    if (buffer[0] === 0x1f && buffer[1] === 0x8b) {
-      console.log("Decompressing gzip database archive...");
-      buffer = zlib.gunzipSync(buffer);
-    }
-
-    const BSON = mongoose.mongo.BSON;
-    const collectionsRestored: Record<string, number> = {};
-    let offset = 0;
-    const dbNative = db.connection.db;
-
-    if (!dbNative) {
-      throw new Error("Database connection is not ready.");
-    }
-
-    // Parse BSON documents embedded in the archive
-    let currentCollectionName = "restored_data";
-    const batchByCollection: Record<string, Array<Record<string, unknown>>> = {};
-
-    while (offset < buffer.length - 4) {
-      try {
-        const docSize = buffer.readInt32LE(offset);
-        if (docSize > 4 && docSize <= 16 * 1024 * 1024 && offset + docSize <= buffer.length) {
-          try {
-            const rawSub = buffer.subarray(offset, offset + docSize);
-            const doc = BSON.deserialize(rawSub) as Record<string, unknown>;
-
-            if (doc && typeof doc === "object") {
-              const record = doc as Record<string, unknown>;
-              const nsVal = record["ns"];
-              if (typeof nsVal === "string") {
-                const parts = nsVal.split(".");
-                if (parts.length > 1) {
-                  currentCollectionName = parts.slice(1).join(".");
-                }
-              }
-
-              const docId = record["_id"];
-              if (docId !== undefined && docId !== null) {
-                let targetArr = batchByCollection[currentCollectionName];
-                if (!targetArr) {
-                  targetArr = [];
-                  batchByCollection[currentCollectionName] = targetArr;
-                }
-                targetArr.push(record);
-              }
-              offset += docSize;
-              continue;
-            }
-          } catch {
-            // Not a BSON doc at offset
-          }
-        }
-      } catch {
-        // Continue scanning
-      }
-      offset++;
-    }
-
-    // Insert restored document batches into MongoDB collections
-    for (const [collName, docs] of Object.entries(batchByCollection)) {
-      if (docs.length > 0) {
-        const collection = dbNative.collection(collName);
-        let inserted = 0;
-        for (const doc of docs) {
-          try {
-            await collection.updateOne(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              { _id: doc["_id"] as any },
-              { $set: doc },
-              { upsert: true }
-            );
-            inserted++;
-          } catch {
-            // ignore write error
-          }
-        }
-        collectionsRestored[collName] = inserted;
-      }
-    }
-
-    return {
-      success: true,
-      archiveFound: true,
-      archiveSizeMB: sizeMB,
-      collectionsRestored,
-      message: `Successfully restored archive (${sizeMB} MB) into MongoDB collections.`,
-    };
-  } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
-    return {
-      success: false,
-      archiveFound: true,
-      error: errMessage,
-      message: "Failed to restore database archive.",
-    };
-  }
-});
+  },
+);
 
 export interface CollectionSummary {
   name: string;

@@ -30,7 +30,7 @@ const DoctorSchema = new Schema<IDoctor>(
     fees: { type: Number },
     hospital: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Doctor: Model<IDoctor> =

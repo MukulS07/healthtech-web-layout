@@ -15,7 +15,14 @@ import {
   Apple,
   Smartphone,
 } from "lucide-react";
-import { Container, SectionHead, OrangeButton, OutlineButton, Carousel, Eyebrow } from "./primitives";
+import {
+  Container,
+  SectionHead,
+  OrangeButton,
+  OutlineButton,
+  Carousel,
+  Eyebrow,
+} from "./primitives";
 import { ConsultForm } from "./ConsultForm";
 import tileProctology from "@/assets/tile-proctology.jpg";
 import tileLaparoscopy from "@/assets/tile-laparoscopy.jpg";
@@ -92,7 +99,7 @@ export function FindCare() {
                 height={1000}
                 className="h-72 w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-               <div className="absolute inset-0 bg-navy/45" />
+              <div className="absolute inset-0 bg-navy/45" />
               <div className="absolute inset-x-0 bottom-0 p-5">
                 <Eyebrow tone="orange">{tile.label}</Eyebrow>
                 <p className="mt-1 text-lg font-bold text-navy-foreground">{tile.title}</p>
@@ -152,13 +159,16 @@ export function PatientExperiences() {
       <Container>
         <SectionHead
           align="center"
-        eyebrow="What care feels like"
-        title="Support Before, During & After Treatment"
-        subtitle="A coordinated experience designed around comfort, clarity and recovery."
+          eyebrow="What care feels like"
+          title="Support Before, During & After Treatment"
+          subtitle="A coordinated experience designed around comfort, clarity and recovery."
         />
         <div className="grid gap-6 lg:grid-cols-3">
           {experiences.map((exp) => (
-            <article key={exp.tag} className="overflow-hidden rounded-lg border border-border bg-background">
+            <article
+              key={exp.tag}
+              className="overflow-hidden rounded-lg border border-border bg-background"
+            >
               <div className="relative">
                 <img
                   src={exp.img}
@@ -171,7 +181,10 @@ export function PatientExperiences() {
                 <span className="absolute left-4 top-4 rounded-full bg-navy px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-navy-foreground">
                   {exp.tag}
                 </span>
-                <button className="absolute inset-0 grid place-items-center" aria-label="Watch video">
+                <button
+                  className="absolute inset-0 grid place-items-center"
+                  aria-label="Watch video"
+                >
                   <span className="grid h-14 w-14 place-items-center rounded-full bg-background/90 text-brand-orange shadow-lg">
                     <Play className="h-6 w-6 fill-brand-orange" />
                   </span>
@@ -224,7 +237,7 @@ export function Hospitals() {
           {hospitalFeatures.map((f) => (
             <div
               key={f.label}
-               className="flex min-w-0 items-center gap-3 rounded-lg bg-navy-foreground/10 px-4 py-3 text-navy-foreground"
+              className="flex min-w-0 items-center gap-3 rounded-lg bg-navy-foreground/10 px-4 py-3 text-navy-foreground"
             >
               <f.icon className="h-5 w-5 shrink-0 text-brand-orange" />
               <span className="truncate text-sm font-medium">{f.label}</span>
@@ -271,12 +284,36 @@ export function Hospitals() {
 /* ---------------- Journey ---------------- */
 
 const journey = [
-  { title: "Expert Consultation & Insurance", desc: "Consult top specialists with cashless & EMI support.", chip: "Cashless & EMI" },
-  { title: "Pre-Surgery Preparation", desc: "Personalized diet plans and medical checks before the procedure.", chip: "Personalized Care" },
-  { title: "Free Pick-up & Drop", desc: "Comfortable and safe hospital travel arranged for you.", chip: "Free & Safe Travel" },
-  { title: "Advanced Surgery Care", desc: "Expert surgeons with 24/7 care coordination throughout.", chip: "Expert & Trusted" },
-  { title: "Smooth Discharge", desc: "Quick, hassle-free process with insurance support.", chip: "Hassle-free Process" },
-  { title: "Recovery & Follow-Up", desc: "Home recovery guidance with free doctor follow-ups.", chip: "We Care Beyond Surgery" },
+  {
+    title: "Expert Consultation & Insurance",
+    desc: "Consult top specialists with cashless & EMI support.",
+    chip: "Cashless & EMI",
+  },
+  {
+    title: "Pre-Surgery Preparation",
+    desc: "Personalized diet plans and medical checks before the procedure.",
+    chip: "Personalized Care",
+  },
+  {
+    title: "Free Pick-up & Drop",
+    desc: "Comfortable and safe hospital travel arranged for you.",
+    chip: "Free & Safe Travel",
+  },
+  {
+    title: "Advanced Surgery Care",
+    desc: "Expert surgeons with 24/7 care coordination throughout.",
+    chip: "Expert & Trusted",
+  },
+  {
+    title: "Smooth Discharge",
+    desc: "Quick, hassle-free process with insurance support.",
+    chip: "Hassle-free Process",
+  },
+  {
+    title: "Recovery & Follow-Up",
+    desc: "Home recovery guidance with free doctor follow-ups.",
+    chip: "We Care Beyond Surgery",
+  },
 ];
 
 export function Journey() {
@@ -291,7 +328,10 @@ export function Journey() {
         />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {journey.map((step, i) => (
-            <article key={step.title} className="rounded-lg border border-border bg-background p-5 shadow-sm">
+            <article
+              key={step.title}
+              className="rounded-lg border border-border bg-background p-5 shadow-sm"
+            >
               <span className="grid h-10 w-10 place-items-center rounded-full bg-navy text-sm font-bold text-navy-foreground">
                 {i + 1}
               </span>
@@ -311,10 +351,38 @@ export function Journey() {
 /* ---------------- Doctors ---------------- */
 
 const doctors = [
-  { name: "Dr. Ananya Rao", cat: "Gynecologist", cred: "MBBS, MS (Obstetrics & Gynaecology)", exp: "14 Years", rating: "4.8", img: doctor1 },
-  { name: "Dr. Pradeep Dutta", cat: "General Medicine", cred: "MBBS, MD (Respiratory Medicine)", exp: "27 Years", rating: "4.5", img: doctor2 },
-  { name: "Dr. Karan Mehta", cat: "Laparoscopic Surgeon", cred: "MBBS, MS (General Surgery)", exp: "11 Years", rating: "4.9", img: doctor3 },
-  { name: "Dr. Sunita Narang", cat: "Eye Specialist", cred: "MBBS, MS (Ophthalmology)", exp: "18 Years", rating: "4.7", img: doctor1 },
+  {
+    name: "Dr. Ananya Rao",
+    cat: "Gynecologist",
+    cred: "MBBS, MS (Obstetrics & Gynaecology)",
+    exp: "14 Years",
+    rating: "4.8",
+    img: doctor1,
+  },
+  {
+    name: "Dr. Pradeep Dutta",
+    cat: "General Medicine",
+    cred: "MBBS, MD (Respiratory Medicine)",
+    exp: "27 Years",
+    rating: "4.5",
+    img: doctor2,
+  },
+  {
+    name: "Dr. Karan Mehta",
+    cat: "Laparoscopic Surgeon",
+    cred: "MBBS, MS (General Surgery)",
+    exp: "11 Years",
+    rating: "4.9",
+    img: doctor3,
+  },
+  {
+    name: "Dr. Sunita Narang",
+    cat: "Eye Specialist",
+    cred: "MBBS, MS (Ophthalmology)",
+    exp: "18 Years",
+    rating: "4.7",
+    img: doctor1,
+  },
 ];
 
 export function Doctors() {
@@ -396,7 +464,16 @@ export function Stats() {
 
 /* ---------------- Insurance ---------------- */
 
-const insurers = ["StarShield", "CareFirst", "NivaHealth", "BajajSecure", "HDFC Ergo", "ICICI Lombard", "TATA AIG", "Aditya Health"];
+const insurers = [
+  "StarShield",
+  "CareFirst",
+  "NivaHealth",
+  "BajajSecure",
+  "HDFC Ergo",
+  "ICICI Lombard",
+  "TATA AIG",
+  "Aditya Health",
+];
 
 export function Insurance() {
   return (
@@ -405,11 +482,11 @@ export function Insurance() {
         <div className="min-w-0">
           <Eyebrow>Cashless on 100+ insurers</Eyebrow>
           <h2 className="mt-2 text-2xl font-bold leading-tight text-navy sm:text-3xl lg:text-[34px]">
-             Clear Insurance Support with <span className="text-primary">Fast Eligibility Help</span>
+            Clear Insurance Support with <span className="text-primary">Fast Eligibility Help</span>
           </h2>
           <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Our insurance desk helps with paperwork, pre-authorisation and claims so you can focus on your health.
-            Flexible payment support is available when insurance does not apply.
+            Our insurance desk helps with paperwork, pre-authorisation and claims so you can focus
+            on your health. Flexible payment support is available when insurance does not apply.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <OrangeButton>Check Eligibility</OrangeButton>
@@ -436,9 +513,18 @@ export function Insurance() {
 /* ---------------- Testimonials ---------------- */
 
 const testimonials = [
-  { quote: "From booking to discharge everything was handled. I was back at work in four days.", name: "Rohan M., Bangalore" },
-  { quote: "The insurance approval came through in under an hour. Zero paperwork for my family.", name: "Kavita S., Pune" },
-  { quote: "My surgeon explained every step calmly. The follow-up calls really mattered.", name: "Imran A., Hyderabad" },
+  {
+    quote: "From booking to discharge everything was handled. I was back at work in four days.",
+    name: "Rohan M., Bangalore",
+  },
+  {
+    quote: "The insurance approval came through in under an hour. Zero paperwork for my family.",
+    name: "Kavita S., Pune",
+  },
+  {
+    quote: "My surgeon explained every step calmly. The follow-up calls really mattered.",
+    name: "Imran A., Hyderabad",
+  },
 ];
 
 export function Testimonials() {
@@ -471,18 +557,19 @@ export function About() {
           <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">About Prime Care</h2>
           <div className="mt-4 space-y-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
             <p>
-              Prime Care is a connected health network bringing patients, specialists, accredited hospitals and
-              insurance partners together across 45+ cities. We simplify the parts of care that often feel
-              stressful — finding the right doctor, understanding options, paperwork and recovery support.
+              Prime Care is a connected health network bringing patients, specialists, accredited
+              hospitals and insurance partners together across 45+ cities. We simplify the parts of
+              care that often feel stressful — finding the right doctor, understanding options,
+              paperwork and recovery support.
             </p>
             <p>
-              Every patient has a dedicated care coordinator from the first conversation to the final follow-up.
-              Our clinical teams prioritize clear guidance, proven techniques and a treatment plan shaped around
-              the individual rather than a one-size-fits-all pathway.
+              Every patient has a dedicated care coordinator from the first conversation to the
+              final follow-up. Our clinical teams prioritize clear guidance, proven techniques and a
+              treatment plan shaped around the individual rather than a one-size-fits-all pathway.
             </p>
             <p>
-              With 2M+ lives touched and a 4.8/5 average patient rating, our focus stays simple: dependable care,
-              transparent pricing and support that continues beyond the clinic.
+              With 2M+ lives touched and a 4.8/5 average patient rating, our focus stays simple:
+              dependable care, transparent pricing and support that continues beyond the clinic.
             </p>
           </div>
         </div>
@@ -498,9 +585,17 @@ export function About() {
 
 const posts = [
   { cat: "Proctology", title: "Piles: when surgery is the right choice", read: "5 min read" },
-  { cat: "Recovery", title: "What to eat in the first week after hernia surgery", read: "4 min read" },
+  {
+    cat: "Recovery",
+    title: "What to eat in the first week after hernia surgery",
+    read: "4 min read",
+  },
   { cat: "Insurance", title: "How cashless surgery approval actually works", read: "6 min read" },
-  { cat: "Orthopedics", title: "Knee replacement: myths patients still believe", read: "7 min read" },
+  {
+    cat: "Orthopedics",
+    title: "Knee replacement: myths patients still believe",
+    read: "7 min read",
+  },
 ];
 
 export function Healthfeed() {
@@ -517,7 +612,7 @@ export function Healthfeed() {
           {posts.map((p) => (
             <article
               key={p.title}
-               className="flex w-[260px] shrink-0 snap-start flex-col rounded-lg border border-border bg-background p-5 sm:w-[300px]"
+              className="flex w-[260px] shrink-0 snap-start flex-col rounded-lg border border-border bg-background p-5 sm:w-[300px]"
             >
               <span className="w-fit rounded-full bg-brand-orange-soft px-3 py-1 text-[11px] font-semibold text-brand-orange-dark">
                 {p.cat}
@@ -596,8 +691,8 @@ export function DownloadApp() {
             Track Your Surgery Journey <span className="text-brand-orange">On Your Phone</span>
           </h2>
           <p className="mt-3 max-w-lg text-sm text-navy-foreground/85 sm:text-base">
-            Book consultations, upload reports, follow insurance status and chat with your care coordinator —
-            all in one place.
+            Book consultations, upload reports, follow insurance status and chat with your care
+            coordinator — all in one place.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-3 text-sm font-semibold text-navy">

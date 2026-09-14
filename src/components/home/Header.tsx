@@ -31,7 +31,8 @@ export function Header() {
               <span className="truncate text-lg font-bold">Prime Care</span>
             </a>
             <button className="hidden shrink-0 items-center gap-1 text-sm text-muted-foreground lg:flex">
-              <MapPin className="h-4 w-4 text-brand-orange" /> Delhi NCR <ChevronDown className="h-4 w-4" />
+              <MapPin className="h-4 w-4 text-brand-orange" /> Delhi NCR{" "}
+              <ChevronDown className="h-4 w-4" />
             </button>
             <div className="hidden min-w-0 flex-1 items-center gap-2 rounded-lg bg-brand-orange-soft px-3 py-2 lg:flex">
               <Search className="h-4 w-4 shrink-0 text-primary" />
@@ -42,20 +43,34 @@ export function Header() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-4">
-            <a href="/db-status" className="hidden items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-full px-2.5 py-1 sm:flex">
+            <a
+              href="/db-status"
+              className="hidden items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-full px-2.5 py-1 sm:flex"
+            >
               <Database className="h-3.5 w-3.5" /> DB Live Status
             </a>
-            <a href="/faqs" className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex hover:text-navy">
+            <a
+              href="/faqs"
+              className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex hover:text-navy"
+            >
               For Patients
             </a>
-            <a href="/about" className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex hover:text-navy">
+            <a
+              href="/about"
+              className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex hover:text-navy"
+            >
               Our Company
             </a>
-            <a href="tel:18000001234" className="hidden items-center gap-2 text-sm font-semibold text-navy sm:flex">
+            <a
+              href="tel:18000001234"
+              className="hidden items-center gap-2 text-sm font-semibold text-navy sm:flex"
+            >
               <Phone className="h-4 w-4 text-brand-orange" /> 1800 000 1234
             </a>
             <a href="/contact">
-              <OrangeButton className="hidden px-4 py-2.5 md:inline-flex">Book Free Consultation</OrangeButton>
+              <OrangeButton className="hidden px-4 py-2.5 md:inline-flex">
+                Book Free Consultation
+              </OrangeButton>
             </a>
             <button aria-label="Menu" className="lg:hidden">
               <Menu className="h-6 w-6" />

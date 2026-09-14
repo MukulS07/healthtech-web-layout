@@ -34,7 +34,11 @@ export const Route = createFileRoute("/locations/")({
   head: () => ({
     meta: [
       { title: "Locations — Cities We Serve | Prime Care" },
-      { name: "description", content: "Prime Care is available in 45+ cities across India. Find specialist surgeons and accredited hospitals near you." },
+      {
+        name: "description",
+        content:
+          "Prime Care is available in 45+ cities across India. Find specialist surgeons and accredited hospitals near you.",
+      },
     ],
   }),
   component: LocationsPage,
@@ -48,9 +52,12 @@ function LocationsPage() {
         <section className="bg-navy py-14">
           <Container>
             <Eyebrow tone="light">45+ cities</Eyebrow>
-            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">Find Care Near You</h1>
+            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
+              Find Care Near You
+            </h1>
             <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-              Specialist surgeons, accredited hospitals and dedicated care coordinators across 45+ cities in India.
+              Specialist surgeons, accredited hospitals and dedicated care coordinators across 45+
+              cities in India.
             </p>
           </Container>
         </section>
@@ -99,9 +106,12 @@ function LocationsPage() {
         <section className="bg-navy py-14">
           <Container className="text-center">
             <Eyebrow tone="light">Not seeing your city?</Eyebrow>
-            <h2 className="mt-2 text-2xl font-bold text-navy-foreground sm:text-3xl">We're Expanding Fast</h2>
+            <h2 className="mt-2 text-2xl font-bold text-navy-foreground sm:text-3xl">
+              We're Expanding Fast
+            </h2>
             <p className="mx-auto mt-3 max-w-md text-sm text-navy-foreground/75">
-              We're adding new cities every quarter. Share your location and we'll notify you when we arrive.
+              We're adding new cities every quarter. Share your location and we'll notify you when
+              we arrive.
             </p>
             <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <input

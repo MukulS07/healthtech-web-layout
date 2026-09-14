@@ -98,7 +98,10 @@ export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
       { title: "Privacy Policy | Prime Care" },
-      { name: "description", content: "How Prime Care collects, uses and protects your personal and health information." },
+      {
+        name: "description",
+        content: "How Prime Care collects, uses and protects your personal and health information.",
+      },
     ],
   }),
   component: PrivacyPage,
@@ -112,7 +115,9 @@ function PrivacyPage() {
         <section className="bg-navy py-12">
           <Container>
             <Eyebrow tone="light">Legal</Eyebrow>
-            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">Privacy Policy</h1>
+            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
+              Privacy Policy
+            </h1>
             <p className="mt-3 text-sm text-navy-foreground/70">Last updated: September 1, 2026</p>
           </Container>
         </section>
@@ -120,10 +125,14 @@ function PrivacyPage() {
         <section className="py-14">
           <Container className="max-w-3xl">
             <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Prime Care Health Pvt. Ltd. ("Prime Care", "we", "our" or "us") is committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use and protect data when you use our website (primecare.in) or any of our services.
+              Prime Care Health Pvt. Ltd. ("Prime Care", "we", "our" or "us") is committed to
+              protecting your personal information and your right to privacy. This Privacy Policy
+              explains how we collect, use and protect data when you use our website (primecare.in)
+              or any of our services.
             </p>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Please read this policy carefully. If you disagree with its terms, please do not use our services.
+              Please read this policy carefully. If you disagree with its terms, please do not use
+              our services.
             </p>
 
             <div className="mt-10 space-y-10">
@@ -140,7 +149,9 @@ function PrivacyPage() {
             </div>
 
             <div className="mt-12 rounded-xl border border-border bg-cream p-5 text-sm text-muted-foreground">
-              This Privacy Policy was last reviewed and updated on 1 September 2026. By using Prime Care's website or services, you acknowledge that you have read and understood this policy.
+              This Privacy Policy was last reviewed and updated on 1 September 2026. By using Prime
+              Care's website or services, you acknowledge that you have read and understood this
+              policy.
             </div>
           </Container>
         </section>

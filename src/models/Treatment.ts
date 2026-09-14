@@ -27,8 +27,9 @@ const TreatmentSchema = new Schema<ITreatment>(
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Treatment: Model<ITreatment> =
-  (mongoose.models["Treatment"] as Model<ITreatment>) || mongoose.model<ITreatment>("Treatment", TreatmentSchema);
+  (mongoose.models["Treatment"] as Model<ITreatment>) ||
+  mongoose.model<ITreatment>("Treatment", TreatmentSchema);

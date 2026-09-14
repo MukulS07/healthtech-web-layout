@@ -20,7 +20,10 @@ export function Hero() {
               <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-1.5 text-xs font-semibold text-navy">
                 <span className="flex -space-x-2">
                   {["bg-primary", "bg-brand-blue-light", "bg-navy"].map((color) => (
-                    <span key={color} className={`h-4 w-4 rounded-full border border-background ${color}`} />
+                    <span
+                      key={color}
+                      className={`h-4 w-4 rounded-full border border-background ${color}`}
+                    />
                   ))}
                 </span>
                 Trusted by 2M+ patients
@@ -30,10 +33,12 @@ export function Hero() {
               </span>
             </div>
             <h1 className="mt-8 max-w-2xl text-4xl font-bold leading-[1.08] sm:text-5xl lg:text-6xl">
-              Thoughtful care for every step of your <span className="text-brand-blue-light">health journey.</span>
+              Thoughtful care for every step of your{" "}
+              <span className="text-brand-blue-light">health journey.</span>
             </h1>
             <p className="mt-5 max-w-xl text-base text-navy-foreground/80">
-              Find the right specialist, understand your treatment, and feel supported from your first conversation through recovery.
+              Find the right specialist, understand your treatment, and feel supported from your
+              first conversation through recovery.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <OrangeButton>Find the right care</OrangeButton>
@@ -48,16 +53,23 @@ export function Hero() {
                 { value: "60+", label: "Partner hospitals" },
               ].map((stat) => (
                 <div key={stat.label} className="min-w-0">
-                  <p className="text-2xl font-bold text-brand-blue-light sm:text-3xl">{stat.value}</p>
+                  <p className="text-2xl font-bold text-brand-blue-light sm:text-3xl">
+                    {stat.value}
+                  </p>
                   <p className="mt-1 truncate text-xs text-navy-foreground/70">{stat.label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-
           <div className="relative hidden overflow-hidden rounded-lg bg-brand-orange-soft lg:col-span-5 lg:flex">
-            <img src={heroDoctor} alt="Care specialist ready to help" width={900} height={1100} className="h-full w-full object-contain object-bottom" />
+            <img
+              src={heroDoctor}
+              alt="Care specialist ready to help"
+              width={900}
+              height={1100}
+              className="h-full w-full object-contain object-bottom"
+            />
             <div className="absolute bottom-4 left-4 rounded-lg bg-background p-3 shadow-sm">
               <p className="text-xs text-muted-foreground">Care team available</p>
               <p className="text-sm font-bold text-navy">Today · 8:00 AM–8:00 PM</p>
@@ -71,7 +83,10 @@ export function Hero() {
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {trustItems.map((item) => (
-            <div key={item.title} className="flex min-w-0 items-center gap-3 rounded-lg border border-navy/10 bg-background p-4">
+            <div
+              key={item.title}
+              className="flex min-w-0 items-center gap-3 rounded-lg border border-navy/10 bg-background p-4"
+            >
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-brand-orange-soft text-primary">
                 <item.icon className="h-5 w-5" />
               </span>

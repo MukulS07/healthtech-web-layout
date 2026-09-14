@@ -16,7 +16,16 @@ const treatments = [
   "ENT",
 ];
 
-const cities = ["Delhi NCR", "Mumbai", "Bangalore", "Hyderabad", "Chennai", "Pune", "Kolkata", "Kochi"];
+const cities = [
+  "Delhi NCR",
+  "Mumbai",
+  "Bangalore",
+  "Hyderabad",
+  "Chennai",
+  "Pune",
+  "Kolkata",
+  "Kochi",
+];
 
 export function ConsultForm({ className }: { className?: string }) {
   const [name, setName] = useState("");
@@ -64,13 +73,20 @@ export function ConsultForm({ className }: { className?: string }) {
   };
 
   return (
-    <div className={cn("overflow-hidden rounded-lg border border-navy/10 bg-background shadow-sm", className)}>
+    <div
+      className={cn(
+        "overflow-hidden rounded-lg border border-navy/10 bg-background shadow-sm",
+        className,
+      )}
+    >
       <div className="border-b border-border bg-brand-orange-soft px-5 py-4 flex items-center justify-between">
         <div>
           <p className="text-base font-bold text-navy">
             Talk to a <span className="text-primary">care specialist</span>
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">Share a few details. Saved directly to MongoDB.</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Share a few details. Saved directly to MongoDB.
+          </p>
         </div>
         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 border border-emerald-300">
           <Database className="h-3 w-3 text-emerald-600" /> DB Connected
@@ -132,10 +148,10 @@ export function ConsultForm({ className }: { className?: string }) {
           )}
         </OrangeButton>
         <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-          <Lock className="h-3 w-3" /> Your data is secured in MongoDB. We prioritize medical privacy.
+          <Lock className="h-3 w-3" /> Your data is secured in MongoDB. We prioritize medical
+          privacy.
         </p>
       </form>
     </div>
   );
 }
-

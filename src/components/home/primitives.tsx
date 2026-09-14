@@ -3,17 +3,19 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-export function Container({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <div className={cn("mx-auto w-full max-w-[1320px] px-4 sm:px-6", className)}>{children}</div>;
+export function Container({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={cn("mx-auto w-full max-w-[1320px] px-4 sm:px-6", className)}>{children}</div>
+  );
 }
 
-export function Eyebrow({ children, tone = "orange" }: { children: ReactNode; tone?: "orange" | "light" }) {
+export function Eyebrow({
+  children,
+  tone = "orange",
+}: {
+  children: ReactNode;
+  tone?: "orange" | "light";
+}) {
   return (
     <p
       className={cn(
@@ -45,7 +47,9 @@ export function SectionHead({
     <div
       className={cn(
         "mb-8 gap-4 sm:mb-10",
-        align === "center" ? "flex flex-col items-center text-center" : "grid grid-cols-1 sm:flex sm:items-end sm:justify-between",
+        align === "center"
+          ? "flex flex-col items-center text-center"
+          : "grid grid-cols-1 sm:flex sm:items-end sm:justify-between",
       )}
     >
       <div className={cn("min-w-0", align === "center" && "max-w-2xl")}>
@@ -59,7 +63,12 @@ export function SectionHead({
           {title}
         </h2>
         {subtitle ? (
-          <p className={cn("mt-2 text-sm sm:text-base", tone === "light" ? "text-navy-foreground/75" : "text-muted-foreground")}>
+          <p
+            className={cn(
+              "mt-2 text-sm sm:text-base",
+              tone === "light" ? "text-navy-foreground/75" : "text-muted-foreground",
+            )}
+          >
             {subtitle}
           </p>
         ) : null}

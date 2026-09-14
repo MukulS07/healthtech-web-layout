@@ -8,7 +8,17 @@ import hospital1 from "@/assets/hospital-1.jpg";
 import hospital2 from "@/assets/hospital-2.jpg";
 import { getHospitalsFn } from "@/lib/server-functions/hospitals";
 
-const cityOptions = ["All Cities", "Delhi NCR", "Mumbai", "Bangalore", "Hyderabad", "Chennai", "Pune", "Kolkata", "Kochi"];
+const cityOptions = [
+  "All Cities",
+  "Delhi NCR",
+  "Mumbai",
+  "Bangalore",
+  "Hyderabad",
+  "Chennai",
+  "Pune",
+  "Kolkata",
+  "Kochi",
+];
 const hospitalImages = [hospital1, hospital2];
 
 export const Route = createFileRoute("/hospitals/")({
@@ -23,7 +33,11 @@ export const Route = createFileRoute("/hospitals/")({
   head: () => ({
     meta: [
       { title: "Our Hospital Network | Prime Care" },
-      { name: "description", content: "Explore accredited hospitals across cities fetched directly from MongoDB database." },
+      {
+        name: "description",
+        content:
+          "Explore accredited hospitals across cities fetched directly from MongoDB database.",
+      },
     ],
   }),
   component: HospitalsPage,
@@ -72,7 +86,9 @@ function HospitalsPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <Eyebrow tone="light">Our network</Eyebrow>
-                <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">Trusted Hospitals Across India</h1>
+                <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
+                  Trusted Hospitals Across India
+                </h1>
                 <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
                   Accredited facilities with advanced surgical suites fetched directly from MongoDB.
                 </p>
@@ -101,7 +117,11 @@ function HospitalsPage() {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               >
-                {cityOptions.map((c) => <option key={c} className="text-ink">{c}</option>)}
+                {cityOptions.map((c) => (
+                  <option key={c} className="text-ink">
+                    {c}
+                  </option>
+                ))}
               </select>
             </div>
           </Container>
@@ -111,7 +131,13 @@ function HospitalsPage() {
         <section className="border-b border-border bg-cream py-6">
           <Container>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-ink/80">
-              {["NABH Accredited", "24/7 Emergency", "Advanced Robotic Surgery", "Zero Infection Protocols", "Cashless Admissions"].map((b) => (
+              {[
+                "NABH Accredited",
+                "24/7 Emergency",
+                "Advanced Robotic Surgery",
+                "Zero Infection Protocols",
+                "Cashless Admissions",
+              ].map((b) => (
                 <span key={b} className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-brand-orange" /> {b}
                 </span>
@@ -123,7 +149,9 @@ function HospitalsPage() {
         <section className="py-12">
           <Container>
             <div className="mb-6 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">{hospitals.length} hospitals found in MongoDB database</p>
+              <p className="text-sm text-muted-foreground">
+                {hospitals.length} hospitals found in MongoDB database
+              </p>
               {isLoading && (
                 <span className="flex items-center gap-1.5 text-xs text-brand-orange font-medium">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Querying MongoDB...
@@ -134,18 +162,31 @@ function HospitalsPage() {
             {hospitals.length === 0 ? (
               <div className="py-16 text-center">
                 <Database className="mx-auto h-10 w-10 text-muted-foreground/40" />
-                <p className="mt-3 text-muted-foreground">No hospitals match your search in MongoDB — try a different query.</p>
+                <p className="mt-3 text-muted-foreground">
+                  No hospitals match your search in MongoDB — try a different query.
+                </p>
               </div>
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {hospitals.map((h, index) => {
                   const img = h.img || hospitalImages[index % hospitalImages.length];
                   return (
-                    <article key={h.slug || h.id} className="overflow-hidden rounded-lg border border-border bg-background shadow-sm transition-shadow hover:shadow-md">
+                    <article
+                      key={h.slug || h.id}
+                      className="overflow-hidden rounded-lg border border-border bg-background shadow-sm transition-shadow hover:shadow-md"
+                    >
                       <div className="relative">
-                        <img src={img} alt={h.name} loading="lazy" width={900} height={600} className="h-44 w-full object-cover" />
+                        <img
+                          src={img}
+                          alt={h.name}
+                          loading="lazy"
+                          width={900}
+                          height={600}
+                          className="h-44 w-full object-cover"
+                        />
                         <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy">
-                          <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" /> {h.rating}
+                          <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" />{" "}
+                          {h.rating}
                         </span>
                       </div>
                       <div className="p-4">
@@ -155,12 +196,21 @@ function HospitalsPage() {
                         </p>
                         <div className="mt-2 flex flex-wrap gap-1">
                           {h.accreditations.map((a) => (
-                            <span key={a} className="rounded-full bg-brand-orange-soft px-2 py-0.5 text-[10px] font-semibold text-brand-orange-dark">{a}</span>
+                            <span
+                              key={a}
+                              className="rounded-full bg-brand-orange-soft px-2 py-0.5 text-[10px] font-semibold text-brand-orange-dark"
+                            >
+                              {a}
+                            </span>
                           ))}
                         </div>
-                        <p className="mt-2 text-xs text-muted-foreground line-clamp-1">{h.specialties.join(" · ")}</p>
+                        <p className="mt-2 text-xs text-muted-foreground line-clamp-1">
+                          {h.specialties.join(" · ")}
+                        </p>
                         <div className="mt-4 flex gap-2">
-                          <OutlineButton className="flex-1 px-2 py-2 text-xs">Get Directions</OutlineButton>
+                          <OutlineButton className="flex-1 px-2 py-2 text-xs">
+                            Get Directions
+                          </OutlineButton>
                           <OrangeButton className="flex-1 px-2 py-2 text-xs">Book Now</OrangeButton>
                         </div>
                       </div>

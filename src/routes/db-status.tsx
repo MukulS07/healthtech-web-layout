@@ -1,13 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { Database, CheckCircle2, XCircle, RefreshCw, Layers, Users, PhoneCall, Calendar, Sparkles, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Database,
+  CheckCircle2,
+  XCircle,
+  RefreshCw,
+  Layers,
+  Users,
+  PhoneCall,
+  Calendar,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, OrangeButton, OutlineButton, Eyebrow } from "@/components/home/primitives";
 import { checkDbConnection } from "@/lib/db-status";
 import { getConsultationsFn } from "@/lib/server-functions/consultations";
 import { seedDatabaseFn } from "@/lib/server-functions/seed";
-import { restoreArchiveFn, getRestoredDataFn, CollectionSummary } from "@/lib/server-functions/restore";
+import {
+  restoreArchiveFn,
+  getRestoredDataFn,
+  CollectionSummary,
+} from "@/lib/server-functions/restore";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { toast } from "sonner";
 
@@ -15,7 +30,11 @@ export const Route = createFileRoute("/db-status")({
   head: () => ({
     meta: [
       { title: "MongoDB Health & Data Dashboard | Prime Care" },
-      { name: "description", content: "Inspect real-time MongoDB database connection status, collection metrics, and consultation form submissions." },
+      {
+        name: "description",
+        content:
+          "Inspect real-time MongoDB database connection status, collection metrics, and consultation form submissions.",
+      },
     ],
   }),
   component: DbStatusPage,
@@ -54,7 +73,7 @@ function DbStatusPage() {
   const [dbCollections, setDbCollections] = useState<CollectionSummary[]>([]);
   const [selectedColl, setSelectedColl] = useState<string>("");
 
-  const fetchDbData = async () => {
+  const fetchDbData = useCallback(async () => {
     setIsLoading(true);
     try {
       // 1. Check DB Connection
@@ -83,8 +102,8 @@ function DbStatusPage() {
       if (collRes.success && collRes.collections) {
         setDbCollections(collRes.collections);
         const firstColl = collRes.collections[0];
-        if (firstColl && !selectedColl) {
-          setSelectedColl(firstColl.name);
+        if (firstColl) {
+          setSelectedColl((prev) => prev || firstColl.name);
         }
       }
     } catch (err) {
@@ -93,11 +112,11 @@ function DbStatusPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchDbData();
-  }, []);
+  }, [fetchDbData]);
 
   const handleSeed = async () => {
     setIsSeeding(true);
@@ -135,7 +154,8 @@ function DbStatusPage() {
     }
   };
 
-  const activeCollectionObj = dbCollections.find((c) => c.name === selectedColl) || dbCollections[0];
+  const activeCollectionObj =
+    dbCollections.find((c) => c.name === selectedColl) || dbCollections[0];
 
   return (
     <div className="bg-background min-h-screen flex flex-col">
@@ -150,18 +170,38 @@ function DbStatusPage() {
                   MongoDB Backend Status & Live Submissions
                 </h1>
                 <p className="mt-2 text-sm text-navy-foreground/75 sm:text-base">
-                  Real-time status of your MongoDB connection, collection counts, and form submissions stored in the database.
+                  Real-time status of your MongoDB connection, collection counts, and form
+                  submissions stored in the database.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <OutlineButton onClick={fetchDbData} disabled={isLoading} className="border-white/30 text-white hover:bg-white/10">
-                  <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} /> Refresh State
+                <OutlineButton
+                  onClick={fetchDbData}
+                  disabled={isLoading}
+                  className="border-white/30 text-white hover:bg-white/10"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} /> Refresh
+                  State
                 </OutlineButton>
-                <OutlineButton onClick={handleRestoreArchive} disabled={isRestoring} className="border-emerald-400/50 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30">
-                  {isRestoring ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4 text-emerald-400" />} Restore DATA/jobroomdb.archive
+                <OutlineButton
+                  onClick={handleRestoreArchive}
+                  disabled={isRestoring}
+                  className="border-emerald-400/50 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
+                >
+                  {isRestoring ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Database className="h-4 w-4 text-emerald-400" />
+                  )}{" "}
+                  Restore DATA/jobroomdb.archive
                 </OutlineButton>
                 <OrangeButton onClick={handleSeed} disabled={isSeeding}>
-                  {isSeeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Seed Database
+                  {isSeeding ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}{" "}
+                  Seed Database
                 </OrangeButton>
               </div>
             </div>
@@ -173,16 +213,22 @@ function DbStatusPage() {
             {!dbState.isConnected && (
               <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-5 text-amber-900 shadow-sm">
                 <h3 className="flex items-center gap-2 text-base font-bold text-amber-900">
-                  <Database className="h-5 w-5 text-amber-700" /> How to Connect Your MongoDB Database
+                  <Database className="h-5 w-5 text-amber-700" /> How to Connect Your MongoDB
+                  Database
                 </h3>
                 <p className="mt-1 text-xs text-amber-800">
-                  Your web backend is configured to fetch and store data in MongoDB. To connect your database:
+                  Your web backend is configured to fetch and store data in MongoDB. To connect your
+                  database:
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2 text-xs">
                   <div className="rounded-lg bg-white p-3 border border-amber-200">
-                    <p className="font-bold text-navy">Option A: MongoDB Atlas (Cloud DB - Recommended)</p>
+                    <p className="font-bold text-navy">
+                      Option A: MongoDB Atlas (Cloud DB - Recommended)
+                    </p>
                     <p className="mt-1 text-muted-foreground text-[11px]">
-                      Paste your cluster URI into the <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-950">.env</code> file:
+                      Paste your cluster URI into the{" "}
+                      <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-950">.env</code>{" "}
+                      file:
                     </p>
                     <code className="mt-2 block rounded bg-slate-900 p-2 font-mono text-[11px] text-emerald-400 overflow-x-auto">
                       MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/healthtech
@@ -191,7 +237,9 @@ function DbStatusPage() {
                   <div className="rounded-lg bg-white p-3 border border-amber-200">
                     <p className="font-bold text-navy">Option B: Local MongoDB Server</p>
                     <p className="mt-1 text-muted-foreground text-[11px]">
-                      Ensure MongoDB Community Server is installed and running on default port <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-950">27017</code>.
+                      Ensure MongoDB Community Server is installed and running on default port{" "}
+                      <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-950">27017</code>
+                      .
                     </p>
                     <code className="mt-2 block rounded bg-slate-900 p-2 font-mono text-[11px] text-emerald-400 overflow-x-auto">
                       mongod --dbpath C:\data\db
@@ -206,7 +254,9 @@ function DbStatusPage() {
               {/* Card 1: Connection Health */}
               <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase text-muted-foreground">MongoDB Status</span>
+                  <span className="text-xs font-semibold uppercase text-muted-foreground">
+                    MongoDB Status
+                  </span>
                   <Database className="h-5 w-5 text-brand-orange" />
                 </div>
                 <div className="mt-4 flex items-center gap-2">
@@ -219,34 +269,46 @@ function DbStatusPage() {
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">{dbState.message}</p>
                 {dbState.error && (
-                  <p className="mt-1 rounded bg-rose-50 p-2 text-[11px] font-mono text-rose-700 max-h-24 overflow-y-auto">{dbState.error}</p>
+                  <p className="mt-1 rounded bg-rose-50 p-2 text-[11px] font-mono text-rose-700 max-h-24 overflow-y-auto">
+                    {dbState.error}
+                  </p>
                 )}
               </div>
 
               {/* Card 2: Consultations Stored */}
               <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase text-muted-foreground">Consultations Saved</span>
+                  <span className="text-xs font-semibold uppercase text-muted-foreground">
+                    Consultations Saved
+                  </span>
                   <PhoneCall className="h-5 w-5 text-brand-orange" />
                 </div>
                 <p className="mt-4 text-3xl font-extrabold text-navy">{consultations.length}</p>
-                <p className="mt-2 text-xs text-muted-foreground">Submissions saved to `consultations` collection</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Submissions saved to `consultations` collection
+                </p>
               </div>
 
               {/* Card 3: Doctors Collection */}
               <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase text-muted-foreground">Doctors Collection</span>
+                  <span className="text-xs font-semibold uppercase text-muted-foreground">
+                    Doctors Collection
+                  </span>
                   <Users className="h-5 w-5 text-brand-orange" />
                 </div>
                 <p className="mt-4 text-3xl font-extrabold text-navy">{doctorCount}</p>
-                <p className="mt-2 text-xs text-muted-foreground">Documents in `doctors` collection</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Documents in `doctors` collection
+                </p>
               </div>
 
               {/* Card 4: Collections Count */}
               <div className="rounded-xl border border-border bg-background p-5 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase text-muted-foreground">MongoDB Collections</span>
+                  <span className="text-xs font-semibold uppercase text-muted-foreground">
+                    MongoDB Collections
+                  </span>
                   <Layers className="h-5 w-5 text-brand-orange" />
                 </div>
                 <p className="mt-4 text-3xl font-extrabold text-navy">{dbCollections.length}</p>
@@ -261,7 +323,9 @@ function DbStatusPage() {
                   <h2 className="text-lg font-bold text-navy flex items-center gap-2">
                     <Database className="h-5 w-5 text-emerald-600" /> Restored MongoDB Data Explorer
                   </h2>
-                  <p className="text-xs text-muted-foreground">View documents restored from `DATA/jobroomdb.archive` directly from MongoDB.</p>
+                  <p className="text-xs text-muted-foreground">
+                    View documents restored from `DATA/jobroomdb.archive` directly from MongoDB.
+                  </p>
                 </div>
                 {dbCollections.length > 0 && (
                   <div className="flex items-center gap-2">
@@ -285,7 +349,9 @@ function DbStatusPage() {
                 <div className="py-12 text-center border-2 border-dashed border-border rounded-lg">
                   <Database className="mx-auto h-8 w-8 text-muted-foreground/40" />
                   <p className="mt-2 text-sm font-semibold text-navy">No collections loaded yet</p>
-                  <p className="text-xs text-muted-foreground mt-1">Click "Restore DATA/jobroomdb.archive" to populate your database collections.</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Click "Restore DATA/jobroomdb.archive" to populate your database collections.
+                  </p>
                 </div>
               ) : (
                 <div>
@@ -293,7 +359,8 @@ function DbStatusPage() {
                     <div>
                       <div className="flex items-center justify-between mb-3 bg-cream p-3 rounded-lg border border-border">
                         <p className="text-xs font-bold text-navy uppercase">
-                          Collection: <span className="text-brand-orange">{activeCollectionObj.name}</span>
+                          Collection:{" "}
+                          <span className="text-brand-orange">{activeCollectionObj.name}</span>
                         </p>
                         <span className="rounded-full bg-navy px-3 py-0.5 text-[11px] font-bold text-white">
                           Total {activeCollectionObj.count} Documents
@@ -314,8 +381,12 @@ function DbStatusPage() {
             <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-lg font-bold text-navy">Live MongoDB Consultation Submissions</h2>
-                  <p className="text-xs text-muted-foreground">These records were submitted via the website form and persisted to MongoDB.</p>
+                  <h2 className="text-lg font-bold text-navy">
+                    Live MongoDB Consultation Submissions
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    These records were submitted via the website form and persisted to MongoDB.
+                  </p>
                 </div>
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
                   {consultations.length} Submissions
@@ -325,8 +396,12 @@ function DbStatusPage() {
               {consultations.length === 0 ? (
                 <div className="py-12 text-center border-2 border-dashed border-border rounded-lg">
                   <PhoneCall className="mx-auto h-8 w-8 text-muted-foreground/40" />
-                  <p className="mt-2 text-sm font-semibold text-navy">No consultations submitted yet</p>
-                  <p className="text-xs text-muted-foreground mt-1">Submit a test request using the consultation form on the home or contact page.</p>
+                  <p className="mt-2 text-sm font-semibold text-navy">
+                    No consultations submitted yet
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Submit a test request using the consultation form on the home or contact page.
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -345,9 +420,13 @@ function DbStatusPage() {
                       {consultations.map((c) => (
                         <tr key={c.id} className="hover:bg-cream/50 transition-colors">
                           <td className="p-3">
-                            <p className="font-mono text-[11px] text-muted-foreground">{c.id.substring(0, 10)}...</p>
+                            <p className="font-mono text-[11px] text-muted-foreground">
+                              {c.id.substring(0, 10)}...
+                            </p>
                             <p className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
-                              <Calendar className="h-3 w-3" /> {new Date(c.createdAt).toLocaleDateString()} {new Date(c.createdAt).toLocaleTimeString()}
+                              <Calendar className="h-3 w-3" />{" "}
+                              {new Date(c.createdAt).toLocaleDateString()}{" "}
+                              {new Date(c.createdAt).toLocaleTimeString()}
                             </p>
                           </td>
                           <td className="p-3 font-semibold text-navy">{c.name}</td>

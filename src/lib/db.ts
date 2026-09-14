@@ -10,11 +10,10 @@ interface MongooseCache {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var mongooseCache: MongooseCache | undefined;
 }
 
-let cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
+const cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
 
 if (!global.mongooseCache) {
   global.mongooseCache = cached;
@@ -74,7 +73,7 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
         }
 
         throw new Error(
-          `Unable to connect to MongoDB (${errMessage}). Please verify MONGODB_URI in your .env file or start MongoDB locally.`
+          `Unable to connect to MongoDB (${errMessage}). Please verify MONGODB_URI in your .env file or start MongoDB locally.`,
         );
       }
     })();
