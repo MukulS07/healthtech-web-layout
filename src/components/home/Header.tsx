@@ -1,21 +1,28 @@
 import { ChevronDown, MapPin, Phone, Search, Menu, HeartPulse, Database } from "lucide-react";
 import { Container, OrangeButton } from "./primitives";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
-const specialtyNav = [
+const mainSpecialties = [
   { label: "Proctology", href: "/specialities/proctology" },
   { label: "Laparoscopy", href: "/specialities/laparoscopy" },
   { label: "Gynaecology", href: "/specialities/gynaecology" },
   { label: "ENT", href: "/specialities/ent" },
   { label: "Urology", href: "/specialities/urology" },
+  { label: "Orthopedics", href: "/specialities/orthopedics" },
+];
+
+const extraSpecialties = [
   { label: "Vascular", href: "/specialities/vascular" },
   { label: "Aesthetics", href: "/specialities/aesthetics" },
-  { label: "Orthopedics", href: "/specialities/orthopedics" },
   { label: "Ophthalmology", href: "/specialities/ophthalmology" },
   { label: "Fertility", href: "/specialities/fertility" },
   { label: "Weight Loss", href: "/specialities/weight-loss" },
   { label: "Dermatology", href: "/specialities/dermatology" },
-  { label: "Our Doctors", href: "/doctors" },
-  { label: "Our Hospitals", href: "/hospitals" },
 ];
 
 export function Header() {
@@ -47,7 +54,7 @@ export function Header() {
               href="/db-status"
               className="hidden items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-full px-2.5 py-1 sm:flex"
             >
-              <Database className="h-3.5 w-3.5" /> DB Live Status
+              <Database className="h-3.5 w-3.5" /> Hospital Availability
             </a>
             <a
               href="/faqs"
@@ -80,16 +87,46 @@ export function Header() {
       </div>
       <div className="border-t border-border bg-cream/70">
         <Container>
-          <nav className="no-scrollbar flex gap-6 overflow-x-auto py-3">
-            {specialtyNav.map((s) => (
+          <nav className="flex items-center gap-6 py-2.5 text-sm font-medium">
+            {mainSpecialties.map((s) => (
               <a
                 key={s.label}
                 href={s.href}
-                className="flex shrink-0 items-center gap-1 whitespace-nowrap text-sm font-medium text-ink/80 transition-colors hover:text-brand-orange"
+                className="flex shrink-0 items-center gap-1 whitespace-nowrap text-ink/80 transition-colors hover:text-brand-orange"
               >
                 {s.label}
               </a>
             ))}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex shrink-0 items-center gap-1 text-ink/80 transition-colors hover:text-brand-orange outline-none">
+                More Specialties <ChevronDown className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                {extraSpecialties.map((s) => (
+                  <DropdownMenuItem key={s.label} asChild>
+                    <a href={s.href} className="w-full cursor-pointer">
+                      {s.label}
+                    </a>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <span className="h-4 w-px bg-border shrink-0" />
+
+            <a
+              href="/doctors"
+              className="flex shrink-0 items-center gap-1 font-semibold text-navy transition-colors hover:text-brand-orange"
+            >
+              Our Doctors
+            </a>
+            <a
+              href="/hospitals"
+              className="flex shrink-0 items-center gap-1 font-semibold text-navy transition-colors hover:text-brand-orange"
+            >
+              Our Hospitals
+            </a>
           </nav>
         </Container>
       </div>

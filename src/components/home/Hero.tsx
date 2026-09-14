@@ -41,7 +41,9 @@ export function Hero() {
               first conversation through recovery.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <OrangeButton>Find the right care</OrangeButton>
+              <a href="#specialities">
+                <OrangeButton>Browse Specialties</OrangeButton>
+              </a>
               <OutlineButton tone="light" className="gap-2">
                 <Phone className="h-4 w-4" /> Call our care team
               </OutlineButton>

@@ -85,11 +85,11 @@ export function ConsultForm({ className }: { className?: string }) {
             Talk to a <span className="text-primary">care specialist</span>
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Share a few details. Saved directly to MongoDB.
+            Your details are sent securely to our care team.
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 border border-emerald-300">
-          <Database className="h-3 w-3 text-emerald-600" /> DB Connected
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-300">
+          <Database className="h-3.5 w-3.5 text-emerald-600" /> Verified Connection
         </span>
       </div>
       <form className="space-y-3 p-5" onSubmit={handleSubmit}>
@@ -141,14 +141,14 @@ export function ConsultForm({ className }: { className?: string }) {
         <OrangeButton type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? (
             <span className="inline-flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" /> Saving to MongoDB...
+              <Loader2 className="h-4 w-4 animate-spin" /> Submitting request...
             </span>
           ) : (
             "Request a free consultation"
           )}
         </OrangeButton>
-        <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-          <Lock className="h-3 w-3" /> Your data is secured in MongoDB. We prioritize medical
+        <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+          <Lock className="h-3.5 w-3.5" /> Your data is encrypted and handled with strict medical
           privacy.
         </p>
       </form>

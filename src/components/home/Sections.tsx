@@ -64,33 +64,41 @@ export function FindCare() {
           }
           subtitle="Browse trusted specialists, treatments and support for every stage of health."
         />
-        <div className="mx-auto max-w-3xl">
-          <div className="mx-auto flex w-fit gap-1 rounded-full bg-cream p-1">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-border bg-cream/70 p-2 shadow-sm sm:flex sm:items-center sm:gap-2">
+          <div className="flex shrink-0 gap-1 rounded-xl bg-background/80 p-1">
             {tabs.map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                  tab === t ? "bg-navy text-navy-foreground" : "text-ink/70 hover:text-navy"
+                className={`rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
+                  tab === t
+                    ? "bg-navy text-navy-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-navy"
                 }`}
               >
                 {t}
               </button>
             ))}
           </div>
-          <div className="mt-5 flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 shadow-sm">
-            <Search className="h-5 w-5 shrink-0 text-brand-orange" />
+          <div className="mt-2 flex flex-1 items-center gap-2 px-3 py-1.5 sm:mt-0">
+            <Search className="h-4 w-4 shrink-0 text-brand-orange" />
             <input
               className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               placeholder={`Search ${tab.toLowerCase()} — e.g. piles, hernia, cataract`}
             />
-            <OrangeButton className="hidden px-4 py-2 sm:inline-flex">Search</OrangeButton>
           </div>
+          <OrangeButton className="hidden shrink-0 px-4 py-2 text-xs sm:inline-flex">
+            Search
+          </OrangeButton>
         </div>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {tiles.map((tile) => (
-            <article key={tile.label} className="group relative overflow-hidden rounded-lg">
+            <a
+              href="/specialities/proctology"
+              key={tile.label}
+              className="group relative overflow-hidden rounded-xl border border-border shadow-sm transition-all hover:shadow-md"
+            >
               <img
                 src={tile.img}
                 alt={tile.title}
@@ -99,19 +107,24 @@ export function FindCare() {
                 height={1000}
                 className="h-72 w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-navy/45" />
-              <div className="absolute inset-x-0 bottom-0 p-5">
-                <Eyebrow tone="orange">{tile.label}</Eyebrow>
-                <p className="mt-1 text-lg font-bold text-navy-foreground">{tile.title}</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/30 to-transparent" />
+              <div className="absolute inset-x-4 bottom-4 rounded-lg bg-background/90 p-3.5 shadow-lg backdrop-blur-md transition-all group-hover:bg-background">
+                <div className="flex items-center justify-between">
+                  <Eyebrow tone="orange">{tile.label}</Eyebrow>
+                  <ArrowRight className="h-4 w-4 text-brand-orange transition-transform group-hover:translate-x-1" />
+                </div>
+                <p className="mt-1 text-sm font-bold text-navy">{tile.title}</p>
               </div>
-            </article>
+            </a>
           ))}
         </div>
 
         <div className="mt-8 flex justify-center">
-          <button className="inline-flex items-center gap-2 text-sm font-semibold text-brand-orange">
-            View All 20+ Specialities <ArrowRight className="h-4 w-4" />
-          </button>
+          <a href="/specialities/proctology">
+            <OutlineButton className="inline-flex items-center gap-2 text-sm font-semibold">
+              View All 20+ Specialities <ArrowRight className="h-4 w-4 text-brand-orange" />
+            </OutlineButton>
+          </a>
         </div>
       </Container>
     </section>
@@ -178,21 +191,20 @@ export function PatientExperiences() {
                   height={900}
                   className="h-56 w-full object-cover"
                 />
-                <span className="absolute left-4 top-4 rounded-full bg-navy px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-navy-foreground">
+                <span className="absolute left-4 top-4 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-navy-foreground">
                   {exp.tag}
                 </span>
                 <button
-                  className="absolute inset-0 grid place-items-center"
+                  className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-background/95 px-3.5 py-1.5 text-xs font-semibold text-navy shadow-md backdrop-blur-md transition-all hover:scale-105"
                   aria-label="Watch video"
                 >
-                  <span className="grid h-14 w-14 place-items-center rounded-full bg-background/90 text-brand-orange shadow-lg">
-                    <Play className="h-6 w-6 fill-brand-orange" />
-                  </span>
+                  <Play className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" />
+                  <span>Watch video</span>
                 </button>
               </div>
               <ul className="space-y-2 p-5">
                 {exp.points.map((p) => (
-                  <li key={p} className="flex gap-2 text-sm text-ink/80">
+                  <li key={p} className="flex gap-2 text-sm text-muted-foreground">
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-orange" />
                     {p}
                   </li>
@@ -337,7 +349,7 @@ export function Journey() {
               </span>
               <h3 className="mt-4 text-base font-bold text-navy">{step.title}</h3>
               <p className="mt-1.5 text-sm text-muted-foreground">{step.desc}</p>
-              <span className="mt-4 inline-block rounded-full bg-brand-orange-soft px-3 py-1 text-xs font-semibold text-brand-orange-dark">
+              <span className="mt-4 inline-block rounded-full bg-navy/5 px-3 py-1 text-xs font-semibold text-navy border border-navy/10">
                 {step.chip}
               </span>
             </article>
@@ -414,7 +426,7 @@ export function Doctors() {
                   height={700}
                   className="h-56 w-full object-cover"
                 />
-                <span className="absolute left-3 top-3 rounded-full bg-navy px-2.5 py-1 text-[11px] font-semibold text-navy-foreground">
+                <span className="absolute left-3 top-3 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-navy-foreground">
                   {d.cat}
                 </span>
                 <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy">
@@ -424,7 +436,7 @@ export function Doctors() {
               <div className="p-4">
                 <h3 className="truncate text-base font-bold text-navy">{d.name}</h3>
                 <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{d.cred}</p>
-                <p className="mt-2 text-xs font-semibold text-brand-blue">{d.exp} Experience</p>
+                <p className="mt-2 text-xs font-semibold text-navy">{d.exp} Experience</p>
                 <div className="mt-4 flex gap-2">
                   <OutlineButton className="flex-1 px-3 py-2 text-xs">Call</OutlineButton>
                   <OrangeButton className="flex-1 px-3 py-2 text-xs">Book Now</OrangeButton>
@@ -491,7 +503,7 @@ export function Insurance() {
           <div className="mt-6 flex flex-wrap gap-3">
             <OrangeButton>Check Eligibility</OrangeButton>
             <OutlineButton>
-              <Phone className="h-4 w-4" /> Talk to Insurance Desk
+              <Phone className="h-4 w-4" /> Talk to an Insurance Expert
             </OutlineButton>
           </div>
         </div>
@@ -536,7 +548,7 @@ export function Testimonials() {
           {testimonials.map((t) => (
             <article key={t.name} className="rounded-lg border border-border bg-background p-6">
               <Quote className="h-7 w-7 text-brand-orange" />
-              <p className="mt-4 text-sm italic text-ink/80">"{t.quote}"</p>
+              <p className="mt-4 text-sm italic text-muted-foreground">"{t.quote}"</p>
               <p className="mt-4 text-sm font-semibold text-navy">— {t.name}</p>
             </article>
           ))}
@@ -558,19 +570,40 @@ export function About() {
           <div className="mt-4 space-y-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
             <p>
               Prime Care is a connected health network bringing patients, specialists, accredited
-              hospitals and insurance partners together across 45+ cities. We simplify the parts of
-              care that often feel stressful — finding the right doctor, understanding options,
-              paperwork and recovery support.
+              hospitals and insurance partners together across 45+ cities.
             </p>
-            <p>
-              Every patient has a dedicated care coordinator from the first conversation to the
-              final follow-up. Our clinical teams prioritize clear guidance, proven techniques and a
-              treatment plan shaped around the individual rather than a one-size-fits-all pathway.
-            </p>
-            <p>
-              With 2M+ lives touched and a 4.8/5 average patient rating, our focus stays simple:
-              dependable care, transparent pricing and support that continues beyond the clinic.
-            </p>
+            <ul className="space-y-3 pt-2">
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-orange/10 text-xs font-bold text-brand-orange">
+                  ✓
+                </span>
+                <div>
+                  <strong className="font-semibold text-navy">Pan-India Connected Care:</strong>{" "}
+                  Seamless access to top accredited hospitals and 400+ expert surgeons across 45+
+                  cities.
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-orange/10 text-xs font-bold text-brand-orange">
+                  ✓
+                </span>
+                <div>
+                  <strong className="font-semibold text-navy">Dedicated Care Coordinator:</strong>{" "}
+                  Single point of contact guiding you from initial diagnosis through discharge and
+                  recovery.
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-orange/10 text-xs font-bold text-brand-orange">
+                  ✓
+                </span>
+                <div>
+                  <strong className="font-semibold text-navy">Transparent & Supportive:</strong>{" "}
+                  Zero-paperwork cashless claims, 2M+ lives touched, and 4.8/5 average patient
+                  rating.
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
         <div className="lg:sticky lg:top-40 lg:self-start">
@@ -603,7 +636,7 @@ export function Healthfeed() {
     <section className="bg-cream py-14">
       <Container>
         <SectionHead
-          eyebrow="Healthfeed"
+          eyebrow="Health Guides & Articles"
           title="Read, Learn & Decide Better"
           subtitle="Doctor-reviewed guides on treatments, recovery and insurance."
           action={<OutlineButton>View All Articles</OutlineButton>}
