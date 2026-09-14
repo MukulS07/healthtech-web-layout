@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Phone, Mail, MapPin, Clock, Lock } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, Lock, Loader2, Database } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
 import { toast } from "sonner";
+import { submitConsultationFn } from "@/lib/server-functions/consultations";
 
 const treatments = ["Piles / Fissure", "Hernia", "Kidney Stone", "Gallstone", "Cataract", "Knee Replacement", "Gynaecology", "ENT", "Urology", "Orthopedics", "Aesthetics", "Other"];
 const cities = ["Delhi NCR", "Mumbai", "Bangalore", "Hyderabad", "Chennai", "Pune", "Kolkata", "Ahmedabad", "Jaipur", "Kochi", "Indore", "Other"];
@@ -33,13 +34,42 @@ function ContactPage() {
   const [treatment, setTreatment] = useState("");
   const [city, setCity] = useState("");
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const inputClass = "w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10";
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Request received! Our care coordinator will call you within 30 minutes.");
-    setName(""); setPhone(""); setEmail(""); setTreatment(""); setCity(""); setMessage("");
+    if (!name || !phone || !treatment || !city) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await submitConsultationFn({
+        data: {
+          name,
+          phone,
+          email,
+          treatment,
+          city,
+          message,
+        },
+      });
+
+      if (res.success) {
+        toast.success("Request saved to database! Our care coordinator will call you within 30 minutes.");
+        setName(""); setPhone(""); setEmail(""); setTreatment(""); setCity(""); setMessage("");
+      } else {
+        toast.error(res.error || "Failed to submit consultation request.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Database connection error. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -102,11 +132,17 @@ function ContactPage() {
                     onChange={(e) => setMessage(e.target.value)}
                   />
                 </div>
-                <OrangeButton type="submit" className="w-full py-3 text-base">
-                  Request Free Consultation
+                <OrangeButton type="submit" disabled={isSubmitting} className="w-full py-3 text-base">
+                  {isSubmitting ? (
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Saving to MongoDB...
+                    </span>
+                  ) : (
+                    "Request Free Consultation"
+                  )}
                 </OrangeButton>
                 <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-                  <Lock className="h-3 w-3" /> Your data is secured. We never share your information.
+                  <Lock className="h-3 w-3" /> Your data is secured in MongoDB. We never share your information.
                 </p>
               </form>
             </div>

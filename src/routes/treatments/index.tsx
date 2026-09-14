@@ -1,51 +1,65 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Search, ArrowRight, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, ArrowRight, Clock, Database, Loader2 } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, OrangeButton, Eyebrow } from "@/components/home/primitives";
 import { ConsultForm } from "@/components/home/ConsultForm";
+import { getTreatmentsFn } from "@/lib/server-functions/treatments";
 
 const specialtyFilters = ["All", "Proctology", "Laparoscopy", "Gynaecology", "ENT", "Urology", "Orthopedics", "Ophthalmology", "Aesthetics", "Vascular"];
 
-const allTreatments = [
-  { name: "Piles Surgery", slug: "piles-surgery", specialty: "Proctology", desc: "Minimally invasive laser treatment for painful haemorrhoids.", cost: "₹30,000 – ₹60,000", duration: "30 min" },
-  { name: "Hernia Repair", slug: "hernia-repair", specialty: "Laparoscopy", desc: "Laparoscopic hernia repair with fast same-day discharge.", cost: "₹50,000 – ₹90,000", duration: "1 hr" },
-  { name: "Gallstone Removal", slug: "gallstone-removal", specialty: "Laparoscopy", desc: "Keyhole cholecystectomy – safe and quick gallbladder removal.", cost: "₹60,000 – ₹1,00,000", duration: "1 hr" },
-  { name: "Kidney Stone Treatment", slug: "kidney-stone-treatment", specialty: "Urology", desc: "RIRS or PCNL procedure for complete stone clearance.", cost: "₹40,000 – ₹80,000", duration: "45 min" },
-  { name: "Cataract Surgery", slug: "cataract-surgery", specialty: "Ophthalmology", desc: "Phacoemulsification with premium IOL implantation.", cost: "₹25,000 – ₹50,000", duration: "20 min" },
-  { name: "Knee Replacement", slug: "knee-replacement", specialty: "Orthopedics", desc: "Total or partial knee arthroplasty for lasting pain relief.", cost: "₹2,00,000 – ₹3,50,000", duration: "2 hrs" },
-  { name: "Hysterectomy", slug: "hysterectomy", specialty: "Gynaecology", desc: "Laparoscopic uterus removal with minimal scarring.", cost: "₹80,000 – ₹1,20,000", duration: "2 hrs" },
-  { name: "Tonsil Removal", slug: "tonsillectomy", specialty: "ENT", desc: "Coblation tonsillectomy for recurrent throat infections.", cost: "₹30,000 – ₹55,000", duration: "30 min" },
-  { name: "Anal Fissure Treatment", slug: "anal-fissure", specialty: "Proctology", desc: "Laser sphincterotomy – painless, no cuts, quick recovery.", cost: "₹25,000 – ₹45,000", duration: "20 min" },
-  { name: "Varicocele Surgery", slug: "varicocele-surgery", specialty: "Urology", desc: "Laparoscopic varicocelectomy for male fertility improvement.", cost: "₹35,000 – ₹65,000", duration: "1 hr" },
-  { name: "Deviated Septum", slug: "septoplasty", specialty: "ENT", desc: "Septoplasty to correct nasal obstruction and improve breathing.", cost: "₹30,000 – ₹60,000", duration: "1 hr" },
-  { name: "Liposuction", slug: "liposuction", specialty: "Aesthetics", desc: "VASER or laser-assisted fat removal for body contouring.", cost: "₹80,000 – ₹2,00,000", duration: "2 hrs" },
-  { name: "Pilonidal Sinus", slug: "pilonidal-sinus", specialty: "Proctology", desc: "Laser treatment for a painful cyst at the base of the spine.", cost: "₹30,000 – ₹55,000", duration: "30 min" },
-  { name: "Hip Replacement", slug: "hip-replacement", specialty: "Orthopedics", desc: "Total hip arthroplasty for chronic pain and mobility issues.", cost: "₹2,50,000 – ₹4,00,000", duration: "2 hrs" },
-  { name: "Varicose Veins", slug: "varicose-veins", specialty: "Vascular", desc: "Laser ablation (EVLA) for swollen leg veins – no incisions.", cost: "₹50,000 – ₹90,000", duration: "1 hr" },
-  { name: "Fibroid Removal", slug: "fibroid-removal", specialty: "Gynaecology", desc: "Laparoscopic myomectomy to remove fibroids, preserving the uterus.", cost: "₹70,000 – ₹1,10,000", duration: "1.5 hrs" },
-];
-
 export const Route = createFileRoute("/treatments/")({
+  loader: async () => {
+    try {
+      const res = await getTreatmentsFn();
+      return res;
+    } catch {
+      return { success: false, treatments: [], count: 0 };
+    }
+  },
   head: () => ({
     meta: [
       { title: "All Treatments & Procedures | Prime Care" },
-      { name: "description", content: "Browse 50+ surgical treatments across 13 specialties. Compare costs, procedure types and book a free consultation." },
+      { name: "description", content: "Browse surgical treatments across specialties fetched live from MongoDB database." },
     ],
   }),
   component: TreatmentsPage,
 });
 
 function TreatmentsPage() {
+  const initialData = Route.useLoaderData();
+  const [treatments, setTreatments] = useState(initialData?.treatments || []);
+  const [isLoading, setIsLoading] = useState(false);
   const [active, setActive] = useState("All");
   const [query, setQuery] = useState("");
 
-  const filtered = allTreatments.filter((t) => {
-    const matchSpec = active === "All" || t.specialty === active;
-    const matchQ = !query || t.name.toLowerCase().includes(query.toLowerCase());
-    return matchSpec && matchQ;
-  });
+  useEffect(() => {
+    let isMounted = true;
+    const fetchFilteredTreatments = async () => {
+      setIsLoading(true);
+      try {
+        const res = await getTreatmentsFn({
+          data: {
+            category: active === "All" ? "All Categories" : active,
+            query,
+          },
+        });
+        if (isMounted && res.success) {
+          setTreatments(res.treatments);
+        }
+      } catch (err) {
+        console.error("Failed to load treatments from MongoDB:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchFilteredTreatments();
+    return () => {
+      isMounted = false;
+    };
+  }, [active, query]);
 
   return (
     <div className="bg-background">
@@ -53,16 +67,28 @@ function TreatmentsPage() {
       <main>
         <section className="bg-navy py-14">
           <Container>
-            <Eyebrow tone="light">What we treat</Eyebrow>
-            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">All Treatments & Procedures</h1>
-            <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-              50+ surgical treatments across 13 specialties. Minimally invasive, fast discharge, cashless on 100+ insurers.
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <Eyebrow tone="light">What we treat</Eyebrow>
+                <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">All Treatments & Procedures</h1>
+                <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
+                  Surgical treatments and procedures fetched live directly from MongoDB.
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/20 bg-white/10 p-4 text-navy-foreground backdrop-blur">
+                <p className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
+                  <Database className="h-4 w-4" /> Live MongoDB Procedures
+                </p>
+                <p className="mt-1 text-2xl font-extrabold">{treatments.length}</p>
+                <p className="text-[11px] text-navy-foreground/70">Treatments Loaded</p>
+              </div>
+            </div>
+
             <div className="mt-6 flex max-w-lg items-center gap-3 rounded-xl bg-white/10 px-4 py-3">
               <Search className="h-4 w-4 shrink-0 text-brand-orange" />
               <input
                 className="w-full bg-transparent text-sm text-navy-foreground placeholder:text-navy-foreground/50 outline-none"
-                placeholder="Search treatments — e.g. piles, hernia, cataract…"
+                placeholder="Search treatments — e.g. piles, hernia, kidney stone…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
@@ -86,29 +112,35 @@ function TreatmentsPage() {
               ))}
             </div>
 
-            {filtered.length === 0 ? (
-              <p className="py-16 text-center text-muted-foreground">No treatments match — try a different search or specialty.</p>
+            <div className="mb-6 flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">{treatments.length} treatments found in MongoDB database</p>
+              {isLoading && (
+                <span className="flex items-center gap-1.5 text-xs text-brand-orange font-medium">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Querying MongoDB...
+                </span>
+              )}
+            </div>
+
+            {treatments.length === 0 ? (
+              <div className="py-16 text-center">
+                <Database className="mx-auto h-10 w-10 text-muted-foreground/40" />
+                <p className="mt-3 text-muted-foreground">No treatments match your search in MongoDB — try a different query.</p>
+              </div>
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {filtered.map((t) => (
-                  <article key={t.slug} className="flex flex-col rounded-lg border border-border bg-background p-5 shadow-sm transition-shadow hover:shadow-md">
+                {treatments.map((t) => (
+                  <article key={t.slug || t.id} className="flex flex-col rounded-lg border border-border bg-background p-5 shadow-sm transition-shadow hover:shadow-md">
                     <span className="w-fit rounded-full bg-brand-orange-soft px-3 py-1 text-[11px] font-semibold text-brand-orange-dark">
-                      {t.specialty}
+                      {t.category || "General Surgery"}
                     </span>
                     <h2 className="mt-3 text-base font-bold text-navy">{t.name}</h2>
-                    <p className="mt-1.5 flex-1 text-sm text-muted-foreground">{t.desc}</p>
+                    <p className="mt-1.5 flex-1 text-sm text-muted-foreground line-clamp-2">{t.description}</p>
                     <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>{t.cost}</span>
-                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{t.duration}</span>
+                      <span>Recovery: {t.recoveryTime}</span>
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{t.recoveryTime}</span>
                     </div>
                     <div className="mt-4 flex gap-2">
                       <OrangeButton className="flex-1 py-2 text-xs">Book Free Consult</OrangeButton>
-                      <a
-                        href={`/treatments/${t.slug}`}
-                        className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-navy/20 bg-white/40 px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-white/60"
-                      >
-                        Know More <ArrowRight className="h-3 w-3" />
-                      </a>
                     </div>
                   </article>
                 ))}
@@ -123,7 +155,7 @@ function TreatmentsPage() {
               <Eyebrow>Not sure which treatment?</Eyebrow>
               <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">Talk to a specialist — it's free</h2>
               <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-                Our care coordinators match you with the right specialist in under 30 minutes. No waiting, no jargon.
+                Our care coordinators match you with the right specialist in under 30 minutes. Saved directly to MongoDB.
               </p>
             </div>
             <ConsultForm />

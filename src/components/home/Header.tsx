@@ -1,4 +1,4 @@
-import { ChevronDown, MapPin, Phone, Search, Menu, HeartPulse } from "lucide-react";
+import { ChevronDown, MapPin, Phone, Search, Menu, HeartPulse, Database } from "lucide-react";
 import { Container, OrangeButton } from "./primitives";
 
 const specialtyNav = [
@@ -14,6 +14,7 @@ const specialtyNav = [
   { label: "Fertility", href: "/specialities/fertility" },
   { label: "Weight Loss", href: "/specialities/weight-loss" },
   { label: "Dermatology", href: "/specialities/dermatology" },
+  { label: "Our Doctors", href: "/doctors" },
   { label: "Our Hospitals", href: "/hospitals" },
 ];
 
@@ -41,6 +42,9 @@ export function Header() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-4">
+            <a href="/db-status" className="hidden items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-full px-2.5 py-1 sm:flex">
+              <Database className="h-3.5 w-3.5" /> DB Live Status
+            </a>
             <a href="/faqs" className="hidden items-center gap-1 text-sm text-muted-foreground xl:flex hover:text-navy">
               For Patients
             </a>

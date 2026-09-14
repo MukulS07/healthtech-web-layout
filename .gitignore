@@ -15,10 +15,32 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+.env
+.env.*
+*.env
+!.env.example
+!.env.template
 
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+
+# Sensitive keys, certificates & credentials
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+credentials.json
+secrets/
+
+# Database dumps & archives
+DATA/
+*.archive
+*.sqlite
+*.sqlite3
+*.db
 
 # Editor directories and files
 .vscode/*
@@ -30,3 +52,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+

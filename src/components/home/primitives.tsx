@@ -73,19 +73,22 @@ export function OrangeButton({
   children,
   className,
   type = "button",
+  disabled = false,
   onClick,
 }: {
   children: ReactNode;
   className?: string;
   type?: "button" | "submit";
+  disabled?: boolean;
   onClick?: () => void;
 }) {
   return (
     <Button
       type={type}
+      disabled={disabled}
       onClick={onClick}
       className={cn(
-        "h-auto rounded-lg border border-white/25 bg-primary/75 px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-black/10 backdrop-blur-xl transition-all hover:border-white/35 hover:bg-primary/90 hover:shadow-xl hover:shadow-black/15",
+        "h-auto rounded-lg border border-white/25 bg-primary/75 px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-black/10 backdrop-blur-xl transition-all hover:border-white/35 hover:bg-primary/90 hover:shadow-xl hover:shadow-black/15 disabled:opacity-50 disabled:cursor-not-allowed",
         className,
       )}
     >
@@ -98,16 +101,24 @@ export function OutlineButton({
   children,
   className,
   tone = "dark",
+  disabled = false,
+  type = "button",
+  onClick,
 }: {
   children: ReactNode;
   className?: string;
   tone?: "dark" | "light";
+  disabled?: boolean;
+  type?: "button" | "submit";
+  onClick?: () => void;
 }) {
   return (
     <Button
-      type="button"
+      type={type}
+      disabled={disabled}
+      onClick={onClick}
       className={cn(
-        "h-auto rounded-lg border px-5 py-3 text-sm font-semibold shadow-lg backdrop-blur-xl transition-all",
+        "h-auto rounded-lg border px-5 py-3 text-sm font-semibold shadow-lg backdrop-blur-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed",
         tone === "light"
           ? "border-white/25 bg-white/10 text-navy-foreground shadow-black/10 hover:border-white/35 hover:bg-white/20 hover:shadow-black/15"
           : "border-navy/20 bg-white/40 text-navy shadow-navy/5 hover:border-navy/30 hover:bg-white/60 hover:shadow-navy/10",

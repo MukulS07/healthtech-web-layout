@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DbStatusRouteImport } from './routes/db-status'
 import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReviewsRouteImport } from './routes/reviews'
@@ -41,6 +42,11 @@ const AboutRoute = AboutRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DbStatusRoute = DbStatusRouteImport.update({
+  id: '/db-status',
+  path: '/db-status',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqsRoute = FaqsRouteImport.update({
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
+  '/db-status': typeof DbStatusRoute
   '/faqs': typeof FaqsRoute
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
+  '/db-status': typeof DbStatusRoute
   '/faqs': typeof FaqsRoute
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
+  '/db-status': typeof DbStatusRoute
   '/faqs': typeof FaqsRoute
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/contact'
+    | '/db-status'
     | '/faqs'
     | '/privacy'
     | '/reviews'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/contact'
+    | '/db-status'
     | '/faqs'
     | '/privacy'
     | '/reviews'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/contact'
+    | '/db-status'
     | '/faqs'
     | '/privacy'
     | '/reviews'
@@ -247,6 +259,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   ContactRoute: typeof ContactRoute
+  DbStatusRoute: typeof DbStatusRoute
   FaqsRoute: typeof FaqsRoute
   PrivacyRoute: typeof PrivacyRoute
   ReviewsRoute: typeof ReviewsRoute
@@ -285,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/db-status': {
+      id: '/db-status'
+      path: '/db-status'
+      fullPath: '/db-status'
+      preLoaderRoute: typeof DbStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faqs': {
@@ -399,6 +419,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   ContactRoute: ContactRoute,
+  DbStatusRoute: DbStatusRoute,
   FaqsRoute: FaqsRoute,
   PrivacyRoute: PrivacyRoute,
   ReviewsRoute: ReviewsRoute,
