@@ -25,7 +25,7 @@ const UserSchema = new mongoose.Schema(
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 
 async function main() {
-  const uri = "mongodb+srv://mukulsharmaworks_db_user:9ebkMpqEgAX74DIi@healthwebdev.j1mdro6.mongodb.net/?appName=HEALTHwebdev";
+    const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/healthtech";
   try {
     console.log("Connecting to MongoDB Atlas...");
     await mongoose.connect(uri);
