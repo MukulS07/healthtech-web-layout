@@ -69,6 +69,12 @@ export function Header() {
               <UserRound className="h-4 w-4 text-brand-orange" /> My Appointments
             </a>
             <a
+              href="/admin"
+              className="hidden items-center gap-1 text-xs font-bold text-white bg-navy px-2.5 py-1.5 rounded-md hover:bg-primary transition-colors sm:flex"
+            >
+              Admin Portal
+            </a>
+            <a
               href="tel:18000001234"
               className="hidden items-center gap-2 text-sm font-semibold text-navy sm:flex"
             >

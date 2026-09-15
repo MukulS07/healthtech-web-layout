@@ -62,3 +62,67 @@ export const getHospitalsFn = createServerFn({ method: "GET" })
       };
     }
   });
+
+export interface CreateHospitalInput {
+  name: string;
+  city: string;
+  rating?: string;
+  beds: number;
+  specialties?: string[];
+  img?: string;
+  address?: string;
+  description?: string;
+}
+
+export const createHospitalFn = createServerFn({ method: "POST" })
+  .validator((data: unknown) => data as CreateHospitalInput)
+  .handler(async ({ data }) => {
+    try {
+      await connectToDatabase();
+      const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+
+      const hospital = await Hospital.create({
+        ...data,
+        slug: `${slug}-${Date.now().toString(36)}`,
+        rating: data.rating || "4.7",
+      });
+
+      return { success: true as const, id: String(hospital._id), message: "Hospital added successfully!" };
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : String(error);
+      return { success: false as const, error: errMessage };
+    }
+  });
+
+export interface UpdateHospitalInput extends Partial<CreateHospitalInput> {
+  id: string;
+}
+
+export const updateHospitalFn = createServerFn({ method: "POST" })
+  .validator((data: unknown) => data as UpdateHospitalInput)
+  .handler(async ({ data }) => {
+    try {
+      await connectToDatabase();
+      const { id, ...updates } = data;
+      const updated = await Hospital.findByIdAndUpdate(id, updates, { new: true });
+      if (!updated) return { success: false as const, error: "Hospital not found" };
+
+      return { success: true as const, message: "Hospital updated successfully!" };
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : String(error);
+      return { success: false as const, error: errMessage };
+    }
+  });
+
+export const deleteHospitalFn = createServerFn({ method: "POST" })
+  .validator((data: unknown) => data as { id: string })
+  .handler(async ({ data }) => {
+    try {
+      await connectToDatabase();
+      await Hospital.findByIdAndDelete(data.id);
+      return { success: true as const, message: "Hospital deleted successfully." };
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : String(error);
+      return { success: false as const, error: errMessage };
+    }
+  });

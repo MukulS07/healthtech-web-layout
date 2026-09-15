@@ -56,6 +56,8 @@ export async function startSession(userId: string): Promise<void> {
   });
 }
 
+export const createSession = startSession;
+
 export async function endSession(): Promise<void> {
   const token = getCookie(SESSION_COOKIE);
   if (token) {
@@ -87,8 +89,26 @@ export interface PublicUser {
   name: string;
   email: string;
   phone: string;
+  role: "patient" | "admin";
 }
 
 export function toPublicUser(user: IUser): PublicUser {
-  return { id: String(user._id), name: user.name, email: user.email, phone: user.phone };
+  return {
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    phone: user.phone || "",
+    role: user.role || "patient",
+  };
+}
+
+/**
+ * Ensures the caller is a logged-in admin user, throwing an Error if unauthenticated or not an admin.
+ */
+export async function requireAdminUser(): Promise<IUser> {
+  const user = await getSessionUser();
+  if (!user || user.role !== "admin") {
+    throw new Error("Unauthorized: Admin access required.");
+  }
+  return user;
 }

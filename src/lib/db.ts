@@ -115,4 +115,5 @@ export function getConnectionStatus(): {
   };
 }
 
+export const connectDB = connectToDatabase;
 export default connectToDatabase;

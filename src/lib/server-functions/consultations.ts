@@ -102,3 +102,93 @@ export const getMyConsultationsFn = createServerFn({ method: "GET" }).handler(as
     };
   }
 });
+
+/**
+ * Server function for admins to fetch all consultation requests across all patients.
+ */
+export const getAllConsultationsFn = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const user = await getSessionUser();
+    if (!user || user.role !== "admin") {
+      return { success: false as const, error: "Unauthorized: Admin access required." };
+    }
+
+    await connectToDatabase();
+    const docs = await Consultation.find().sort({ createdAt: -1 }).lean();
+
+    return {
+      success: true as const,
+      consultations: docs.map((doc) => ({
+        id: String(doc._id),
+        name: doc.name,
+        phone: doc.phone,
+        email: doc.email || "",
+        treatment: doc.treatment,
+        city: doc.city,
+        message: doc.message || "",
+        status: doc.status,
+        createdAt: new Date(doc.createdAt).toISOString(),
+        updatedAt: new Date(doc.updatedAt).toISOString(),
+      })),
+    };
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    return { success: false as const, error: errMessage };
+  }
+});
+
+export interface UpdateConsultationStatusInput {
+  id: string;
+  status: "pending" | "contacted" | "completed" | "cancelled";
+}
+
+/**
+ * Server function for admins to change booking status.
+ */
+export const updateConsultationStatusFn = createServerFn({ method: "POST" })
+  .validator((data: unknown) => data as UpdateConsultationStatusInput)
+  .handler(async ({ data }) => {
+    try {
+      const user = await getSessionUser();
+      if (!user || user.role !== "admin") {
+        return { success: false as const, error: "Unauthorized: Admin access required." };
+      }
+
+      await connectToDatabase();
+      const updated = await Consultation.findByIdAndUpdate(
+        data.id,
+        { status: data.status },
+        { new: true },
+      );
+
+      if (!updated) {
+        return { success: false as const, error: "Consultation record not found." };
+      }
+
+      return { success: true as const, message: `Status updated to ${data.status}!` };
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : String(error);
+      return { success: false as const, error: errMessage };
+    }
+  });
+
+/**
+ * Server function for admins to delete a consultation.
+ */
+export const deleteConsultationFn = createServerFn({ method: "POST" })
+  .validator((data: unknown) => data as { id: string })
+  .handler(async ({ data }) => {
+    try {
+      const user = await getSessionUser();
+      if (!user || user.role !== "admin") {
+        return { success: false as const, error: "Unauthorized: Admin access required." };
+      }
+
+      await connectToDatabase();
+      await Consultation.findByIdAndDelete(data.id);
+      return { success: true as const, message: "Consultation deleted successfully." };
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : String(error);
+      return { success: false as const, error: errMessage };
+    }
+  });

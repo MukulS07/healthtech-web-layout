@@ -17,6 +17,8 @@ import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminSignupRouteImport } from './routes/admin/signup'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as DoctorsIndexRouteImport } from './routes/doctors/index'
@@ -67,6 +69,16 @@ const ReviewsRoute = ReviewsRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSignupRoute = AdminSignupRouteImport.update({
+  id: '/admin/signup',
+  path: '/admin/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -134,12 +146,14 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
+  '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/doctors/$slug': typeof DoctorsSlugRoute
   '/hospitals/$slug': typeof HospitalsSlugRoute
   '/locations/$city': typeof LocationsCityRoute
   '/specialities/$slug': typeof SpecialitiesSlugRoute
   '/treatments/$slug': typeof TreatmentsSlugRoute
+  '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/doctors/': typeof DoctorsIndexRoute
   '/hospitals/': typeof HospitalsIndexRoute
@@ -155,12 +169,14 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
+  '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/doctors/$slug': typeof DoctorsSlugRoute
   '/hospitals/$slug': typeof HospitalsSlugRoute
   '/locations/$city': typeof LocationsCityRoute
   '/specialities/$slug': typeof SpecialitiesSlugRoute
   '/treatments/$slug': typeof TreatmentsSlugRoute
+  '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/doctors': typeof DoctorsIndexRoute
   '/hospitals': typeof HospitalsIndexRoute
@@ -177,12 +193,14 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
+  '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/doctors/$slug': typeof DoctorsSlugRoute
   '/hospitals/$slug': typeof HospitalsSlugRoute
   '/locations/$city': typeof LocationsCityRoute
   '/specialities/$slug': typeof SpecialitiesSlugRoute
   '/treatments/$slug': typeof TreatmentsSlugRoute
+  '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/doctors/': typeof DoctorsIndexRoute
   '/hospitals/': typeof HospitalsIndexRoute
@@ -200,12 +218,14 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reviews'
     | '/terms'
+    | '/admin/signup'
     | '/blog/$slug'
     | '/doctors/$slug'
     | '/hospitals/$slug'
     | '/locations/$city'
     | '/specialities/$slug'
     | '/treatments/$slug'
+    | '/admin/'
     | '/blog/'
     | '/doctors/'
     | '/hospitals/'
@@ -221,12 +241,14 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reviews'
     | '/terms'
+    | '/admin/signup'
     | '/blog/$slug'
     | '/doctors/$slug'
     | '/hospitals/$slug'
     | '/locations/$city'
     | '/specialities/$slug'
     | '/treatments/$slug'
+    | '/admin'
     | '/blog'
     | '/doctors'
     | '/hospitals'
@@ -242,12 +264,14 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reviews'
     | '/terms'
+    | '/admin/signup'
     | '/blog/$slug'
     | '/doctors/$slug'
     | '/hospitals/$slug'
     | '/locations/$city'
     | '/specialities/$slug'
     | '/treatments/$slug'
+    | '/admin/'
     | '/blog/'
     | '/doctors/'
     | '/hospitals/'
@@ -264,12 +288,14 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ReviewsRoute: typeof ReviewsRoute
   TermsRoute: typeof TermsRoute
+  AdminSignupRoute: typeof AdminSignupRoute
   BlogSlugRoute: typeof BlogSlugRoute
   DoctorsSlugRoute: typeof DoctorsSlugRoute
   HospitalsSlugRoute: typeof HospitalsSlugRoute
   LocationsCityRoute: typeof LocationsCityRoute
   SpecialitiesSlugRoute: typeof SpecialitiesSlugRoute
   TreatmentsSlugRoute: typeof TreatmentsSlugRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   DoctorsIndexRoute: typeof DoctorsIndexRoute
   HospitalsIndexRoute: typeof HospitalsIndexRoute
@@ -333,6 +359,20 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/signup': {
+      id: '/admin/signup'
+      path: '/admin/signup'
+      fullPath: '/admin/signup'
+      preLoaderRoute: typeof AdminSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -424,12 +464,14 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ReviewsRoute: ReviewsRoute,
   TermsRoute: TermsRoute,
+  AdminSignupRoute: AdminSignupRoute,
   BlogSlugRoute: BlogSlugRoute,
   DoctorsSlugRoute: DoctorsSlugRoute,
   HospitalsSlugRoute: HospitalsSlugRoute,
   LocationsCityRoute: LocationsCityRoute,
   SpecialitiesSlugRoute: SpecialitiesSlugRoute,
   TreatmentsSlugRoute: TreatmentsSlugRoute,
+  AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   DoctorsIndexRoute: DoctorsIndexRoute,
   HospitalsIndexRoute: HospitalsIndexRoute,

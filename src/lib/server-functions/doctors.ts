@@ -118,3 +118,69 @@ export const getDoctorBySlugFn = createServerFn({ method: "GET" })
       return { success: false, error: errMessage };
     }
   });
+
+export interface CreateDoctorInput {
+  name: string;
+  specialty: string;
+  cred: string;
+  exp: number;
+  rating?: string;
+  city: string;
+  img?: string;
+  bio?: string;
+  fees?: number;
+  hospital?: string;
+}
+
+export const createDoctorFn = createServerFn({ method: "POST" })
+  .validator((data: unknown) => data as CreateDoctorInput)
+  .handler(async ({ data }) => {
+    try {
+      await connectToDatabase();
+      const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+
+      const doctor = await Doctor.create({
+        ...data,
+        slug: `${slug}-${Date.now().toString(36)}`,
+        rating: data.rating || "4.8",
+      });
+
+      return { success: true as const, id: String(doctor._id), message: "Doctor added successfully!" };
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : String(error);
+      return { success: false as const, error: errMessage };
+    }
+  });
+
+export interface UpdateDoctorInput extends Partial<CreateDoctorInput> {
+  id: string;
+}
+
+export const updateDoctorFn = createServerFn({ method: "POST" })
+  .validator((data: unknown) => data as UpdateDoctorInput)
+  .handler(async ({ data }) => {
+    try {
+      await connectToDatabase();
+      const { id, ...updates } = data;
+      const updated = await Doctor.findByIdAndUpdate(id, updates, { new: true });
+      if (!updated) return { success: false as const, error: "Doctor not found" };
+
+      return { success: true as const, message: "Doctor updated successfully!" };
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : String(error);
+      return { success: false as const, error: errMessage };
+    }
+  });
+
+export const deleteDoctorFn = createServerFn({ method: "POST" })
+  .validator((data: unknown) => data as { id: string })
+  .handler(async ({ data }) => {
+    try {
+      await connectToDatabase();
+      await Doctor.findByIdAndDelete(data.id);
+      return { success: true as const, message: "Doctor deleted successfully." };
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : String(error);
+      return { success: false as const, error: errMessage };
+    }
+  });
