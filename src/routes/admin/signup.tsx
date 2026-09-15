@@ -3,6 +3,12 @@ import { Container } from "@/components/home/primitives";
 import { AdminSignup } from "@/components/auth/AdminSignup";
 
 export const Route = createFileRoute("/admin/signup")({
+  head: () => ({
+    meta: [
+      { title: "Admin Signup | Prime Care" },
+      { name: "description", content: "Register a new Administrator account for Prime Care" },
+    ],
+  }),
   component: AdminSignupRoute,
 });
 

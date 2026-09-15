@@ -49,6 +49,12 @@ import {
 } from "@/lib/server-functions/treatments";
 
 export const Route = createFileRoute("/admin/")({
+  head: () => ({
+    meta: [
+      { title: "Admin Portal | Prime Care" },
+      { name: "description", content: "Prime Care Admin Management Dashboard" },
+    ],
+  }),
   component: AdminRoute,
 });
 
