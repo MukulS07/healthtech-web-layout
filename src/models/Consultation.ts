@@ -5,10 +5,19 @@ export interface IConsultation extends Document {
   name: string;
   phone: string;
   email?: string;
+  treatmentId: Types.ObjectId;
   treatment: string;
+  category: string;
   city: string;
   message?: string;
-  status: "pending" | "contacted" | "completed" | "cancelled";
+  status: "pending" | "contacted" | "scheduled" | "completed" | "cancelled";
+  assignedDoctorId?: Types.ObjectId;
+  scheduledDate?: string;
+  scheduledTime?: string;
+  // Whichever admin is currently handling this booking. Set via an atomic claim so two
+  // admins can't grab the same request; other admins are read-only on it until released.
+  claimedByAdminId?: Types.ObjectId;
+  claimedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,14 +29,23 @@ const ConsultationSchema = new Schema<IConsultation>(
     name: { type: String, required: true, trim: true },
     phone: { type: String, required: true, trim: true },
     email: { type: String, trim: true },
+    // Snapshotted from Treatment at booking time so this stays stable even if the
+    // catalog entry is later renamed/re-categorized by an admin.
+    treatmentId: { type: Schema.Types.ObjectId, ref: "Treatment", required: true },
     treatment: { type: String, required: true, trim: true },
+    category: { type: String, required: true, trim: true },
     city: { type: String, required: true, trim: true },
     message: { type: String, trim: true },
     status: {
       type: String,
-      enum: ["pending", "contacted", "completed", "cancelled"],
+      enum: ["pending", "contacted", "scheduled", "completed", "cancelled"],
       default: "pending",
     },
+    assignedDoctorId: { type: Schema.Types.ObjectId, ref: "Doctor" },
+    scheduledDate: { type: String, trim: true },
+    scheduledTime: { type: String, trim: true },
+    claimedByAdminId: { type: Schema.Types.ObjectId, ref: "User" },
+    claimedAt: { type: Date },
   },
   { timestamps: true },
 );

@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 import { Treatment } from "@/models/Treatment";
 import { seedDatabaseFn } from "./seed";
+import surgeryCatalog from "@/data/surgery-catalog.json";
 
 export interface GetTreatmentsParams {
   category?: string;
@@ -59,6 +61,35 @@ export const getTreatmentsFn = createServerFn({ method: "GET" })
       };
     }
   });
+
+/**
+ * Server function to fetch the distinct treatment categories actually present in the
+ * catalog, with counts. Used to drive category nav (header pills, /treatments filter
+ * chips) from real data instead of a hardcoded, drift-prone list.
+ */
+export const getTreatmentCategoriesFn = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    await connectToDatabase();
+
+    const treatmentCount = await Treatment.countDocuments();
+    if (treatmentCount === 0) {
+      await seedDatabaseFn();
+    }
+
+    const categories = await Treatment.aggregate<{ _id: string; count: number }>([
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+
+    return {
+      success: true as const,
+      categories: categories.map((c) => ({ category: c._id, count: c.count })),
+    };
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    return { success: false as const, categories: [], error: errMessage };
+  }
+});
 
 export interface CreateTreatmentInput {
   name: string;
@@ -119,3 +150,76 @@ export const deleteTreatmentFn = createServerFn({ method: "POST" })
       return { success: false as const, error: errMessage };
     }
   });
+
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+}
+
+function categoryShortSlug(category: string): string {
+  return slugify(category).split("-").slice(0, 2).join("-");
+}
+
+/**
+ * Admin-only: idempotently imports the full surgical catalog (462 procedures across
+ * 17 categories, from "Complete List of Surgical Categories and Procedures") into the
+ * Treatment collection. Safe to re-run — skips any (name, category) pair already present,
+ * so it never overwrites anything an admin has since hand-edited.
+ */
+export const importSurgeryCatalogFn = createServerFn({ method: "POST" }).handler(async () => {
+  try {
+    const user = await getSessionUser();
+    if (!user || user.role !== "admin") {
+      return { success: false as const, error: "Unauthorized: Admin access required." };
+    }
+
+    await connectToDatabase();
+
+    const usedSlugs = new Set((await Treatment.find({}, { slug: 1 }).lean()).map((d) => d.slug));
+
+    let inserted = 0;
+    let skipped = 0;
+
+    for (const { category, procedures } of surgeryCatalog as {
+      category: string;
+      procedures: string[];
+    }[]) {
+      for (const name of procedures) {
+        const existing = await Treatment.exists({ name, category });
+        if (existing) {
+          skipped += 1;
+          continue;
+        }
+
+        let slug = slugify(name);
+        if (usedSlugs.has(slug)) {
+          const candidate = `${slug}-${categoryShortSlug(category)}`;
+          slug = usedSlugs.has(candidate) ? `${candidate}-${usedSlugs.size}` : candidate;
+        }
+
+        await Treatment.create({
+          name,
+          slug,
+          category,
+          description: `${name} performed by our specialist surgical team as part of ${category}.`,
+          recoveryTime: "Discussed during consultation",
+          benefits: ["Specialist-led care", "Discussed during consultation"],
+        });
+        usedSlugs.add(slug);
+        inserted += 1;
+      }
+    }
+
+    return {
+      success: true as const,
+      inserted,
+      skipped,
+      message: `Imported ${inserted} new procedures (${skipped} already existed).`,
+    };
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    return { success: false as const, error: errMessage };
+  }
+});

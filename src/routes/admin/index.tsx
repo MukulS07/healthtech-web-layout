@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ShieldCheck,
@@ -27,6 +27,9 @@ import { logoutFn, getRegisteredUsersFn } from "@/lib/server-functions/auth";
 import {
   getAllConsultationsFn,
   updateConsultationStatusFn,
+  assignConsultationFn,
+  claimConsultationFn,
+  releaseConsultationFn,
   deleteConsultationFn,
 } from "@/lib/server-functions/consultations";
 import {
@@ -46,6 +49,7 @@ import {
   createTreatmentFn,
   updateTreatmentFn,
   deleteTreatmentFn,
+  importSurgeryCatalogFn,
 } from "@/lib/server-functions/treatments";
 
 export const Route = createFileRoute("/admin/")({
@@ -72,6 +76,7 @@ export function AdminRoute() {
   const [treatments, setTreatments] = useState<any[]>([]);
   const [isFetching, setIsFetching] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [claimFilter, setClaimFilter] = useState<"all" | "unclaimed" | "mine">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Modals & Form states
@@ -83,6 +88,15 @@ export function AdminRoute() {
 
   const [isAddTreatmentOpen, setIsAddTreatmentOpen] = useState(false);
   const [editingTreatment, setEditingTreatment] = useState<any>(null);
+
+  // Booking assignment (doctor + slot) state
+  const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [assignDoctorId, setAssignDoctorId] = useState("");
+  const [assignDate, setAssignDate] = useState("");
+  const [assignTime, setAssignTime] = useState("");
+  const [isAssigning, setIsAssigning] = useState(false);
+
+  const [isImportingCatalog, setIsImportingCatalog] = useState(false);
 
   // Doctor form fields
   const [docName, setDocName] = useState("");
@@ -144,7 +158,7 @@ export function AdminRoute() {
   // Appointment Status Change
   const handleUpdateStatus = async (
     id: string,
-    status: "pending" | "contacted" | "completed" | "cancelled",
+    status: "pending" | "contacted" | "scheduled" | "completed" | "cancelled",
   ) => {
     try {
       const res = await updateConsultationStatusFn({ data: { id, status } });
@@ -158,6 +172,116 @@ export function AdminRoute() {
       }
     } catch {
       toast.error("Error updating status");
+    }
+  };
+
+  // Shared claim queue: an admin claims a booking to work it exclusively, and can
+  // release it back to the pool for anyone (including themselves later) to pick up.
+  const handleClaim = async (id: string) => {
+    try {
+      const res = await claimConsultationFn({ data: { id } });
+      if (res.success) {
+        toast.success(res.message);
+        setConsultations((prev) =>
+          prev.map((item) =>
+            item.id === id
+              ? { ...item, claimedByAdminId: user?.id, claimedByAdminName: user?.name }
+              : item,
+          ),
+        );
+      } else {
+        toast.error(res.error || "Could not claim this booking.");
+        loadAllData();
+      }
+    } catch {
+      toast.error("Error claiming booking.");
+    }
+  };
+
+  const handleRelease = async (id: string) => {
+    try {
+      const res = await releaseConsultationFn({ data: { id } });
+      if (res.success) {
+        toast.success(res.message);
+        setConsultations((prev) =>
+          prev.map((item) =>
+            item.id === id
+              ? { ...item, claimedByAdminId: null, claimedByAdminName: null }
+              : item,
+          ),
+        );
+      } else {
+        toast.error(res.error || "Could not release this booking.");
+      }
+    } catch {
+      toast.error("Error releasing booking.");
+    }
+  };
+
+  // Open/close the assign-doctor panel for a booking, sorting doctors so ones whose
+  // specialty roughly matches the booking's surgery category show up first.
+  const openAssignPanel = (item: any) => {
+    setAssigningId(item.id);
+    setAssignDoctorId(item.assignedDoctorId || "");
+    setAssignDate(item.scheduledDate || "");
+    setAssignTime(item.scheduledTime || "");
+  };
+
+  const closeAssignPanel = () => {
+    setAssigningId(null);
+    setAssignDoctorId("");
+    setAssignDate("");
+    setAssignTime("");
+  };
+
+  const doctorsForAssignment = (category: string) => {
+    const categoryWords = category.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    const matches = (specialty: string) => {
+      const s = specialty.toLowerCase();
+      return categoryWords.some((w) => w.length > 3 && (s.includes(w) || w.includes(s)));
+    };
+    return [...doctors].sort((a, b) => {
+      const aMatch = matches(a.specialty) ? 0 : 1;
+      const bMatch = matches(b.specialty) ? 0 : 1;
+      return aMatch - bMatch || a.name.localeCompare(b.name);
+    });
+  };
+
+  const handleConfirmAssign = async () => {
+    if (!assigningId || !assignDoctorId || !assignDate || !assignTime) {
+      toast.error("Please select a doctor, date, and time.");
+      return;
+    }
+    setIsAssigning(true);
+    try {
+      const res = await assignConsultationFn({
+        data: { id: assigningId, doctorId: assignDoctorId, scheduledDate: assignDate, scheduledTime: assignTime },
+      });
+      if (res.success) {
+        toast.success(res.message || "Booking scheduled!");
+        const doctor = doctors.find((d) => d.id === assignDoctorId);
+        setConsultations((prev) =>
+          prev.map((item) =>
+            item.id === assigningId
+              ? {
+                  ...item,
+                  status: "scheduled",
+                  assignedDoctorId: assignDoctorId,
+                  assignedDoctorName: doctor?.name || null,
+                  scheduledDate: assignDate,
+                  scheduledTime: assignTime,
+                }
+              : item,
+          ),
+        );
+        closeAssignPanel();
+      } else {
+        toast.error(res.error || "Failed to assign doctor.");
+      }
+    } catch {
+      toast.error("Error assigning doctor.");
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -317,6 +441,23 @@ export function AdminRoute() {
     }
   };
 
+  const handleImportCatalog = async () => {
+    setIsImportingCatalog(true);
+    try {
+      const res = await importSurgeryCatalogFn();
+      if (res.success) {
+        toast.success(res.message);
+        loadAllData();
+      } else {
+        toast.error(res.error || "Import failed");
+      }
+    } catch {
+      toast.error("Error importing surgical catalog");
+    } finally {
+      setIsImportingCatalog(false);
+    }
+  };
+
   const handleDeleteTreatment = async (id: string) => {
     if (!confirm("Are you sure you want to remove this treatment?")) return;
     const res = await deleteTreatmentFn({ data: { id } });
@@ -362,13 +503,17 @@ export function AdminRoute() {
 
   const filteredConsultations = consultations.filter((item) => {
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    const matchesClaim =
+      claimFilter === "all" ||
+      (claimFilter === "unclaimed" && !item.claimedByAdminId) ||
+      (claimFilter === "mine" && item.claimedByAdminId === user?.id);
     const matchesQuery =
       !searchQuery ||
       item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.phone?.includes(searchQuery) ||
       item.treatment?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.city?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesQuery;
+    return matchesStatus && matchesClaim && matchesQuery;
   });
 
   const pendingCount = consultations.filter((c) => c.status === "pending").length;
@@ -498,9 +643,29 @@ export function AdminRoute() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">Filter Status:</span>
-                {["all", "pending", "contacted", "completed", "cancelled"].map((st) => (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">Queue:</span>
+                {(
+                  [
+                    ["all", "All"],
+                    ["unclaimed", "Unclaimed"],
+                    ["mine", "My Claims"],
+                  ] as const
+                ).map(([val, label]) => (
+                  <button
+                    key={val}
+                    onClick={() => setClaimFilter(val)}
+                    className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+                      claimFilter === val
+                        ? "bg-primary text-white"
+                        : "bg-muted/60 text-muted-foreground hover:text-navy"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+                <span className="ml-2 text-xs font-medium text-muted-foreground">Status:</span>
+                {["all", "pending", "contacted", "scheduled", "completed", "cancelled"].map((st) => (
                   <button
                     key={st}
                     onClick={() => setStatusFilter(st)}
@@ -528,14 +693,20 @@ export function AdminRoute() {
                     <tr>
                       <th className="px-4 py-3">Patient Details</th>
                       <th className="px-4 py-3">Treatment & City</th>
+                      <th className="px-4 py-3">Claimed By</th>
+                      <th className="px-4 py-3">Assigned Doctor & Slot</th>
                       <th className="px-4 py-3">Date Submitted</th>
                       <th className="px-4 py-3">Current Status</th>
                       <th className="px-4 py-3 text-right">Approval Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {filteredConsultations.map((item) => (
-                      <tr key={item.id} className="hover:bg-muted/20 transition-colors">
+                    {filteredConsultations.map((item) => {
+                    const isClaimedByMe = item.claimedByAdminId && item.claimedByAdminId === user?.id;
+                    const isLockedByOther = item.claimedByAdminId && item.claimedByAdminId !== user?.id;
+                    return (
+                      <Fragment key={item.id}>
+                      <tr className="hover:bg-muted/20 transition-colors">
                         <td className="px-4 py-3.5">
                           <p className="font-bold text-navy">{item.name}</p>
                           <p className="text-[11px] text-muted-foreground">{item.phone} • {item.email || "No email"}</p>
@@ -546,6 +717,46 @@ export function AdminRoute() {
                         <td className="px-4 py-3.5">
                           <span className="font-semibold text-primary">{item.treatment}</span>
                           <p className="text-[11px] text-muted-foreground">{item.city}</p>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          {item.claimedByAdminName ? (
+                            <div className="space-y-1">
+                              <span
+                                className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                  isClaimedByMe
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : "bg-slate-200 text-slate-700"
+                                }`}
+                              >
+                                {isClaimedByMe ? "You" : item.claimedByAdminName}
+                              </span>
+                              <button
+                                onClick={() => handleRelease(item.id)}
+                                className="block text-[11px] font-semibold text-muted-foreground hover:text-navy"
+                              >
+                                Release
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleClaim(item.id)}
+                              className="rounded-md border border-primary/30 bg-primary/5 px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10 transition-colors"
+                            >
+                              Claim
+                            </button>
+                          )}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          {item.assignedDoctorName ? (
+                            <>
+                              <span className="font-semibold text-navy">{item.assignedDoctorName}</span>
+                              <p className="text-[11px] text-muted-foreground">
+                                {item.scheduledDate} • {item.scheduledTime}
+                              </p>
+                            </>
+                          ) : (
+                            <span className="text-[11px] text-muted-foreground italic">Not assigned yet</span>
+                          )}
                         </td>
                         <td className="px-4 py-3.5 text-muted-foreground">
                           {new Date(item.createdAt).toLocaleDateString("en-IN", {
@@ -561,11 +772,13 @@ export function AdminRoute() {
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold capitalize ${
                               item.status === "completed"
                                 ? "bg-emerald-100 text-emerald-800"
-                                : item.status === "contacted"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : item.status === "cancelled"
-                                    ? "bg-red-100 text-red-800"
-                                    : "bg-amber-100 text-amber-800"
+                                : item.status === "scheduled"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : item.status === "contacted"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : item.status === "cancelled"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-amber-100 text-amber-800"
                             }`}
                           >
                             {item.status === "completed" && <CheckCircle2 className="h-3 w-3" />}
@@ -574,33 +787,117 @@ export function AdminRoute() {
                           </span>
                         </td>
                         <td className="px-4 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <select
-                              value={item.status}
-                              onChange={(e) =>
-                                handleUpdateStatus(
-                                  item.id,
-                                  e.target.value as "pending" | "contacted" | "completed" | "cancelled",
-                                )
-                              }
-                              className="rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium outline-none focus:border-primary"
-                            >
-                              <option value="pending">Pending</option>
-                              <option value="contacted">Contacted</option>
-                              <option value="completed">Completed</option>
-                              <option value="cancelled">Cancelled</option>
-                            </select>
-                            <button
-                              onClick={() => handleDeleteConsultation(item.id)}
-                              className="rounded-md p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
-                              title="Delete booking"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
+                          {isLockedByOther ? (
+                            <span className="text-[11px] italic text-muted-foreground">
+                              Locked — claimed by {item.claimedByAdminName}
+                            </span>
+                          ) : (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => openAssignPanel(item)}
+                                className="rounded-md border border-primary/30 bg-primary/5 px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10 transition-colors"
+                              >
+                                {item.assignedDoctorName ? "Reassign" : "Assign"}
+                              </button>
+                              <select
+                                value={item.status}
+                                onChange={(e) =>
+                                  handleUpdateStatus(
+                                    item.id,
+                                    e.target.value as
+                                      | "pending"
+                                      | "contacted"
+                                      | "scheduled"
+                                      | "completed"
+                                      | "cancelled",
+                                  )
+                                }
+                                className="rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium outline-none focus:border-primary"
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="contacted">Contacted</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                              <button
+                                onClick={() => handleDeleteConsultation(item.id)}
+                                className="rounded-md p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
+                                title="Delete booking"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
-                    ))}
+                      {assigningId === item.id && (
+                        <tr className="bg-cream/60">
+                          <td colSpan={7} className="px-4 py-4">
+                            <div className="flex flex-wrap items-end gap-3">
+                              <div>
+                                <label className="mb-1 block text-[11px] font-semibold text-navy">
+                                  Doctor ({item.category})
+                                </label>
+                                <select
+                                  value={assignDoctorId}
+                                  onChange={(e) => setAssignDoctorId(e.target.value)}
+                                  className="rounded-md border border-border bg-white px-3 py-1.5 text-xs outline-none focus:border-primary min-w-[220px]"
+                                >
+                                  <option value="" disabled>
+                                    Select doctor
+                                  </option>
+                                  {doctorsForAssignment(item.category).map((d) => (
+                                    <option key={d.id} value={d.id}>
+                                      {d.name} — {d.specialty} ({d.city})
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-[11px] font-semibold text-navy">
+                                  Date
+                                </label>
+                                <input
+                                  type="date"
+                                  value={assignDate}
+                                  onChange={(e) => setAssignDate(e.target.value)}
+                                  className="rounded-md border border-border bg-white px-3 py-1.5 text-xs outline-none focus:border-primary"
+                                />
+                              </div>
+                              <div>
+                                <label className="mb-1 block text-[11px] font-semibold text-navy">
+                                  Time
+                                </label>
+                                <input
+                                  type="time"
+                                  value={assignTime}
+                                  onChange={(e) => setAssignTime(e.target.value)}
+                                  className="rounded-md border border-border bg-white px-3 py-1.5 text-xs outline-none focus:border-primary"
+                                />
+                              </div>
+                              <OrangeButton
+                                type="button"
+                                onClick={handleConfirmAssign}
+                                disabled={isAssigning}
+                                className="py-1.5 px-3 text-xs"
+                              >
+                                {isAssigning ? "Saving..." : "Confirm & Schedule"}
+                              </OrangeButton>
+                              <OutlineButton
+                                type="button"
+                                onClick={closeAssignPanel}
+                                className="py-1.5 px-3 text-xs"
+                              >
+                                Cancel
+                              </OutlineButton>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      </Fragment>
+                    );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -930,21 +1227,37 @@ export function AdminRoute() {
         {/* TAB 5: Treatments Management */}
         {activeTab === "treatments" && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center bg-white p-4 rounded-lg border border-border">
-              <h2 className="text-base font-bold text-navy">Treatments Directory (`treatments`)</h2>
-              <OrangeButton
-                onClick={() => {
-                  setEditingTreatment(null);
-                  setTreatName("");
-                  setTreatCategory("General Surgery");
-                  setTreatDesc("");
-                  setTreatRecovery("1-2 Days");
-                  setIsAddTreatmentOpen(true);
-                }}
-                className="py-1.5 px-3 text-xs"
-              >
-                <Plus className="h-3.5 w-3.5 mr-1" /> Add Treatment
-              </OrangeButton>
+            <div className="flex flex-wrap justify-between items-center gap-3 bg-white p-4 rounded-lg border border-border">
+              <div>
+                <h2 className="text-base font-bold text-navy">Treatments Directory (`treatments`)</h2>
+                <p className="text-[11px] text-muted-foreground">
+                  {treatments.length} procedures across{" "}
+                  {new Set(treatments.map((t) => t.category)).size} categories
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <OutlineButton
+                  onClick={handleImportCatalog}
+                  disabled={isImportingCatalog}
+                  className="py-1.5 px-3 text-xs"
+                >
+                  <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${isImportingCatalog ? "animate-spin" : ""}`} />
+                  {isImportingCatalog ? "Importing..." : "Import Full Surgical Catalog"}
+                </OutlineButton>
+                <OrangeButton
+                  onClick={() => {
+                    setEditingTreatment(null);
+                    setTreatName("");
+                    setTreatCategory("General Surgery");
+                    setTreatDesc("");
+                    setTreatRecovery("1-2 Days");
+                    setIsAddTreatmentOpen(true);
+                  }}
+                  className="py-1.5 px-3 text-xs"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Treatment
+                </OrangeButton>
+              </div>
             </div>
 
             {(isAddTreatmentOpen || editingTreatment) && (

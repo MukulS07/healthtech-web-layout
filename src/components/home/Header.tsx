@@ -1,4 +1,6 @@
-import { ChevronDown, MapPin, Phone, Search, Menu, HeartPulse, UserRound } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, MapPin, Phone, Search, Menu, X, HeartPulse, UserRound } from "lucide-react";
 import { Container, OrangeButton } from "./primitives";
 import {
   DropdownMenu,
@@ -6,26 +8,38 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { getTreatmentCategoriesFn } from "@/lib/server-functions/treatments";
 
-const mainSpecialties = [
-  { label: "Proctology", href: "/specialities/proctology" },
-  { label: "Laparoscopy", href: "/specialities/laparoscopy" },
-  { label: "Gynaecology", href: "/specialities/gynaecology" },
-  { label: "ENT", href: "/specialities/ent" },
-  { label: "Urology", href: "/specialities/urology" },
-  { label: "Orthopedics", href: "/specialities/orthopedics" },
-];
-
-const extraSpecialties = [
-  { label: "Vascular", href: "/specialities/vascular" },
-  { label: "Aesthetics", href: "/specialities/aesthetics" },
-  { label: "Ophthalmology", href: "/specialities/ophthalmology" },
-  { label: "Fertility", href: "/specialities/fertility" },
-  { label: "Weight Loss", href: "/specialities/weight-loss" },
-  { label: "Dermatology", href: "/specialities/dermatology" },
+// Shown while the real category list is still loading, so the header isn't empty on
+// first paint. Once data arrives these are replaced entirely by the live catalog.
+const fallbackSpecialties = [
+  { label: "General Surgery", href: "/treatments?category=General%20Surgery" },
+  { label: "Orthopedic Surgery", href: "/treatments?category=Orthopedic%20Surgery" },
 ];
 
 export function Header() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const { data: categoriesData } = useQuery({
+    queryKey: ["treatment-categories"],
+    queryFn: () => getTreatmentCategoriesFn(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const specialties = useMemo(() => {
+    const categories = categoriesData?.success ? categoriesData.categories : [];
+    if (categories.length === 0) return null;
+    return categories.map((c) => ({
+      label: c.category,
+      href: `/treatments?category=${encodeURIComponent(c.category)}`,
+    }));
+  }, [categoriesData]);
+
+  // Most common categories appear on the visible bar (already sorted by count desc
+  // server-side); the rest live in the "More Specialties" dropdown.
+  const mainSpecialties = specialties ? specialties.slice(0, 6) : fallbackSpecialties;
+  const extraSpecialties = specialties ? specialties.slice(6) : [];
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
       <div className="text-navy">
@@ -85,15 +99,21 @@ export function Header() {
                 Book Free Consultation
               </OrangeButton>
             </a>
-            <button aria-label="Menu" className="lg:hidden">
-              <Menu className="h-6 w-6" />
+            <button
+              type="button"
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
+              onClick={() => setMobileOpen((v) => !v)}
+              className="lg:hidden"
+            >
+              {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </Container>
       </div>
-      <div className="border-t border-border bg-cream/70">
+      <div className="hidden border-t border-border bg-cream/70 lg:block">
         <Container>
-          <nav className="flex items-center gap-6 py-2.5 text-sm font-medium">
+          <nav className="no-scrollbar flex items-center gap-6 overflow-x-auto py-2.5 text-sm font-medium">
             {mainSpecialties.map((s) => (
               <a
                 key={s.label}
@@ -104,20 +124,22 @@ export function Header() {
               </a>
             ))}
 
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex shrink-0 items-center gap-1 text-ink/80 transition-colors hover:text-brand-orange outline-none">
-                More Specialties <ChevronDown className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                {extraSpecialties.map((s) => (
-                  <DropdownMenuItem key={s.label} asChild>
-                    <a href={s.href} className="w-full cursor-pointer">
-                      {s.label}
-                    </a>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {extraSpecialties.length > 0 ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex shrink-0 items-center gap-1 text-ink/80 transition-colors hover:text-brand-orange outline-none">
+                  More Specialties <ChevronDown className="h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  {extraSpecialties.map((s) => (
+                    <DropdownMenuItem key={s.label} asChild>
+                      <a href={s.href} className="w-full cursor-pointer">
+                        {s.label}
+                      </a>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
 
             <span className="h-4 w-px bg-border shrink-0" />
 
@@ -136,6 +158,74 @@ export function Header() {
           </nav>
         </Container>
       </div>
+
+      {mobileOpen ? (
+        <div className="max-h-[calc(100vh-64px)] overflow-y-auto border-t border-border bg-background lg:hidden">
+          <Container className="space-y-5 py-5">
+            <div className="flex items-center gap-2 rounded-lg bg-brand-orange-soft px-3 py-2.5">
+              <Search className="h-4 w-4 shrink-0 text-primary" />
+              <input
+                className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted-foreground"
+                placeholder="Search treatments, conditions, doctors"
+              />
+            </div>
+
+            <button className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+              <MapPin className="h-4 w-4 text-brand-orange" /> Delhi NCR{" "}
+              <ChevronDown className="h-4 w-4" />
+            </button>
+
+            <a href="/contact" className="block">
+              <OrangeButton className="w-full">Book Free Consultation</OrangeButton>
+            </a>
+
+            <div className="grid grid-cols-2 gap-3 text-sm font-semibold text-navy">
+              <a
+                href="/account"
+                className="flex items-center gap-1.5 hover:text-brand-orange"
+              >
+                <UserRound className="h-4 w-4 text-brand-orange" /> My Appointments
+              </a>
+              <a href="tel:18000001234" className="flex items-center gap-1.5 hover:text-brand-orange">
+                <Phone className="h-4 w-4 text-brand-orange" /> Call Us
+              </a>
+              <a href="/faqs" className="font-medium text-muted-foreground hover:text-navy">
+                For Patients
+              </a>
+              <a href="/about" className="font-medium text-muted-foreground hover:text-navy">
+                Our Company
+              </a>
+              <a href="/admin" className="font-medium text-muted-foreground hover:text-navy">
+                Admin Portal
+              </a>
+            </div>
+
+            <div className="border-t border-border pt-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Specialities
+              </p>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 text-sm font-medium text-ink/80">
+                {[...mainSpecialties, ...extraSpecialties].map((s) => (
+                  <a key={s.label} href={s.href} className="hover:text-brand-orange">
+                    {s.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-border pt-4">
+              <div className="grid grid-cols-2 gap-3 text-sm font-semibold text-navy">
+                <a href="/doctors" className="hover:text-brand-orange">
+                  Our Doctors
+                </a>
+                <a href="/hospitals" className="hover:text-brand-orange">
+                  Our Hospitals
+                </a>
+              </div>
+            </div>
+          </Container>
+        </div>
+      ) : null}
     </header>
   );
 }

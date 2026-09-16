@@ -56,6 +56,7 @@ export function AuthPanel({
             mode === "signup" ? `Welcome, ${res.user.name}!` : `Welcome back, ${res.user.name}!`,
           );
           onSuccess?.();
+          navigate({ to: "/account" });
         }
       } else {
         setError(res.error);

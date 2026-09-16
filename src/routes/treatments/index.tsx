@@ -1,26 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Search, ArrowRight, Clock, Database, Loader2 } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, OrangeButton, Eyebrow } from "@/components/home/primitives";
 import { ConsultForm } from "@/components/home/ConsultForm";
-import { getTreatmentsFn } from "@/lib/server-functions/treatments";
-
-const specialtyFilters = [
-  "All",
-  "Proctology",
-  "Laparoscopy",
-  "Gynaecology",
-  "ENT",
-  "Urology",
-  "Orthopedics",
-  "Ophthalmology",
-  "Aesthetics",
-  "Vascular",
-];
+import { getTreatmentsFn, getTreatmentCategoriesFn } from "@/lib/server-functions/treatments";
 
 export const Route = createFileRoute("/treatments/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    category: typeof search["category"] === "string" ? (search["category"] as string) : undefined,
+  }),
   loader: async () => {
     try {
       const res = await getTreatmentsFn();
@@ -43,10 +34,23 @@ export const Route = createFileRoute("/treatments/")({
 
 function TreatmentsPage() {
   const initialData = Route.useLoaderData();
+  const { category: categoryFromUrl } = Route.useSearch();
   const [treatments, setTreatments] = useState(initialData?.treatments || []);
   const [isLoading, setIsLoading] = useState(false);
-  const [active, setActive] = useState("All");
+  const [active, setActive] = useState(categoryFromUrl || "All");
   const [query, setQuery] = useState("");
+
+  // Category chips come from the real catalog, not a hand-maintained guess, so they
+  // always line up with what's actually filterable.
+  const { data: categoriesData } = useQuery({
+    queryKey: ["treatment-categories"],
+    queryFn: () => getTreatmentCategoriesFn(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const specialtyFilters = [
+    "All",
+    ...(categoriesData?.success ? categoriesData.categories.map((c) => c.category) : []),
+  ];
 
   useEffect(() => {
     let isMounted = true;

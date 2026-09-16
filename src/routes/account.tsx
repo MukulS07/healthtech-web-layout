@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   CalendarCheck,
+  CalendarClock,
   CheckCircle2,
   Clock,
   Loader2,
@@ -11,10 +12,12 @@ import {
   Phone,
   PhoneCall,
   RefreshCw,
+  Stethoscope,
   XCircle,
 } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
+import { ConsultForm } from "@/components/home/ConsultForm";
 import { Container, Eyebrow, OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { AuthPanel } from "@/components/auth/AuthPanel";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -50,6 +53,12 @@ const statusMeta: Record<
     description: "Our coordinator has contacted you and your consultation is being scheduled.",
     icon: PhoneCall,
     className: "bg-sky-100 text-sky-800 border-sky-200",
+  },
+  scheduled: {
+    label: "Scheduled",
+    description: "Your appointment has been scheduled with a specialist.",
+    icon: CalendarClock,
+    className: "bg-purple-100 text-purple-800 border-purple-200",
   },
   completed: {
     label: "Completed",
@@ -117,8 +126,8 @@ function AccountPage() {
                       <Phone className="h-4 w-4 text-brand-orange" /> {user.phone}
                     </p>
                   </div>
-                  <a href="/contact" className="block">
-                    <OrangeButton className="w-full">Book New Consultation</OrangeButton>
+                  <a href="#book-surgery" className="block">
+                    <OrangeButton className="w-full">Register for a Surgery</OrangeButton>
                   </a>
                   <OutlineButton className="w-full" onClick={logout}>
                     <span className="inline-flex items-center gap-2">
@@ -126,7 +135,18 @@ function AccountPage() {
                     </span>
                   </OutlineButton>
                 </aside>
-                <AppointmentList />
+                <div className="space-y-10">
+                  <div id="book-surgery" className="scroll-mt-24">
+                    <Eyebrow>Book a surgery</Eyebrow>
+                    <h2 className="mt-1 text-xl font-bold text-navy">Register for a Surgery</h2>
+                    <p className="mt-1 mb-4 text-sm text-muted-foreground">
+                      Pick a category and the specific procedure — we'll match you with a
+                      specialist and confirm your appointment slot here.
+                    </p>
+                    <ConsultForm className="max-w-xl" hideAccountBar />
+                  </div>
+                  <AppointmentList />
+                </div>
               </div>
             ) : (
               <div className="mx-auto max-w-md">
@@ -214,6 +234,19 @@ function AppointmentList() {
                   </span>
                 </div>
                 <p className="mt-3 text-sm text-ink/80">{meta.description}</p>
+                {c.assignedDoctorName ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-lg bg-cream px-3 py-2 text-xs text-navy">
+                    <span className="inline-flex items-center gap-1.5 font-semibold">
+                      <Stethoscope className="h-3.5 w-3.5 text-brand-orange" /> {c.assignedDoctorName}
+                    </span>
+                    {c.scheduledDate && c.scheduledTime ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <CalendarClock className="h-3.5 w-3.5 text-brand-orange" /> {c.scheduledDate} at{" "}
+                        {c.scheduledTime}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
                 {c.message ? (
                   <p className="mt-2 rounded-lg bg-cream px-3 py-2 text-xs text-ink/70">
                     “{c.message}”

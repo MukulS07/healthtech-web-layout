@@ -25,6 +25,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Vercel
+.vercel/
+
 # Sensitive keys, certificates & credentials
 *.pem
 *.key
@@ -35,8 +38,9 @@ dist-ssr
 credentials.json
 secrets/
 
-# Database dumps & archives
-DATA/
+# Database dumps & archives (root-level only — anchored so it doesn't collide with
+# src/data/, which holds the real surgery catalog and must be tracked)
+/DATA/
 *.archive
 *.sqlite
 *.sqlite3
@@ -53,3 +57,5 @@ DATA/
 *.sln
 *.sw?
 
+.vercel
+.env*

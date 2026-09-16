@@ -1,23 +1,13 @@
-import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Lock, Loader2, Database, UserRound, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { OrangeButton } from "./primitives";
 import { cn } from "@/lib/utils";
 import { submitConsultationFn } from "@/lib/server-functions/consultations";
+import { getTreatmentsFn } from "@/lib/server-functions/treatments";
 import { AuthPanel } from "@/components/auth/AuthPanel";
 import { useCurrentUser } from "@/hooks/use-current-user";
-
-const treatments = [
-  "Piles / Fissure",
-  "Hernia",
-  "Kidney Stone",
-  "Gallstone",
-  "Cataract",
-  "Knee Replacement",
-  "Gynaecology",
-  "ENT",
-];
 
 const cities = [
   "Delhi NCR",
@@ -30,14 +20,37 @@ const cities = [
   "Kochi",
 ];
 
-export function ConsultForm({ className }: { className?: string }) {
+export function ConsultForm({
+  className,
+  hideAccountBar = false,
+}: {
+  className?: string;
+  hideAccountBar?: boolean;
+}) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [treatment, setTreatment] = useState("");
+  const [category, setCategory] = useState("");
+  const [treatmentId, setTreatmentId] = useState("");
   const [city, setCity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isLoading, logout } = useCurrentUser();
   const queryClient = useQueryClient();
+
+  const { data: treatmentsData } = useQuery({
+    queryKey: ["treatments", "all"],
+    queryFn: () => getTreatmentsFn({ data: {} }),
+    staleTime: 5 * 60 * 1000,
+  });
+  const treatments = treatmentsData?.success ? treatmentsData.treatments : [];
+
+  const categories = useMemo(
+    () => Array.from(new Set(treatments.map((t) => t.category))).sort(),
+    [treatments],
+  );
+  const proceduresInCategory = useMemo(
+    () => treatments.filter((t) => t.category === category).sort((a, b) => a.name.localeCompare(b.name)),
+    [treatments, category],
+  );
 
   // Prefill contact details from the account once the patient logs in.
   useEffect(() => {
@@ -51,7 +64,7 @@ export function ConsultForm({ className }: { className?: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone || !treatment || !city) {
+    if (!name || !phone || !treatmentId || !city) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -62,7 +75,7 @@ export function ConsultForm({ className }: { className?: string }) {
         data: {
           name,
           phone,
-          treatment,
+          treatmentId,
           city,
         },
       });
@@ -72,7 +85,8 @@ export function ConsultForm({ className }: { className?: string }) {
         toast.success("Consultation booked! Track its status in My Appointments.", {
           action: { label: "View", onClick: () => (window.location.href = "/account") },
         });
-        setTreatment("");
+        setCategory("");
+        setTreatmentId("");
         setCity("");
       } else {
         toast.error(res.error || "Failed to submit consultation.");
@@ -121,24 +135,26 @@ export function ConsultForm({ className }: { className?: string }) {
         </div>
       ) : (
         <>
-          <div className="mx-5 mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-cream px-3 py-2 text-xs">
-            <span className="flex items-center gap-1.5 text-ink">
-              <UserRound className="h-3.5 w-3.5 text-brand-orange" />
-              Booking as <span className="font-semibold text-navy">{user.name}</span>
-            </span>
-            <span className="flex items-center gap-3 font-semibold">
-              <a href="/account" className="text-navy hover:text-brand-orange">
-                My Appointments
-              </a>
-              <button
-                type="button"
-                onClick={logout}
-                className="inline-flex items-center gap-1 text-muted-foreground hover:text-navy"
-              >
-                <LogOut className="h-3 w-3" /> Log out
-              </button>
-            </span>
-          </div>
+          {hideAccountBar ? null : (
+            <div className="mx-5 mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-cream px-3 py-2 text-xs">
+              <span className="flex items-center gap-1.5 text-ink">
+                <UserRound className="h-3.5 w-3.5 text-brand-orange" />
+                Booking as <span className="font-semibold text-navy">{user.name}</span>
+              </span>
+              <span className="flex items-center gap-3 font-semibold">
+                <a href="/account" className="text-navy hover:text-brand-orange">
+                  My Appointments
+                </a>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="inline-flex items-center gap-1 text-muted-foreground hover:text-navy"
+                >
+                  <LogOut className="h-3 w-3" /> Log out
+                </button>
+              </span>
+            </div>
+          )}
           <form className="space-y-3 p-5" onSubmit={handleSubmit}>
             <input
               className={inputClass}
@@ -157,16 +173,35 @@ export function ConsultForm({ className }: { className?: string }) {
             />
             <select
               className={inputClass}
-              value={treatment}
-              onChange={(e) => setTreatment(e.target.value)}
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setTreatmentId("");
+              }}
               required
             >
               <option value="" disabled>
-                Select treatment *
+                Select surgery category *
               </option>
-              {treatments.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            <select
+              className={inputClass}
+              value={treatmentId}
+              onChange={(e) => setTreatmentId(e.target.value)}
+              required
+              disabled={!category}
+            >
+              <option value="" disabled>
+                {category ? "Select specific surgery *" : "Choose a category first"}
+              </option>
+              {proceduresInCategory.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
                 </option>
               ))}
             </select>
