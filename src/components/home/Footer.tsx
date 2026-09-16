@@ -68,34 +68,33 @@ export function Footer() {
     <>
       <footer className="bg-navy pb-24 pt-14 text-navy-foreground lg:pb-14">
         <Container>
-          <div className="grid gap-10 lg:grid-cols-[1.2fr_repeat(4,minmax(0,1fr))]">
-            <div className="min-w-0">
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-[1.2fr_repeat(4,minmax(0,1fr))] lg:gap-10">
+            <div className="col-span-2 min-w-0 sm:col-span-3 lg:col-span-1">
               <div className="flex items-center gap-2">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                   <HeartPulse className="h-5 w-5" />
                 </span>
-                <span className="text-lg font-bold">Prime Care</span>
+                <span className="text-lg font-bold tracking-tight">Prime Care</span>
               </div>
-              <p className="mt-4 max-w-xs text-sm text-navy-foreground/70">
-                Specialist surgeons, modern hospitals and safer surgeries across 45+ cities in
-                India.
+              <p className="mt-4 max-w-xs text-sm leading-relaxed text-navy-foreground/75">
+                Specialist surgeons, modern hospitals, and safer surgeries across 45+ cities in India.
               </p>
               <a
                 href="tel:18000001234"
-                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold"
+                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-navy-foreground hover:text-brand-orange transition-colors"
               >
-                <Phone className="h-4 w-4 text-brand-orange" /> 1800 000 1234
+                <Phone className="h-4 w-4 text-brand-orange shrink-0" /> 1800 000 1234
               </a>
             </div>
             {columns.map((col) => (
               <div key={col.title} className="min-w-0">
-                <p className="text-sm font-bold">{col.title}</p>
-                <ul className="mt-4 space-y-2">
+                <p className="text-sm font-bold tracking-wide text-navy-foreground">{col.title}</p>
+                <ul className="mt-3.5 space-y-2">
                   {col.links.map((l) => (
                     <li key={l.label}>
                       <a
                         href={l.href}
-                        className="text-sm text-navy-foreground/70 transition-colors hover:text-brand-orange"
+                        className="text-sm text-navy-foreground/70 transition-colors hover:text-brand-orange focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded"
                       >
                         {l.label}
                       </a>
@@ -106,14 +105,14 @@ export function Footer() {
             ))}
           </div>
 
-          <div className="mt-10 border-t border-navy-foreground/15 pt-6">
-            <p className="text-sm font-bold">We are available in</p>
+          <div className="mt-12 border-t border-navy-foreground/15 pt-6">
+            <p className="text-xs font-bold uppercase tracking-wider text-navy-foreground/80">We are available in</p>
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
               {cities.map((c) => (
                 <a
                   key={c.label}
                   href={c.href}
-                  className="text-sm text-navy-foreground/70 hover:text-brand-orange"
+                  className="text-xs font-medium text-navy-foreground/70 transition-colors hover:text-brand-orange"
                 >
                   {c.label}
                 </a>
@@ -122,29 +121,33 @@ export function Footer() {
           </div>
         </Container>
       </footer>
-      <div className="bg-navy-deep py-4 text-center text-xs text-navy-foreground/60">
-        <Container>
-          © {new Date().getFullYear()} Prime Care. Illustrative demo site.{" "}
-          <a href="/privacy" className="hover:text-brand-orange">
-            Privacy Policy
-          </a>
-          {" · "}
-          <a href="/terms" className="hover:text-brand-orange">
-            Terms of Use
-          </a>
+      
+      <div className="bg-navy-deep py-4 text-center text-xs text-navy-foreground/60 border-t border-white/5">
+        <Container className="flex flex-col items-center justify-between gap-2 sm:flex-row">
+          <p>© {new Date().getFullYear()} Prime Care. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <a href="/privacy" className="transition-colors hover:text-brand-orange">
+              Privacy Policy
+            </a>
+            <span>·</span>
+            <a href="/terms" className="transition-colors hover:text-brand-orange">
+              Terms of Use
+            </a>
+          </div>
         </Container>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-2 gap-2 border-t border-border bg-background p-3 lg:hidden">
+      {/* Sticky Mobile CTA Bar */}
+      <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-2.5 border-t border-border bg-background/95 p-3 backdrop-blur lg:hidden shadow-lg">
         <a
           href="tel:18000001234"
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-navy/25 py-3 text-sm font-semibold text-navy"
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-navy/25 bg-background py-2.5 text-sm font-semibold text-navy hover:bg-muted active:scale-[0.98] transition-all"
         >
-          <Phone className="h-4 w-4" /> Call Now
+          <Phone className="h-4 w-4 text-brand-orange" /> Call Now
         </a>
         <a
           href="/contact"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-orange py-3 text-sm font-semibold text-primary-foreground"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white shadow-md hover:bg-primary/90 active:scale-[0.98] transition-all"
         >
           <CalendarCheck className="h-4 w-4" /> Book Free
         </a>

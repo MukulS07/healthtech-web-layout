@@ -14,6 +14,7 @@ import {
   Phone,
   Apple,
   Smartphone,
+  CheckCircle2,
 } from "lucide-react";
 import {
   Container,
@@ -43,16 +44,24 @@ import appMockup from "@/assets/app-mockup.png";
 const tabs = ["Specialities", "Treatments", "Conditions"] as const;
 
 const tiles = [
-  { label: "Proctology", title: "Piles, Fissure & Fistula", img: tileProctology },
-  { label: "Laparoscopy", title: "Hernia & Gallstone Surgery", img: tileLaparoscopy },
-  { label: "Orthopedics", title: "Knee & Joint Replacement", img: tileOrtho },
-  { label: "Aesthetics", title: "Cosmetic & Skin Procedures", img: tileAesthetics },
+  { label: "Proctology", title: "Piles, Fissure & Fistula", img: tileProctology, href: "/specialities/proctology" },
+  { label: "Laparoscopy", title: "Hernia & Gallstone Surgery", img: tileLaparoscopy, href: "/specialities/laparoscopy" },
+  { label: "Orthopedics", title: "Knee & Joint Replacement", img: tileOrtho, href: "/specialities/orthopedics" },
+  { label: "Aesthetics", title: "Cosmetic & Skin Procedures", img: tileAesthetics, href: "/specialities/aesthetics" },
 ];
 
 export function FindCare() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Specialities");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredTiles = tiles.filter(t => 
+    !searchTerm || 
+    t.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    t.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <section className="bg-background py-14">
+    <section className="bg-background py-12 sm:py-16">
       <Container>
         <SectionHead
           align="center"
@@ -64,13 +73,14 @@ export function FindCare() {
           }
           subtitle="Browse trusted specialists, treatments and support for every stage of health."
         />
-        <div className="mx-auto max-w-3xl rounded-2xl border border-border bg-cream/70 p-2 shadow-sm sm:flex sm:items-center sm:gap-2">
-          <div className="flex shrink-0 gap-1 rounded-xl bg-background/80 p-1">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-border bg-cream/80 p-2 shadow-sm sm:flex sm:items-center sm:gap-2">
+          <div className="flex shrink-0 gap-1 rounded-xl bg-background/90 p-1">
             {tabs.map((t) => (
               <button
                 key={t}
+                type="button"
                 onClick={() => setTab(t)}
-                className={`rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
+                className={`rounded-lg px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
                   tab === t
                     ? "bg-navy text-navy-foreground shadow-sm"
                     : "text-muted-foreground hover:text-navy"
@@ -83,21 +93,29 @@ export function FindCare() {
           <div className="mt-2 flex flex-1 items-center gap-2 px-3 py-1.5 sm:mt-0">
             <Search className="h-4 w-4 shrink-0 text-brand-orange" />
             <input
-              className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted-foreground"
               placeholder={`Search ${tab.toLowerCase()} — e.g. piles, hernia, cataract`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <OrangeButton className="hidden shrink-0 px-4 py-2 text-xs sm:inline-flex">
-            Search
-          </OrangeButton>
+          {searchTerm && (
+            <button 
+              type="button" 
+              onClick={() => setSearchTerm("")}
+              className="text-xs text-muted-foreground hover:text-navy px-2 hidden sm:block"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {tiles.map((tile) => (
+          {filteredTiles.map((tile) => (
             <a
-              href="/specialities/proctology"
+              href={tile.href}
               key={tile.label}
-              className="group relative overflow-hidden rounded-xl border border-border shadow-sm transition-all hover:shadow-md"
+              className="group relative overflow-hidden rounded-xl border border-border/80 shadow-sm transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <img
                 src={tile.img}
@@ -107,8 +125,8 @@ export function FindCare() {
                 height={1000}
                 className="h-72 w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/30 to-transparent" />
-              <div className="absolute inset-x-4 bottom-4 rounded-lg bg-background/90 p-3.5 shadow-lg backdrop-blur-md transition-all group-hover:bg-background">
+              <div className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/30 to-transparent" />
+              <div className="absolute inset-x-4 bottom-4 rounded-lg bg-background/95 p-3.5 shadow-lg backdrop-blur-md transition-all group-hover:bg-background">
                 <div className="flex items-center justify-between">
                   <Eyebrow tone="orange">{tile.label}</Eyebrow>
                   <ArrowRight className="h-4 w-4 text-brand-orange transition-transform group-hover:translate-x-1" />
@@ -168,7 +186,7 @@ const experiences = [
 
 export function PatientExperiences() {
   return (
-    <section className="bg-cream py-14">
+    <section className="bg-cream py-12 sm:py-16">
       <Container>
         <SectionHead
           align="center"
@@ -180,7 +198,7 @@ export function PatientExperiences() {
           {experiences.map((exp) => (
             <article
               key={exp.tag}
-              className="overflow-hidden rounded-lg border border-border bg-background"
+              className="flex flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="relative">
                 <img
@@ -191,22 +209,23 @@ export function PatientExperiences() {
                   height={900}
                   className="h-56 w-full object-cover"
                 />
-                <span className="absolute left-4 top-4 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-navy-foreground">
+                <span className="absolute left-4 top-4 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-navy-foreground shadow-sm">
                   {exp.tag}
                 </span>
                 <button
-                  className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-background/95 px-3.5 py-1.5 text-xs font-semibold text-navy shadow-md backdrop-blur-md transition-all hover:scale-105"
-                  aria-label="Watch video"
+                  type="button"
+                  className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-background/95 px-3.5 py-1.5 text-xs font-semibold text-navy shadow-md backdrop-blur-md transition-all hover:scale-105 cursor-pointer"
+                  aria-label={`Watch ${exp.tag} video`}
                 >
                   <Play className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" />
                   <span>Watch video</span>
                 </button>
               </div>
-              <ul className="space-y-2 p-5">
+              <ul className="flex-1 space-y-2.5 p-5">
                 {exp.points.map((p) => (
-                  <li key={p} className="flex gap-2 text-sm text-muted-foreground">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-orange" />
-                    {p}
+                  <li key={p} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-orange" />
+                    <span>{p}</span>
                   </li>
                 ))}
               </ul>
@@ -236,14 +255,18 @@ const hospitals = [
 
 export function Hospitals() {
   return (
-    <section className="bg-navy py-14">
+    <section className="bg-navy py-12 sm:py-16 text-navy-foreground">
       <Container>
         <SectionHead
           tone="light"
           eyebrow="Care close to home"
           title="A Trusted Network of Modern Hospitals"
           subtitle="Accredited facilities, thoughtful teams and dependable support when it matters."
-          action={<OutlineButton tone="light">Explore All Hospitals</OutlineButton>}
+          action={
+            <a href="/hospitals">
+              <OutlineButton tone="light">Explore All Hospitals</OutlineButton>
+            </a>
+          }
         />
         <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {hospitalFeatures.map((f) => (
@@ -260,29 +283,37 @@ export function Hospitals() {
           {hospitals.map((h, i) => (
             <article
               key={i}
-              className="w-[280px] shrink-0 snap-start overflow-hidden rounded-lg bg-background sm:w-[320px]"
+              className="flex flex-col justify-between w-[280px] shrink-0 snap-start overflow-hidden rounded-xl bg-background text-ink shadow-md sm:w-[320px]"
             >
-              <div className="relative">
-                <img
-                  src={h.img}
-                  alt={h.name}
-                  loading="lazy"
-                  width={900}
-                  height={600}
-                  className="h-44 w-full object-cover"
-                />
-                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy">
-                  <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" /> {h.rating}
-                </span>
+              <div>
+                <div className="relative">
+                  <img
+                    src={h.img}
+                    alt={h.name}
+                    loading="lazy"
+                    width={900}
+                    height={600}
+                    className="h-44 w-full object-cover"
+                  />
+                  <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy shadow-sm">
+                    <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" /> {h.rating}
+                  </span>
+                </div>
+                <div className="p-4">
+                  <h3 className="truncate text-base font-bold text-navy">{h.name}</h3>
+                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 text-brand-orange shrink-0" /> {h.city}
+                  </p>
+                </div>
               </div>
-              <div className="p-4">
-                <h3 className="truncate text-base font-bold text-navy">{h.name}</h3>
-                <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" /> {h.city}
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <OutlineButton className="flex-1 px-3 py-2 text-xs">Get Directions</OutlineButton>
-                  <OrangeButton className="flex-1 px-3 py-2 text-xs">Book Now</OrangeButton>
+              <div className="p-4 pt-0">
+                <div className="flex gap-2">
+                  <a href="/hospitals" className="flex-1">
+                    <OutlineButton className="w-full justify-center px-3 py-2 text-xs">Directions</OutlineButton>
+                  </a>
+                  <a href="/contact" className="flex-1">
+                    <OrangeButton className="w-full justify-center px-3 py-2 text-xs">Book Now</OrangeButton>
+                  </a>
                 </div>
               </div>
             </article>
@@ -330,7 +361,7 @@ const journey = [
 
 export function Journey() {
   return (
-    <section className="bg-background py-14">
+    <section className="bg-background py-12 sm:py-16">
       <Container>
         <SectionHead
           align="center"
@@ -342,16 +373,20 @@ export function Journey() {
           {journey.map((step, i) => (
             <article
               key={step.title}
-              className="rounded-lg border border-border bg-background p-5 shadow-sm"
+              className="flex flex-col justify-between rounded-xl border border-border/80 bg-background p-5 shadow-sm hover:shadow-md transition-shadow"
             >
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-navy text-sm font-bold text-navy-foreground">
-                {i + 1}
-              </span>
-              <h3 className="mt-4 text-base font-bold text-navy">{step.title}</h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">{step.desc}</p>
-              <span className="mt-4 inline-block rounded-full bg-navy/5 px-3 py-1 text-xs font-semibold text-navy border border-navy/10">
-                {step.chip}
-              </span>
+              <div>
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-navy text-sm font-bold text-navy-foreground shadow-sm">
+                  {i + 1}
+                </span>
+                <h3 className="mt-4 text-base font-bold text-navy">{step.title}</h3>
+                <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+              </div>
+              <div className="mt-4 pt-2">
+                <span className="inline-block rounded-full bg-navy/5 px-3 py-1 text-xs font-semibold text-navy border border-navy/10">
+                  {step.chip}
+                </span>
+              </div>
             </article>
           ))}
         </div>
@@ -399,7 +434,7 @@ const doctors = [
 
 export function Doctors() {
   return (
-    <section className="bg-cream py-14">
+    <section className="bg-cream py-12 sm:py-16">
       <Container>
         <SectionHead
           eyebrow="Built by trusted hands"
@@ -409,37 +444,49 @@ export function Doctors() {
             </>
           }
           subtitle="400+ specialists with an average of 10+ years of surgical experience."
-          action={<OutlineButton>View All Doctors</OutlineButton>}
+          action={
+            <a href="/doctors">
+              <OutlineButton>View All Doctors</OutlineButton>
+            </a>
+          }
         />
         <Carousel>
           {doctors.map((d, i) => (
             <article
               key={i}
-              className="w-[260px] shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-background sm:w-[300px]"
+              className="flex flex-col justify-between w-[260px] shrink-0 snap-start overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm hover:shadow-md transition-shadow sm:w-[300px]"
             >
-              <div className="relative">
-                <img
-                  src={d.img}
-                  alt={d.name}
-                  loading="lazy"
-                  width={700}
-                  height={700}
-                  className="h-56 w-full object-cover"
-                />
-                <span className="absolute left-3 top-3 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-navy-foreground">
-                  {d.cat}
-                </span>
-                <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy">
-                  <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" /> {d.rating}
-                </span>
+              <div>
+                <div className="relative">
+                  <img
+                    src={d.img}
+                    alt={d.name}
+                    loading="lazy"
+                    width={700}
+                    height={700}
+                    className="h-56 w-full object-cover"
+                  />
+                  <span className="absolute left-3 top-3 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-navy-foreground shadow-sm">
+                    {d.cat}
+                  </span>
+                  <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy shadow-sm">
+                    <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" /> {d.rating}
+                  </span>
+                </div>
+                <div className="p-4">
+                  <h3 className="truncate text-base font-bold text-navy">{d.name}</h3>
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{d.cred}</p>
+                  <p className="mt-2 text-xs font-semibold text-navy">{d.exp} Experience</p>
+                </div>
               </div>
-              <div className="p-4">
-                <h3 className="truncate text-base font-bold text-navy">{d.name}</h3>
-                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{d.cred}</p>
-                <p className="mt-2 text-xs font-semibold text-navy">{d.exp} Experience</p>
-                <div className="mt-4 flex gap-2">
-                  <OutlineButton className="flex-1 px-3 py-2 text-xs">Call</OutlineButton>
-                  <OrangeButton className="flex-1 px-3 py-2 text-xs">Book Now</OrangeButton>
+              <div className="p-4 pt-0">
+                <div className="flex gap-2">
+                  <a href="tel:18000001234" className="flex-1">
+                    <OutlineButton className="w-full justify-center px-3 py-2 text-xs">Call</OutlineButton>
+                  </a>
+                  <a href="/contact" className="flex-1">
+                    <OrangeButton className="w-full justify-center px-3 py-2 text-xs">Book Now</OrangeButton>
+                  </a>
                 </div>
               </div>
             </article>
@@ -466,7 +513,7 @@ export function Stats() {
         {stats.map((s) => (
           <div key={s.label}>
             <p className="text-3xl font-extrabold text-brand-orange sm:text-4xl">{s.value}</p>
-            <p className="mt-1 text-sm text-navy-foreground/80">{s.label}</p>
+            <p className="mt-1 text-sm font-medium text-navy-foreground/80">{s.label}</p>
           </div>
         ))}
       </Container>
@@ -489,29 +536,33 @@ const insurers = [
 
 export function Insurance() {
   return (
-    <section className="bg-background py-14">
+    <section className="bg-background py-12 sm:py-16">
       <Container className="grid items-center gap-10 lg:grid-cols-2">
         <div className="min-w-0">
           <Eyebrow>Cashless on 100+ insurers</Eyebrow>
           <h2 className="mt-2 text-2xl font-bold leading-tight text-navy sm:text-3xl lg:text-[34px]">
             Clear Insurance Support with <span className="text-primary">Fast Eligibility Help</span>
           </h2>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+          <p className="mt-3 text-sm text-muted-foreground leading-relaxed sm:text-base">
             Our insurance desk helps with paperwork, pre-authorisation and claims so you can focus
             on your health. Flexible payment support is available when insurance does not apply.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <OrangeButton>Check Eligibility</OrangeButton>
-            <OutlineButton>
-              <Phone className="h-4 w-4" /> Talk to an Insurance Expert
-            </OutlineButton>
+            <a href="/contact">
+              <OrangeButton>Check Eligibility</OrangeButton>
+            </a>
+            <a href="tel:18000001234">
+              <OutlineButton className="gap-2">
+                <Phone className="h-4 w-4 text-brand-orange shrink-0" /> Insurance Desk
+              </OutlineButton>
+            </a>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-4">
           {insurers.map((i) => (
             <div
               key={i}
-              className="grid h-20 place-items-center rounded-xl border border-border bg-cream px-2 text-center text-xs font-semibold text-navy"
+              className="grid h-20 place-items-center rounded-xl border border-border bg-cream/70 px-2 text-center text-xs font-semibold text-navy shadow-xs"
             >
               {i}
             </div>
@@ -541,15 +592,17 @@ const testimonials = [
 
 export function Testimonials() {
   return (
-    <section className="bg-cream py-14">
+    <section className="bg-cream py-12 sm:py-16">
       <Container>
         <SectionHead align="center" eyebrow="Patient stories" title="What Our Patients Say" />
         <div className="grid gap-5 lg:grid-cols-3">
           {testimonials.map((t) => (
-            <article key={t.name} className="rounded-lg border border-border bg-background p-6">
-              <Quote className="h-7 w-7 text-brand-orange" />
-              <p className="mt-4 text-sm italic text-muted-foreground">"{t.quote}"</p>
-              <p className="mt-4 text-sm font-semibold text-navy">— {t.name}</p>
+            <article key={t.name} className="flex flex-col justify-between rounded-xl border border-border/80 bg-background p-6 shadow-sm">
+              <div>
+                <Quote className="h-7 w-7 text-brand-orange" />
+                <p className="mt-4 text-sm italic text-muted-foreground leading-relaxed">"{t.quote}"</p>
+              </div>
+              <p className="mt-6 text-sm font-semibold text-navy">— {t.name}</p>
             </article>
           ))}
         </div>
@@ -562,7 +615,7 @@ export function Testimonials() {
 
 export function About() {
   return (
-    <section className="bg-background py-14">
+    <section className="bg-background py-12 sm:py-16">
       <Container className="grid gap-10 lg:grid-cols-[1.4fr_0.8fr]">
         <div className="min-w-0">
           <Eyebrow>About us</Eyebrow>
@@ -574,9 +627,7 @@ export function About() {
             </p>
             <ul className="space-y-3 pt-2">
               <li className="flex gap-3">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-orange/10 text-xs font-bold text-brand-orange">
-                  ✓
-                </span>
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                 <div>
                   <strong className="font-semibold text-navy">Pan-India Connected Care:</strong>{" "}
                   Seamless access to top accredited hospitals and 400+ expert surgeons across 45+
@@ -584,9 +635,7 @@ export function About() {
                 </div>
               </li>
               <li className="flex gap-3">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-orange/10 text-xs font-bold text-brand-orange">
-                  ✓
-                </span>
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                 <div>
                   <strong className="font-semibold text-navy">Dedicated Care Coordinator:</strong>{" "}
                   Single point of contact guiding you from initial diagnosis through discharge and
@@ -594,9 +643,7 @@ export function About() {
                 </div>
               </li>
               <li className="flex gap-3">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-orange/10 text-xs font-bold text-brand-orange">
-                  ✓
-                </span>
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                 <div>
                   <strong className="font-semibold text-navy">Transparent & Supportive:</strong>{" "}
                   Zero-paperwork cashless claims, 2M+ lives touched, and 4.8/5 average patient
@@ -606,7 +653,7 @@ export function About() {
             </ul>
           </div>
         </div>
-        <div className="lg:sticky lg:top-40 lg:self-start">
+        <div className="lg:sticky lg:top-36 lg:self-start">
           <ConsultForm />
         </div>
       </Container>
@@ -633,25 +680,31 @@ const posts = [
 
 export function Healthfeed() {
   return (
-    <section className="bg-cream py-14">
+    <section className="bg-cream py-12 sm:py-16">
       <Container>
         <SectionHead
           eyebrow="Health Guides & Articles"
           title="Read, Learn & Decide Better"
           subtitle="Doctor-reviewed guides on treatments, recovery and insurance."
-          action={<OutlineButton>View All Articles</OutlineButton>}
+          action={
+            <a href="/blog">
+              <OutlineButton>View All Articles</OutlineButton>
+            </a>
+          }
         />
         <Carousel>
           {posts.map((p) => (
             <article
               key={p.title}
-              className="flex w-[260px] shrink-0 snap-start flex-col rounded-lg border border-border bg-background p-5 sm:w-[300px]"
+              className="flex w-[260px] shrink-0 snap-start flex-col justify-between rounded-xl border border-border/80 bg-background p-5 shadow-sm sm:w-[300px]"
             >
-              <span className="w-fit rounded-full bg-brand-orange-soft px-3 py-1 text-[11px] font-semibold text-brand-orange-dark">
-                {p.cat}
-              </span>
-              <h3 className="mt-4 text-base font-bold leading-snug text-navy">{p.title}</h3>
-              <p className="mt-auto pt-6 text-xs text-muted-foreground">{p.read}</p>
+              <div>
+                <span className="w-fit rounded-full bg-brand-orange-soft px-3 py-1 text-[11px] font-semibold text-brand-orange-dark">
+                  {p.cat}
+                </span>
+                <h3 className="mt-4 text-base font-bold leading-snug text-navy">{p.title}</h3>
+              </div>
+              <p className="mt-6 text-xs text-muted-foreground">{p.read}</p>
             </article>
           ))}
         </Carousel>
@@ -688,22 +741,28 @@ const faqs = [
 export function Faq() {
   const [open, setOpen] = useState<number | null>(0);
   return (
-    <section className="bg-background py-14">
+    <section className="bg-background py-12 sm:py-16">
       <Container className="max-w-3xl">
         <SectionHead align="center" eyebrow="Good to know" title="Frequently Asked Questions" />
         <div className="space-y-3">
           {faqs.map((f, i) => (
-            <div key={f.q} className="overflow-hidden rounded-xl border border-border bg-cream">
+            <div key={f.q} className="overflow-hidden rounded-xl border border-border/80 bg-cream/70">
               <button
+                type="button"
+                aria-expanded={open === i}
                 onClick={() => setOpen(open === i ? null : i)}
-                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
               >
                 <span className="text-sm font-semibold text-navy">{f.q}</span>
                 <ChevronDown
-                  className={`h-5 w-5 shrink-0 text-brand-orange transition-transform ${open === i ? "rotate-180" : ""}`}
+                  className={`h-5 w-5 shrink-0 text-brand-orange transition-transform duration-200 ${open === i ? "rotate-180" : ""}`}
                 />
               </button>
-              {open === i ? <p className="px-5 pb-4 text-sm text-muted-foreground">{f.a}</p> : null}
+              {open === i ? (
+                <p className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed animate-in fade-in duration-150">
+                  {f.a}
+                </p>
+              ) : null}
             </div>
           ))}
         </div>
@@ -716,23 +775,29 @@ export function Faq() {
 
 export function DownloadApp() {
   return (
-    <section className="bg-navy py-14">
+    <section className="bg-navy py-12 sm:py-16">
       <Container className="grid items-center gap-10 lg:grid-cols-2">
         <div className="min-w-0 text-navy-foreground">
           <Eyebrow tone="light">Prime Care app</Eyebrow>
           <h2 className="mt-2 text-2xl font-bold leading-tight sm:text-3xl lg:text-[34px]">
             Track Your Surgery Journey <span className="text-brand-orange">On Your Phone</span>
           </h2>
-          <p className="mt-3 max-w-lg text-sm text-navy-foreground/85 sm:text-base">
+          <p className="mt-3 max-w-lg text-sm text-navy-foreground/85 leading-relaxed sm:text-base">
             Book consultations, upload reports, follow insurance status and chat with your care
             coordinator — all in one place.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <button className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-3 text-sm font-semibold text-navy">
-              <Apple className="h-5 w-5" /> App Store
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-3 text-sm font-semibold text-navy hover:bg-cream transition-colors cursor-pointer"
+            >
+              <Apple className="h-5 w-5 text-primary" /> App Store
             </button>
-            <button className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-3 text-sm font-semibold text-navy">
-              <Smartphone className="h-5 w-5" /> Google Play
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-3 text-sm font-semibold text-navy hover:bg-cream transition-colors cursor-pointer"
+            >
+              <Smartphone className="h-5 w-5 text-emerald-600" /> Google Play
             </button>
           </div>
         </div>

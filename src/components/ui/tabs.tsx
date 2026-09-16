@@ -50,4 +50,9 @@ const TabsContent = React.forwardRef<
 ));
 TabsContent.displayName = TabsPrimitive.Content.displayName;
 
-export { Tabs, TabsList, TabsTrigger, TabsContent };
+const TabContents = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => <div ref={ref} className={cn("mt-2", className)} {...props} />,
+);
+TabContents.displayName = "TabContents";
+
+export { Tabs, TabsList, TabsTrigger, TabsContent, TabContents };
