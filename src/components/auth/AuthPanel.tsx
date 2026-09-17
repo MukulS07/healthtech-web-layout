@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { Loader2, Lock, ShieldCheck, Stethoscope } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { OrangeButton } from "@/components/home/primitives";
 import { loginFn, signupFn } from "@/lib/server-functions/auth";
-import { AdminLogin } from "@/components/auth/AdminLogin";
-import { DoctorLogin } from "@/components/auth/DoctorLogin";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import {
   Tabs,
@@ -18,7 +16,7 @@ import {
 
 import { PasswordInput } from "@/components/auth/PasswordInput";
 
-type Mode = "login" | "signup" | "doctor" | "admin";
+type Mode = "login" | "signup";
 
 const inputClass =
   "w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10";
@@ -88,7 +86,7 @@ export function AuthPanel({
     <div className={cn("rounded-xl border border-border/80 bg-cream p-5 shadow-xs", className)}>
       <Tabs value={mode} onValueChange={handleTabChange} className="w-full">
         {/* Animated Tab Navigation using @animate-ui/components-animate-tabs */}
-        <TabsList className="mb-4 grid w-full grid-cols-4 h-auto p-1 bg-background rounded-xl border border-border/80">
+        <TabsList className="mb-4 grid w-full grid-cols-2 h-auto p-1 bg-background rounded-xl border border-border/80">
           <TabsTrigger
             value="login"
             className="py-2 px-1 text-xs font-semibold sm:text-sm whitespace-nowrap truncate data-[state=active]:bg-navy data-[state=active]:text-white transition-all"
@@ -100,20 +98,6 @@ export function AuthPanel({
             className="py-2 px-1 text-xs font-semibold sm:text-sm whitespace-nowrap truncate data-[state=active]:bg-navy data-[state=active]:text-white transition-all"
           >
             Sign Up
-          </TabsTrigger>
-          <TabsTrigger
-            value="doctor"
-            className="py-2 px-1 text-xs font-semibold sm:text-sm flex items-center justify-center gap-1 whitespace-nowrap truncate data-[state=active]:bg-emerald-700 data-[state=active]:text-white transition-all"
-          >
-            <Stethoscope className="h-3.5 w-3.5 shrink-0" />
-            <span>Doctor</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="admin"
-            className="py-2 px-1 text-xs font-semibold sm:text-sm flex items-center justify-center gap-1 whitespace-nowrap truncate data-[state=active]:bg-primary data-[state=active]:text-white transition-all"
-          >
-            <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
-            <span>Admin</span>
           </TabsTrigger>
         </TabsList>
 
@@ -206,14 +190,6 @@ export function AuthPanel({
                 <Lock className="h-3 w-3" /> Your account lets you track every appointment you book.
               </p>
             </form>
-          </TabsContent>
-
-          <TabsContent value="doctor">
-            <DoctorLogin onSuccess={onSuccess} />
-          </TabsContent>
-
-          <TabsContent value="admin">
-            <AdminLogin />
           </TabsContent>
         </TabsContents>
       </Tabs>

@@ -1,8 +1,5 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import {
-  ChevronDown,
-  MapPin,
   Phone,
   Search,
   Menu,
@@ -15,20 +12,6 @@ import {
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { Container, OrangeButton } from "./primitives";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { getTreatmentCategoriesFn } from "@/lib/server-functions/treatments";
-
-// Shown while the real category list is still loading, so the header isn't empty on
-// first paint. Once data arrives these are replaced entirely by the live catalog.
-const fallbackSpecialties = [
-  { label: "General Surgery", href: "/treatments?category=General%20Surgery" },
-  { label: "Orthopedic Surgery", href: "/treatments?category=Orthopedic%20Surgery" },
-];
 
 export function Header() {
   const navigate = useNavigate();
@@ -42,26 +25,6 @@ export function Header() {
     }
   };
 
-  const { data: categoriesData } = useQuery({
-    queryKey: ["treatment-categories"],
-    queryFn: () => getTreatmentCategoriesFn(),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const specialties = useMemo(() => {
-    const categories = categoriesData?.success ? categoriesData.categories : [];
-    if (categories.length === 0) return null;
-    return categories.map((c) => ({
-      label: c.category,
-      href: `/treatments?category=${encodeURIComponent(c.category)}`,
-    }));
-  }, [categoriesData]);
-
-  // Most common categories appear on the visible bar (already sorted by count desc
-  // server-side); the rest live in the "More Specialties" dropdown.
-  const mainSpecialties = specialties ? specialties.slice(0, 6) : fallbackSpecialties;
-  const extraSpecialties = specialties ? specialties.slice(6) : [];
-
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="text-navy">
@@ -73,14 +36,6 @@ export function Header() {
               </span>
               <span className="truncate text-lg font-bold tracking-tight">Prime Care</span>
             </a>
-
-            <button
-              type="button"
-              className="hidden shrink-0 items-center gap-1 text-sm font-medium text-muted-foreground hover:text-navy lg:flex transition-colors"
-            >
-              <MapPin className="h-4 w-4 text-brand-orange" /> Delhi NCR{" "}
-              <ChevronDown className="h-3.5 w-3.5 opacity-70" />
-            </button>
 
             <form
               onSubmit={handleSearchSubmit}
@@ -151,35 +106,6 @@ export function Header() {
       <div className="border-t border-border bg-cream/70 backdrop-blur-sm">
         <Container>
           <nav className="no-scrollbar flex items-center gap-5 overflow-x-auto py-2.5 text-sm font-medium">
-            {mainSpecialties.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                className="flex shrink-0 items-center gap-1 whitespace-nowrap text-ink/80 transition-colors hover:text-brand-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
-              >
-                {s.label}
-              </a>
-            ))}
-
-            {extraSpecialties.length > 0 ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex shrink-0 items-center gap-1 text-ink/80 transition-colors hover:text-brand-orange outline-none cursor-pointer">
-                  More Specialties <ChevronDown className="h-4 w-4 opacity-70" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 shadow-lg">
-                  {extraSpecialties.map((s) => (
-                    <DropdownMenuItem key={s.label} asChild>
-                      <a href={s.href} className="w-full cursor-pointer font-medium">
-                        {s.label}
-                      </a>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : null}
-
-            <span className="h-4 w-px bg-border shrink-0" />
-
             <a
               href="/doctors"
               className="flex shrink-0 items-center gap-1.5 font-semibold text-navy transition-colors hover:text-brand-orange"

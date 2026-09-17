@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Container, OrangeButton, OutlineButton } from "@/components/home/primitives";
-import { AuthPanel } from "@/components/auth/AuthPanel";
+import { AdminLogin } from "@/components/auth/AdminLogin";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { logoutFn, getRegisteredUsersFn } from "@/lib/server-functions/auth";
 import {
@@ -486,10 +486,12 @@ export function AdminRoute() {
             </div>
             <h1 className="text-2xl font-bold text-navy">Admin Portal Access</h1>
             <p className="text-sm text-muted-foreground">
-              Please switch to the <strong>Admin Access</strong> tab to log in with administrator privileges.
+              Log in with your administrator credentials to continue.
             </p>
           </div>
-          <AuthPanel initialMode="admin" />
+          <div className="rounded-xl border border-border/80 bg-cream p-5 shadow-xs">
+            <AdminLogin />
+          </div>
           <p className="mt-4 text-center text-xs text-muted-foreground">
             Need to register a new administrator account?{" "}
             <Link to="/admin/signup" className="font-semibold text-primary underline">
