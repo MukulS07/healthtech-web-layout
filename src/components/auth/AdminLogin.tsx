@@ -4,6 +4,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { adminLogin } from "@/lib/server-functions/admin-auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
+import { PasswordInput } from "@/components/auth/PasswordInput";
+
 const inputClass =
   "w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/10";
 
@@ -47,13 +49,11 @@ export function AdminLogin() {
         className={inputClass}
       />
 
-      <input
-        type="password"
-        placeholder="Password"
+      <PasswordInput
         value={form.password}
-        onChange={(e) => setForm({ ...form, password: e.target.value })}
-        required
-        className={inputClass}
+        onChange={(val) => setForm({ ...form, password: val })}
+        placeholder="Password"
+        autoComplete="current-password"
       />
 
       <input

@@ -16,6 +16,8 @@ import {
   TabsContent,
 } from "@/components/animate-ui/components/animate/tabs";
 
+import { PasswordInput } from "@/components/auth/PasswordInput";
+
 type Mode = "login" | "signup" | "doctor" | "admin";
 
 const inputClass =
@@ -127,14 +129,11 @@ export function AuthPanel({
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <input
-                type="password"
-                className={inputClass}
+              <PasswordInput
+                value={password}
+                onChange={setPassword}
                 placeholder="Password"
                 autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
               />
 
               {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
@@ -183,15 +182,12 @@ export function AuthPanel({
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <input
-                type="password"
-                className={inputClass}
-                placeholder="Create a password (min 8 characters)"
-                autoComplete="new-password"
-                minLength={8}
+              <PasswordInput
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                onChange={setPassword}
+                placeholder="Create password (8+ chars, 1 uppercase, 1 special sign)"
+                autoComplete="new-password"
+                showStrength={true}
               />
 
               {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}

@@ -6,6 +6,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { loginFn } from "@/lib/server-functions/auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
+import { PasswordInput } from "@/components/auth/PasswordInput";
+
 const inputClass =
   "w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted-foreground focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10";
 
@@ -64,13 +66,11 @@ export function DoctorLogin({ onSuccess }: { onSuccess?: (() => void) | undefine
         className={inputClass}
       />
 
-      <input
-        type="password"
-        placeholder="Password"
+      <PasswordInput
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        className={inputClass}
+        onChange={setPassword}
+        placeholder="Password"
+        autoComplete="current-password"
       />
 
       {error && <p className="text-xs font-medium text-destructive">{error}</p>}
