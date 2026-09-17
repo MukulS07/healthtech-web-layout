@@ -67,7 +67,7 @@ export const signupFn = createServerFn({ method: "POST" })
     } catch (error: unknown) {
       const errMessage = error instanceof Error ? error.message : String(error);
       console.error("Error creating account:", errMessage);
-      return { success: false as const, error: "Could not create your account. Please try again." };
+      return { success: false as const, error: errMessage || "Could not create your account. Please try again." };
     }
   });
 
@@ -112,7 +112,7 @@ export const loginFn = createServerFn({ method: "POST" })
     } catch (error: unknown) {
       const errMessage = error instanceof Error ? error.message : String(error);
       console.error("Error logging in:", errMessage);
-      return { success: false as const, error: "Could not log you in. Please try again." };
+      return { success: false as const, error: errMessage || "Could not log you in. Please try again." };
     }
   });
 
