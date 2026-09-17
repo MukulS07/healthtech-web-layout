@@ -45,35 +45,40 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
   }
 
   if (!cached.promise) {
+    const targetUri = process.env["MONGODB_URI"] || MONGODB_URI;
+    const isVercel = Boolean(process.env["VERCEL"]);
+
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 2500,
+      serverSelectionTimeoutMS: 10000,
     };
-
-    let targetUri = MONGODB_URI;
 
     cached.promise = (async () => {
       try {
-        console.log(` Attempting MongoDB connection to: ${targetUri}`);
+        const maskedUri = targetUri.replace(/\/\/[^:]+:[^@]+@/, "//***:***@");
+        console.log(` Attempting MongoDB connection to: ${maskedUri}`);
         const m = await mongoose.connect(targetUri, opts);
         console.log(" Successfully connected to MongoDB database!");
         return m;
       } catch (err: unknown) {
         const errMessage = err instanceof Error ? err.message : String(err);
-        console.warn(` Standard MongoDB connection failed (${errMessage}). Trying fallback...`);
+        console.warn(` Standard MongoDB connection failed (${errMessage}).`);
 
-        // If local connection failed, try MongoMemoryServer fallback
-        const memoryUri = await tryMemoryServer();
-        if (memoryUri) {
-          targetUri = memoryUri;
-          cached.isMemoryServer = true;
-          const m = await mongoose.connect(targetUri, opts);
-          console.log(" Successfully connected to In-Memory MongoDB!");
-          return m;
+        // Avoid MongoMemoryServer on Vercel or if explicit MONGODB_URI is provided
+        const isDefaultLocalUri = targetUri.includes("localhost") || targetUri.includes("127.0.0.1");
+        if (!isVercel && isDefaultLocalUri) {
+          console.log(" Attempting MongoMemoryServer fallback...");
+          const memoryUri = await tryMemoryServer();
+          if (memoryUri) {
+            cached.isMemoryServer = true;
+            const m = await mongoose.connect(memoryUri, opts);
+            console.log(" Successfully connected to In-Memory MongoDB!");
+            return m;
+          }
         }
 
         throw new Error(
-          `Unable to connect to MongoDB (${errMessage}). Please verify MONGODB_URI in your .env file or start MongoDB locally.`,
+          `Unable to connect to MongoDB (${errMessage}). Please verify MONGODB_URI in your environment variables or Vercel settings.`,
         );
       }
     })();
@@ -111,7 +116,7 @@ export function getConnectionStatus(): {
     state,
     isConnected: readyState === 1,
     isMemoryServer: cached.isMemoryServer,
-    currentUri: MONGODB_URI,
+    currentUri: process.env["MONGODB_URI"] || MONGODB_URI,
   };
 }
 
