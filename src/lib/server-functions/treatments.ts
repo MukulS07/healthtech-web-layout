@@ -24,6 +24,7 @@ export const getTreatmentsFn = createServerFn({ method: "GET" })
       if (treatmentCount === 0) {
         await seedDatabaseFn();
       }
+      await ensureFullCatalog();
 
       const filter: Record<string, unknown> = {};
 
@@ -75,6 +76,7 @@ export const getTreatmentCategoriesFn = createServerFn({ method: "GET" }).handle
     if (treatmentCount === 0) {
       await seedDatabaseFn();
     }
+    await ensureFullCatalog();
 
     const categories = await Treatment.aggregate<{ _id: string; count: number }>([
       { $group: { _id: "$category", count: { $sum: 1 } } },
@@ -162,11 +164,72 @@ function categoryShortSlug(category: string): string {
   return slugify(category).split("-").slice(0, 2).join("-");
 }
 
+const CATALOG_PROCEDURE_COUNT = (
+  surgeryCatalog as { category: string; procedures: string[] }[]
+).reduce((sum, c) => sum + c.procedures.length, 0);
+
 /**
- * Admin-only: idempotently imports the full surgical catalog (462 procedures across
- * 17 categories, from "Complete List of Surgical Categories and Procedures") into the
- * Treatment collection. Safe to re-run — skips any (name, category) pair already present,
- * so it never overwrites anything an admin has since hand-edited.
+ * Idempotently imports the full surgical catalog (463 procedures across 17 categories, from
+ * "Complete List of Surgical Categories and Procedures") into the Treatment collection.
+ * Safe to re-run — skips any (name, category) pair already present, so it never overwrites
+ * anything an admin has since hand-edited.
+ */
+async function importSurgeryCatalog() {
+  await connectToDatabase();
+
+  const usedSlugs = new Set((await Treatment.find({}, { slug: 1 }).lean()).map((d) => d.slug));
+
+  let inserted = 0;
+  let skipped = 0;
+
+  for (const { category, procedures } of surgeryCatalog as {
+    category: string;
+    procedures: string[];
+  }[]) {
+    for (const name of procedures) {
+      const existing = await Treatment.exists({ name, category });
+      if (existing) {
+        skipped += 1;
+        continue;
+      }
+
+      let slug = slugify(name);
+      if (usedSlugs.has(slug)) {
+        const candidate = `${slug}-${categoryShortSlug(category)}`;
+        slug = usedSlugs.has(candidate) ? `${candidate}-${usedSlugs.size}` : candidate;
+      }
+
+      await Treatment.create({
+        name,
+        slug,
+        category,
+        description: `${name} performed by our specialist surgical team as part of ${category}.`,
+        recoveryTime: "Discussed during consultation",
+        benefits: ["Specialist-led care", "Discussed during consultation"],
+      });
+      usedSlugs.add(slug);
+      inserted += 1;
+    }
+  }
+
+  return { inserted, skipped };
+}
+
+/**
+ * Ensures the full surgical catalog is present, running the import automatically the first
+ * time it's needed (e.g. on a fresh/in-memory DB that only has the small default-seed set).
+ * Cheap no-op once the collection already has the full catalog.
+ */
+async function ensureFullCatalog() {
+  const treatmentCount = await Treatment.countDocuments();
+  if (treatmentCount < CATALOG_PROCEDURE_COUNT) {
+    await importSurgeryCatalog();
+  }
+}
+
+/**
+ * Admin-only: manually re-run the catalog import (e.g. after hand-editing procedures so the
+ * automatic ensureFullCatalog() top-up no longer covers everything).
  */
 export const importSurgeryCatalogFn = createServerFn({ method: "POST" }).handler(async () => {
   try {
@@ -176,41 +239,7 @@ export const importSurgeryCatalogFn = createServerFn({ method: "POST" }).handler
     }
 
     await connectToDatabase();
-
-    const usedSlugs = new Set((await Treatment.find({}, { slug: 1 }).lean()).map((d) => d.slug));
-
-    let inserted = 0;
-    let skipped = 0;
-
-    for (const { category, procedures } of surgeryCatalog as {
-      category: string;
-      procedures: string[];
-    }[]) {
-      for (const name of procedures) {
-        const existing = await Treatment.exists({ name, category });
-        if (existing) {
-          skipped += 1;
-          continue;
-        }
-
-        let slug = slugify(name);
-        if (usedSlugs.has(slug)) {
-          const candidate = `${slug}-${categoryShortSlug(category)}`;
-          slug = usedSlugs.has(candidate) ? `${candidate}-${usedSlugs.size}` : candidate;
-        }
-
-        await Treatment.create({
-          name,
-          slug,
-          category,
-          description: `${name} performed by our specialist surgical team as part of ${category}.`,
-          recoveryTime: "Discussed during consultation",
-          benefits: ["Specialist-led care", "Discussed during consultation"],
-        });
-        usedSlugs.add(slug);
-        inserted += 1;
-      }
-    }
+    const { inserted, skipped } = await importSurgeryCatalog();
 
     return {
       success: true as const,
