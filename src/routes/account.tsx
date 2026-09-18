@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
-      { title: "My Appointments | Prime Care" },
+      { title: "My Appointments | Go Surgery" },
       {
         name: "description",
         content: "Log in to check the status of your consultation and surgery appointments.",

@@ -1,7 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Phone, Mail, MapPin, Clock, Lock, Loader2, UserRound, LogOut } from "lucide-react";
+import {
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  Lock,
+  Loader2,
+  UserRound,
+  LogOut,
+  Landmark,
+  Instagram,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Youtube,
+  MessageCircle,
+} from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
@@ -39,6 +55,23 @@ const cities = [
   "Other",
 ];
 
+const teamEmails = [
+  { label: "Media & press", email: "press@gosurgery.in" },
+  { label: "Partnerships", email: "partnerships@gosurgery.in" },
+  { label: "Doctor onboarding", email: "doctors@gosurgery.in" },
+  { label: "Careers", email: "careers@gosurgery.in" },
+  { label: "Insurance & billing", email: "insurance@gosurgery.in" },
+  { label: "Grievance officer", email: "grievance@gosurgery.in" },
+];
+
+const socialLinks = [
+  { icon: Instagram, label: "Instagram", href: "#" },
+  { icon: Facebook, label: "Facebook", href: "#" },
+  { icon: Twitter, label: "X / Twitter", href: "#" },
+  { icon: Linkedin, label: "LinkedIn", href: "#" },
+  { icon: Youtube, label: "YouTube", href: "#" },
+];
+
 const infoCards = [
   {
     icon: Phone,
@@ -50,14 +83,21 @@ const infoCards = [
   {
     icon: Mail,
     label: "Email us",
-    value: "care@primecare.in",
+    value: "care@gosurgery.in",
     note: "We reply within 4 hours",
-    href: "mailto:care@primecare.in",
+    href: "mailto:care@gosurgery.in",
+  },
+  {
+    icon: MessageCircle,
+    label: "WhatsApp",
+    value: "+91 98765 43210",
+    note: "Fastest response",
+    href: "https://wa.me/919876543210",
   },
   {
     icon: MapPin,
     label: "Head office",
-    value: "Prime Care HQ, Sector 18, Gurugram – 122015",
+    value: "Go Surgery HQ, Sector 18, Gurugram – 122015",
     note: "By appointment only",
   },
   { icon: Clock, label: "Consultation hours", value: "8 AM – 9 PM", note: "Monday to Saturday" },
@@ -66,7 +106,7 @@ const infoCards = [
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Book Free Consultation | Prime Care" },
+      { title: "Book Free Consultation | Go Surgery" },
       {
         name: "description",
         content:
@@ -353,6 +393,52 @@ function ContactPage() {
                 >
                   <Phone className="h-4 w-4" /> 1800 000 1234
                 </a>
+              </div>
+            </div>
+          </Container>
+        </section>
+
+        <section className="bg-cream py-14">
+          <Container className="grid gap-10 lg:grid-cols-2">
+            <div>
+              <SectionHead eyebrow="Specific teams" title="Reach the right team directly" />
+              <ul className="space-y-0">
+                {teamEmails.map((t) => (
+                  <li
+                    key={t.label}
+                    className="flex items-center justify-between border-t border-border py-3.5 text-sm last:border-b"
+                  >
+                    <span className="font-semibold text-navy">{t.label}</span>
+                    <a href={`mailto:${t.email}`} className="text-muted-foreground hover:text-brand-orange">
+                      {t.email}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <SectionHead eyebrow="Corporate" title="Registered office" />
+              <div className="flex items-start gap-3 rounded-xl border border-border bg-background p-5">
+                <Landmark className="mt-0.5 h-5 w-5 shrink-0 text-brand-orange" />
+                <div className="text-sm text-ink/80">
+                  <p className="font-semibold text-navy">Go Surgery Health Pvt. Ltd.</p>
+                  <p className="mt-1">Sector 18, Gurugram – 122015, Haryana, India</p>
+                </div>
+              </div>
+              <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Follow us
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {socialLinks.map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    aria-label={s.label}
+                    className="grid h-10 w-10 place-items-center rounded-full border border-border bg-background text-navy transition-colors hover:border-navy/20 hover:text-brand-orange"
+                  >
+                    <s.icon className="h-4 w-4" />
+                  </a>
+                ))}
               </div>
             </div>
           </Container>

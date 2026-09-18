@@ -30,6 +30,8 @@ const columns = [
       { label: "About Us", href: "/about" },
       { label: "Our Hospitals", href: "/hospitals" },
       { label: "Healthfeed", href: "/blog" },
+      { label: "Careers", href: "/careers" },
+      { label: "Doctor Onboarding", href: "/doctor-onboarding" },
       { label: "Contact Us", href: "/contact" },
       { label: "Privacy Policy", href: "/privacy" },
       { label: "Terms of Use", href: "/terms" },
@@ -39,6 +41,7 @@ const columns = [
     title: "For Patients",
     links: [
       { label: "Book Consultation", href: "/contact" },
+      { label: "Patient Help", href: "/patient-help" },
       { label: "Patient Stories", href: "/reviews" },
       { label: "FAQs", href: "/faqs" },
       { label: "Find Doctors", href: "/doctors" },
@@ -74,7 +77,7 @@ export function Footer() {
                 <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                   <HeartPulse className="h-5 w-5" />
                 </span>
-                <span className="text-lg font-bold tracking-tight">Prime Care</span>
+                <span className="text-lg font-bold tracking-tight">Go Surgery</span>
               </div>
               <p className="mt-4 max-w-xs text-sm leading-relaxed text-navy-foreground/75">
                 Specialist surgeons, modern hospitals, and safer surgeries across 45+ cities in India.
@@ -124,7 +127,7 @@ export function Footer() {
       
       <div className="bg-navy-deep py-4 text-center text-xs text-navy-foreground/60 border-t border-white/5">
         <Container className="flex flex-col items-center justify-between gap-2 sm:flex-row">
-          <p>© {new Date().getFullYear()} Prime Care. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Go Surgery. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <a href="/privacy" className="transition-colors hover:text-brand-orange">
               Privacy Policy

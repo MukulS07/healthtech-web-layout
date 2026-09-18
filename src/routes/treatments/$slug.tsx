@@ -189,7 +189,7 @@ export const Route = createFileRoute("/treatments/$slug")({
     const data = treatmentData[params.slug] ?? fallback;
     return {
       meta: [
-        { title: `${data.name} | Prime Care` },
+        { title: `${data.name} | Go Surgery` },
         { name: "description", content: data.headline },
       ],
     };
@@ -378,7 +378,7 @@ function TreatmentDetail() {
           <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             <ConsultForm />
             <div className="rounded-lg border border-border bg-cream p-4">
-              <p className="text-sm font-semibold text-navy">Why choose Prime Care?</p>
+              <p className="text-sm font-semibold text-navy">Why choose Go Surgery?</p>
               <ul className="mt-3 space-y-2">
                 {benefits.map((b) => (
                   <li key={b} className="flex items-center gap-2 text-xs text-ink/80">

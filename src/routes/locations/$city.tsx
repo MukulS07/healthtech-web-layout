@@ -63,14 +63,14 @@ const cityData: Record<string, CityInfo> = {
     ],
     hospitals: [
       {
-        name: "Prime Care City Institute",
+        name: "Go Surgery City Institute",
         slug: "city-institute",
         rating: "4.6",
         address: "Saket, South Delhi",
         img: hospital2,
       },
       {
-        name: "Prime Care Gurgaon Meridian",
+        name: "Go Surgery Gurgaon Meridian",
         slug: "meridian-centre",
         rating: "4.8",
         address: "DLF Cyber City, Gurgaon",
@@ -114,8 +114,8 @@ const fallbackCity: CityInfo = {
   specialties: ["Proctology", "Laparoscopy", "Gynaecology", "ENT", "Urology", "Orthopedics"],
   hospitals: [
     {
-      name: "Prime Care Hospital",
-      slug: "prime-care-hospital",
+      name: "Go Surgery Hospital",
+      slug: "go-surgery-hospital",
       rating: "4.7",
       address: "City Centre",
       img: hospital1,
@@ -146,7 +146,7 @@ export const Route = createFileRoute("/locations/$city")({
     const data = cityData[params.city] ?? fallbackCity;
     return {
       meta: [
-        { title: `Surgery & Specialist Doctors in ${data.displayName} | Prime Care` },
+        { title: `Surgery & Specialist Doctors in ${data.displayName} | Go Surgery` },
         {
           name: "description",
           content: `Find ${data.doctors}+ specialist surgeons and ${data.clinics} accredited hospitals in ${data.displayName}. Book a free consultation.`,

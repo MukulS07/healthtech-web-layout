@@ -32,7 +32,7 @@ export const Route = createFileRoute("/hospitals/")({
   },
   head: () => ({
     meta: [
-      { title: "Our Hospital Network | Prime Care" },
+      { title: "Our Hospital Network | Go Surgery" },
       {
         name: "description",
         content: "Explore accredited hospitals across cities.",

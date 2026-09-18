@@ -143,7 +143,7 @@ const allPosts = [
 export const Route = createFileRoute("/blog/")({
   head: () => ({
     meta: [
-      { title: "Healthfeed — Surgical & Health Articles | Prime Care" },
+      { title: "Healthfeed — Surgical & Health Articles | Go Surgery" },
       {
         name: "description",
         content:

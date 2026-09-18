@@ -26,7 +26,7 @@ const reviews = [
   {
     tag: "RECOMMEND FOR PRECISION",
     quote:
-      "The insurance approval came through in under an hour. Zero paperwork for my family — the team at Prime Care handled absolutely everything.",
+      "The insurance approval came through in under an hour. Zero paperwork for my family — the team at Go Surgery handled absolutely everything.",
     name: "Kavita S.",
     treatment: "Hernia Repair",
     city: "Pune",
@@ -44,7 +44,7 @@ const reviews = [
   {
     tag: "BEST INSURANCE SUPPORT",
     quote:
-      "I was skeptical about cashless treatment. But Prime Care got my HDFC policy pre-approved within 45 minutes. I paid zero out of pocket.",
+      "I was skeptical about cashless treatment. But Go Surgery got my HDFC policy pre-approved within 45 minutes. I paid zero out of pocket.",
     name: "Deepa R.",
     treatment: "Cataract Surgery",
     city: "Delhi NCR",
@@ -62,7 +62,7 @@ const reviews = [
   {
     tag: "5 STAR CARE",
     quote:
-      "As someone who had been putting off hernia surgery for two years, I wish I had come to Prime Care sooner. No drama, no pain, great result.",
+      "As someone who had been putting off hernia surgery for two years, I wish I had come to Go Surgery sooner. No drama, no pain, great result.",
     name: "Farhan K.",
     treatment: "Hernia Repair",
     city: "Chennai",
@@ -80,7 +80,7 @@ const reviews = [
   {
     tag: "EXCELLENT RECOVERY",
     quote:
-      "Free pick-up, free drop, free follow-up — and the surgery itself was completely cashless. I have recommended Prime Care to three friends already.",
+      "Free pick-up, free drop, free follow-up — and the surgery itself was completely cashless. I have recommended Go Surgery to three friends already.",
     name: "Vijay S.",
     treatment: "Kidney Stone Treatment",
     city: "Bangalore",
@@ -135,11 +135,11 @@ const tagColorMap: Record<string, string> = {
 export const Route = createFileRoute("/reviews")({
   head: () => ({
     meta: [
-      { title: "Patient Reviews & Stories | Prime Care" },
+      { title: "Patient Reviews & Stories | Go Surgery" },
       {
         name: "description",
         content:
-          "Real stories from 2M+ patients. See why patients across India trust Prime Care for surgery and specialist care.",
+          "Real stories from 2M+ patients. See why patients across India trust Go Surgery for surgery and specialist care.",
       },
     ],
   }),

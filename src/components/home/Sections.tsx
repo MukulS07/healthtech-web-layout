@@ -603,10 +603,10 @@ export function About() {
       <Container className="grid gap-10 lg:grid-cols-[1.4fr_0.8fr]">
         <div className="min-w-0">
           <Eyebrow>About us</Eyebrow>
-          <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">About Prime Care</h2>
+          <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">About Go Surgery</h2>
           <div className="mt-4 space-y-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
             <p>
-              Prime Care is a connected health network bringing patients, specialists, accredited
+              Go Surgery is a connected health network bringing patients, specialists, accredited
               hospitals and insurance partners together across 45+ cities.
             </p>
             <ul className="space-y-3 pt-2">
@@ -762,7 +762,7 @@ export function DownloadApp() {
     <section className="bg-navy py-12 sm:py-16">
       <Container className="grid items-center gap-10 lg:grid-cols-2">
         <div className="min-w-0 text-navy-foreground">
-          <Eyebrow tone="light">Prime Care app</Eyebrow>
+          <Eyebrow tone="light">Go Surgery app</Eyebrow>
           <h2 className="mt-2 text-2xl font-bold leading-tight sm:text-3xl lg:text-[34px]">
             Track Your Surgery Journey <span className="text-brand-orange">On Your Phone</span>
           </h2>
@@ -787,7 +787,7 @@ export function DownloadApp() {
         </div>
         <img
           src={appMockup}
-          alt="Prime Care mobile app screens"
+          alt="Go Surgery mobile app screens"
           loading="lazy"
           width={1000}
           height={800}

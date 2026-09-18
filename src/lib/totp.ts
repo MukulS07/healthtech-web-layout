@@ -6,7 +6,7 @@
 import { generateSecret, generateURI, verifySync } from "otplib";
 import QRCode from "qrcode";
 
-const ISSUER = "PrimeCare Admin";
+const ISSUER = "GoSurgery Admin";
 
 export const authenticator = {
   generateSecret: () => generateSecret(),

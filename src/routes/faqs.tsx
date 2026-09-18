@@ -22,11 +22,11 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
       },
       {
         q: "Do I need a referral from a GP?",
-        a: "No. You can directly book a consultation with any Prime Care specialist without a prior referral. We do recommend bringing any existing reports or prescriptions to the appointment.",
+        a: "No. You can directly book a consultation with any Go Surgery specialist without a prior referral. We do recommend bringing any existing reports or prescriptions to the appointment.",
       },
       {
         q: "What cities do you operate in?",
-        a: "Prime Care operates in 45+ cities across India, including all major metros (Delhi NCR, Mumbai, Bangalore, Hyderabad, Chennai, Pune, Kolkata, Kochi) and Tier 2 cities.",
+        a: "Go Surgery operates in 45+ cities across India, including all major metros (Delhi NCR, Mumbai, Bangalore, Hyderabad, Chennai, Pune, Kolkata, Kochi) and Tier 2 cities.",
       },
       {
         q: "Can I choose my surgeon?",
@@ -89,7 +89,7 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
     faqs: [
       {
         q: "Are your partner hospitals accredited?",
-        a: "All Prime Care partner hospitals are NABH accredited and meet our internal safety standards, including modular OTs, post-op care units and zero-infection protocols.",
+        a: "All Go Surgery partner hospitals are NABH accredited and meet our internal safety standards, including modular OTs, post-op care units and zero-infection protocols.",
       },
       {
         q: "How do you verify your surgeons?",
@@ -106,11 +106,11 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
 export const Route = createFileRoute("/faqs")({
   head: () => ({
     meta: [
-      { title: "Frequently Asked Questions | Prime Care" },
+      { title: "Frequently Asked Questions | Go Surgery" },
       {
         name: "description",
         content:
-          "Answers to your most common questions about surgery, insurance, recovery and Prime Care's services.",
+          "Answers to your most common questions about surgery, insurance, recovery and Go Surgery's services.",
       },
     ],
   }),

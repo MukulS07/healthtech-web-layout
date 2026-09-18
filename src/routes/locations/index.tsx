@@ -33,11 +33,11 @@ const bgGradients = [
 export const Route = createFileRoute("/locations/")({
   head: () => ({
     meta: [
-      { title: "Locations — Cities We Serve | Prime Care" },
+      { title: "Locations — Cities We Serve | Go Surgery" },
       {
         name: "description",
         content:
-          "Prime Care is available in 45+ cities across India. Find specialist surgeons and accredited hospitals near you.",
+          "Go Surgery is available in 45+ cities across India. Find specialist surgeons and accredited hospitals near you.",
       },
     ],
   }),

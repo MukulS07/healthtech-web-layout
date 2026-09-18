@@ -42,7 +42,7 @@ const postData: Record<string, BlogPost> = {
       },
       {
         heading: "Why laser over traditional surgery?",
-        text: "Laser proctoplasty has replaced traditional haemorrhoidectomy as the first-choice procedure at Prime Care. The laser cauterises the feeding blood vessel without incision, which means near-zero blood loss, no visible wound and a dramatically faster recovery. Most patients go home the same day and return to desk work within 3 days.",
+        text: "Laser proctoplasty has replaced traditional haemorrhoidectomy as the first-choice procedure at Go Surgery. The laser cauterises the feeding blood vessel without incision, which means near-zero blood loss, no visible wound and a dramatically faster recovery. Most patients go home the same day and return to desk work within 3 days.",
       },
       {
         heading: "What the procedure looks like",
@@ -53,7 +53,7 @@ const postData: Record<string, BlogPost> = {
         text: "Days 1–2: Mild discomfort, managed with paracetamol. Days 3–5: Most patients feel comfortable enough to resume light activity. Day 7: Follow-up appointment to confirm healing. Week 3: Full recovery for most patients.",
       },
       {
-        text: "If you've been managing symptoms on your own for more than 4–6 weeks, or if bleeding has occurred more than once, a specialist opinion is worth seeking. At Prime Care the first consultation is free — and you'll leave knowing exactly where you stand.",
+        text: "If you've been managing symptoms on your own for more than 4–6 weeks, or if bleeding has occurred more than once, a specialist opinion is worth seeking. At Go Surgery the first consultation is free — and you'll leave knowing exactly where you stand.",
       },
     ],
     tags: ["Piles", "Laser Surgery", "Proctology", "Recovery"],
@@ -83,14 +83,14 @@ const postData: Record<string, BlogPost> = {
 const fallbackPost: BlogPost = {
   title: "Health & Surgery Guide",
   cat: "General",
-  author: "Prime Care Team",
+  author: "Go Surgery Team",
   authorRole: "Medical Content Team",
   date: "September 2026",
   read: "5 min read",
   excerpt: "A patient-focused guide to understanding your surgical options.",
   body: [
     {
-      text: "At Prime Care, we believe informed patients make better decisions and recover faster. This guide walks through what you need to know before, during and after your procedure.",
+      text: "At Go Surgery, we believe informed patients make better decisions and recover faster. This guide walks through what you need to know before, during and after your procedure.",
     },
     {
       heading: "Before your surgery",
@@ -102,7 +102,7 @@ const fallbackPost: BlogPost = {
     },
     {
       heading: "Recovery",
-      text: "Most minimally invasive procedures at Prime Care allow same-day or next-day discharge. Your care coordinator will provide a written recovery plan and schedule follow-up consultations.",
+      text: "Most minimally invasive procedures at Go Surgery allow same-day or next-day discharge. Your care coordinator will provide a written recovery plan and schedule follow-up consultations.",
     },
   ],
   tags: ["Surgery", "Patient Guide", "Recovery"],
@@ -127,7 +127,7 @@ export const Route = createFileRoute("/blog/$slug")({
     const post = postData[params.slug] ?? fallbackPost;
     return {
       meta: [
-        { title: `${post.title} | Prime Care Healthfeed` },
+        { title: `${post.title} | Go Surgery Healthfeed` },
         { name: "description", content: post.excerpt },
       ],
     };

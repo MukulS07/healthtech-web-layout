@@ -12,8 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as CareersRouteImport } from './routes/careers'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DoctorOnboardingRouteImport } from './routes/doctor-onboarding'
 import { Route as FaqsRouteImport } from './routes/faqs'
+import { Route as PatientHelpRouteImport } from './routes/patient-help'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -46,14 +49,29 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DoctorOnboardingRoute = DoctorOnboardingRouteImport.update({
+  id: '/doctor-onboarding',
+  path: '/doctor-onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FaqsRoute = FaqsRouteImport.update({
   id: '/faqs',
   path: '/faqs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatientHelpRoute = PatientHelpRouteImport.update({
+  id: '/patient-help',
+  path: '/patient-help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -141,8 +159,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/faqs': typeof FaqsRoute
+  '/patient-help': typeof PatientHelpRoute
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
@@ -164,8 +185,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/faqs': typeof FaqsRoute
+  '/patient-help': typeof PatientHelpRoute
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
@@ -188,8 +212,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/faqs': typeof FaqsRoute
+  '/patient-help': typeof PatientHelpRoute
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
@@ -213,8 +240,11 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/careers'
     | '/contact'
+    | '/doctor-onboarding'
     | '/faqs'
+    | '/patient-help'
     | '/privacy'
     | '/reviews'
     | '/terms'
@@ -236,8 +266,11 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/careers'
     | '/contact'
+    | '/doctor-onboarding'
     | '/faqs'
+    | '/patient-help'
     | '/privacy'
     | '/reviews'
     | '/terms'
@@ -259,8 +292,11 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/careers'
     | '/contact'
+    | '/doctor-onboarding'
     | '/faqs'
+    | '/patient-help'
     | '/privacy'
     | '/reviews'
     | '/terms'
@@ -283,8 +319,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
+  CareersRoute: typeof CareersRoute
   ContactRoute: typeof ContactRoute
+  DoctorOnboardingRoute: typeof DoctorOnboardingRoute
   FaqsRoute: typeof FaqsRoute
+  PatientHelpRoute: typeof PatientHelpRoute
   PrivacyRoute: typeof PrivacyRoute
   ReviewsRoute: typeof ReviewsRoute
   TermsRoute: typeof TermsRoute
@@ -326,6 +365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -333,11 +379,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/doctor-onboarding': {
+      id: '/doctor-onboarding'
+      path: '/doctor-onboarding'
+      fullPath: '/doctor-onboarding'
+      preLoaderRoute: typeof DoctorOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faqs': {
       id: '/faqs'
       path: '/faqs'
       fullPath: '/faqs'
       preLoaderRoute: typeof FaqsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/patient-help': {
+      id: '/patient-help'
+      path: '/patient-help'
+      fullPath: '/patient-help'
+      preLoaderRoute: typeof PatientHelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -459,8 +519,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
+  CareersRoute: CareersRoute,
   ContactRoute: ContactRoute,
+  DoctorOnboardingRoute: DoctorOnboardingRoute,
   FaqsRoute: FaqsRoute,
+  PatientHelpRoute: PatientHelpRoute,
   PrivacyRoute: PrivacyRoute,
   ReviewsRoute: ReviewsRoute,
   TermsRoute: TermsRoute,

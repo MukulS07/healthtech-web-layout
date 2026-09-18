@@ -22,7 +22,7 @@ export const Route = createFileRoute("/treatments/")({
   },
   head: () => ({
     meta: [
-      { title: "All Treatments & Procedures | Prime Care" },
+      { title: "All Treatments & Procedures | Go Surgery" },
       {
         name: "description",
         content: "Browse surgical treatments across specialties.",

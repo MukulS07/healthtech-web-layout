@@ -36,7 +36,7 @@ import React from "react";
 
 const hospitalData: Record<string, HospitalInfo> = {
   "sunrise-hospital": {
-    name: "Prime Care Sunrise Hospital",
+    name: "Go Surgery Sunrise Hospital",
     city: "Hyderabad",
     address: "Plot 42, Madhapur Road, HITEC City, Hyderabad – 500081",
     rating: "4.9",
@@ -52,13 +52,13 @@ const hospitalData: Record<string, HospitalInfo> = {
       { icon: Sparkles, label: "Zero Infection" },
     ],
     about:
-      "Prime Care Sunrise Hospital is a multi-specialty surgical facility in HITEC City, Hyderabad. With 120 beds, 8 modular OTs and a dedicated ICU, it is one of the most advanced day-care surgical centres in South India. The hospital has a NABH accreditation and maintains a zero-infection track record across its surgical suites.",
+      "Go Surgery Sunrise Hospital is a multi-specialty surgical facility in HITEC City, Hyderabad. With 120 beds, 8 modular OTs and a dedicated ICU, it is one of the most advanced day-care surgical centres in South India. The hospital has a NABH accreditation and maintains a zero-infection track record across its surgical suites.",
     img: hospital1,
   },
 };
 
 const fallbackHospital: HospitalInfo = {
-  name: "Prime Care Hospital",
+  name: "Go Surgery Hospital",
   city: "India",
   address: "Main Road, City Centre – 100001",
   rating: "4.7",
@@ -101,7 +101,7 @@ export const Route = createFileRoute("/hospitals/$slug")({
     const data = hospitalData[params.slug] ?? fallbackHospital;
     return {
       meta: [
-        { title: `${data.name} — ${data.city} | Prime Care` },
+        { title: `${data.name} — ${data.city} | Go Surgery` },
         {
           name: "description",
           content: `${data.name} in ${data.city}. ${data.accreditations.join(", ")} accredited. ${data.beds} beds, advanced surgical suites.`,

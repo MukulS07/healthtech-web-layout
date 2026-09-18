@@ -34,7 +34,7 @@ export function Header() {
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                 <HeartPulse className="h-5 w-5" />
               </span>
-              <span className="truncate text-lg font-bold tracking-tight">Prime Care</span>
+              <span className="truncate text-lg font-bold tracking-tight">Go Surgery</span>
             </a>
 
             <form

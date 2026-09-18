@@ -55,8 +55,8 @@ import {
 export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
-      { title: "Admin Portal | Prime Care" },
-      { name: "description", content: "Prime Care Admin Management Dashboard" },
+      { title: "Admin Portal | Go Surgery" },
+      { name: "description", content: "Go Surgery Admin Management Dashboard" },
     ],
   }),
   component: AdminRoute,

@@ -19,7 +19,7 @@ import {
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { getHospitalsFn } from "@/lib/server-functions/hospitals";
 
-const title = "Prime Care | Thoughtful Health Support";
+const title = "Go Surgery | Thoughtful Health Support";
 const description =
   "Connect with trusted specialists, modern hospitals and a dedicated care team for clear guidance from consultation through recovery.";
 

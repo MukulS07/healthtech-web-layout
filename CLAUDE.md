@@ -12,8 +12,11 @@ in terms of sitemap, page types, and design system, while using their own conten
 
 - Owner: Sarang Shaw (sarang@doctar.in)
 - Reference site: https://www.pristyncare.com
-- Working placeholder brand name in the live code: **"Prime Care"** (not the final brand — replace
-  with the real name/logo before launch; see IP boundary below).
+- **Brand name: "Go Surgery"** (decided 2026-09-18, replacing the earlier placeholder "Prime Care" —
+  renamed site-wide: Header/Footer brand mark, all page `<title>`/meta, terms/privacy legal-entity
+  text ("Go Surgery Health Pvt. Ltd."), domain references (`gosurgery.in`), and the TOTP issuer
+  string in `src/lib/totp.ts`). Logo/visual identity is still the placeholder `HeartPulse` icon —
+  only the name is decided, not a final logo.
 - **Repo location note:** this file lives at `D:\surgery\CLAUDE.md`, one level above the actual git
   repository, which is `D:\surgery\healthtech-web-layout\`. A copy of this file is also committed
   inside that repo (`healthtech-web-layout/CLAUDE.md`) so it travels with the code and gets pushed;
@@ -144,6 +147,14 @@ navy/orange spec) — don't silently pick one.
 /blog, /blog/$slug             Health articles — STATIC placeholder content (no BlogPost model)
 /reviews                       Patient reviews wall — STATIC placeholder content (no Testimonial model)
 /faqs                          General FAQs (static)
+/careers                       Careers — STATIC content (added 2026-09-18; sample job listings,
+                                not wired to a real ATS — see "How to apply" note in the page)
+/patient-help                  Patient help/support centre — STATIC content (added 2026-09-18;
+                                includes a complaint form that shows a client-side confirmation
+                                only — not wired to a real ticketing system)
+/doctor-onboarding              Doctor/surgeon partner recruitment — STATIC content (added
+                                2026-09-18; registration form shows a client-side confirmation
+                                only — not wired to a real credentialing pipeline)
 /privacy, /terms               Legal (static)
 ```
 
@@ -300,7 +311,24 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
       Password reset + login rate-limiting.
 - [ ] Admin view to update appointment status (currently everything stays "Pending" forever).
 - [ ] Deploy.
-- [ ] Final real brand name/logo to replace "Prime Care" placeholder.
+- [x] Brand name decided: **"Go Surgery"** (2026-09-18) — renamed site-wide, see top of this file.
+      Logo/visual identity is still a placeholder (`HeartPulse` icon) — not decided.
+- [x] Careers (`/careers`), Patient Help (`/patient-help`) and Doctor Onboarding
+      (`/doctor-onboarding`) pages added (2026-09-18), built from user-supplied content templates
+      (`d:\careers.html`, `patient-help.html`, `doctor-onboarding.html`) and restyled to match the
+      site's existing Tailwind design system, with full content parity with the templates (all
+      sections included, not a trimmed subset) except two deliberately omitted, fabrication-risk
+      sections — see the "Data model"-style note below. `/about` gained "What we do" / patient
+      journey / network-vetting / specialities-we-cover / where-we-operate sections; `/contact`
+      gained a "Specific teams" directory, WhatsApp contact row, and registered-office/social
+      section — both existing pages' additions only, the DB-backed booking form and auth gate on
+      `/contact` were left untouched. New pages' forms (`/patient-help` complaint form,
+      `/doctor-onboarding` registration form) show a client-side success toast only — neither is
+      wired to a real backend/ticketing/credentialing system yet.
+      **Deliberately omitted from `/about`:** the templates' "Leadership" and "Recognition"
+      sections, since both require real, specific, checkable claims (real people's names/titles,
+      real awards) that don't exist yet — inventing them would violate the IP-boundary rule below
+      against fabricating verifiable facts. Flag to the user before adding either section for real.
 
 ---
 

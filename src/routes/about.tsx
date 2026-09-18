@@ -37,6 +37,32 @@ const values = [
   },
 ];
 
+const specialities = [
+  { title: "ENT", desc: "Tonsillectomy, sinus surgery, and hearing-related procedures." },
+  { title: "Gynaecology", desc: "Fibroids, ovarian cysts, and related women's health surgery." },
+  { title: "Urology", desc: "Kidney stones, prostate enlargement, and urinary tract procedures." },
+  { title: "Proctology", desc: "Piles, fissures, and fistula treatment, including laser options." },
+  { title: "Orthopaedics", desc: "Joint replacement, arthroscopy, and spine procedures." },
+  { title: "Ophthalmology", desc: "Cataract surgery and vision-correction procedures." },
+  { title: "General Surgery", desc: "Hernia repair, gallbladder removal, and related day-care surgery." },
+  { title: "Cosmetic & Aesthetics", desc: "Elective aesthetic and reconstructive procedures." },
+];
+
+const operatingCities = [
+  "Delhi NCR",
+  "Mumbai",
+  "Bangalore",
+  "Hyderabad",
+  "Chennai",
+  "Pune",
+  "Kolkata",
+  "Ahmedabad",
+  "Jaipur",
+  "Lucknow",
+  "Kochi",
+  "Indore",
+];
+
 const milestones = [
   { year: "2014", event: "Founded in Hyderabad with 3 partner hospitals and 12 surgeons." },
   { year: "2016", event: "Expanded to Delhi NCR and Mumbai. Introduced cashless insurance desk." },
@@ -56,11 +82,11 @@ const milestones = [
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Prime Care | Thoughtful Health Support" },
+      { title: "About Go Surgery | Thoughtful Health Support" },
       {
         name: "description",
         content:
-          "Prime Care connects patients with trusted specialists, modern hospitals and dedicated care teams across 45+ cities in India.",
+          "Go Surgery connects patients with trusted specialists, modern hospitals and dedicated care teams across 45+ cities in India.",
       },
     ],
   }),
@@ -81,7 +107,7 @@ function AboutPage() {
                 Thoughtful care for every step of your health journey
               </h1>
               <p className="mt-4 text-sm leading-relaxed text-navy-foreground/75 sm:text-base">
-                Prime Care is a connected health network that brings patients, specialist surgeons,
+                Go Surgery is a connected health network that brings patients, specialist surgeons,
                 accredited hospitals and insurance partners together across 45+ cities. We simplify
                 the parts of care that often feel stressful — finding the right doctor,
                 understanding your options, managing paperwork and supporting recovery.
@@ -127,7 +153,7 @@ function AboutPage() {
                 all.
               </p>
               <p>
-                Prime Care was built to solve this. We coordinate everything — from the first
+                Go Surgery was built to solve this. We coordinate everything — from the first
                 conversation about symptoms to the final follow-up consultation — through a
                 dedicated care team that stays with each patient through the whole journey.
               </p>
@@ -141,8 +167,93 @@ function AboutPage() {
           </Container>
         </section>
 
-        {/* Values */}
+        {/* What we do */}
+        <section className="py-14">
+          <Container className="grid gap-10 lg:grid-cols-2">
+            <div>
+              <Eyebrow>For patients</Eyebrow>
+              <h3 className="mt-2 text-xl font-bold text-navy">Care that comes to you</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                We match every patient with a specialist suited to their condition, explain the
+                procedure and full cost in plain language before anything is booked, and assign a
+                dedicated care coordinator who personally handles diagnostics, insurance
+                pre-authorisation, hospital admission and discharge, transport on the day of
+                surgery, and follow-up after the patient goes home.
+              </p>
+            </div>
+            <div>
+              <Eyebrow>For doctors and hospitals</Eyebrow>
+              <h3 className="mt-2 text-xl font-bold text-navy">Infrastructure you don't have to build</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                We bring qualified surgeons a steady, pre-screened patient pipeline; handle
+                scheduling, insurance documentation and patient communication; and give partner
+                hospitals a way to run elective surgery lists more predictably.
+              </p>
+            </div>
+          </Container>
+        </section>
+
+        {/* Patient journey */}
         <section className="bg-cream py-14">
+          <Container className="max-w-3xl">
+            <SectionHead eyebrow="Step by step" title="How a Go Surgery patient journey works" />
+            <div className="space-y-0">
+              {[
+                {
+                  title: "Free first consultation",
+                  desc: "A doctor reviews the patient's symptoms or reports over a call or video visit and explains whether surgery is actually needed, and what non-surgical alternatives exist.",
+                },
+                {
+                  title: "Written, transparent estimate",
+                  desc: "The patient receives a cost breakdown in writing — procedure fee, hospital charges, and what insurance is expected to cover — before agreeing to anything.",
+                },
+                {
+                  title: "Insurance and scheduling",
+                  desc: "The assigned care coordinator files for cashless insurance approval where applicable, books the hospital slot and surgeon, and arranges pick-up and drop for the day of the procedure.",
+                },
+                {
+                  title: "Surgery and discharge",
+                  desc: "The surgeon performs the procedure at the partner hospital; the care coordinator manages admission paperwork and handles discharge formalities so the family isn't stuck at a billing counter.",
+                },
+                {
+                  title: "Recovery follow-up",
+                  desc: "Scheduled check-in calls, medicine reminders, and a route back to the surgeon if anything feels off during recovery.",
+                },
+              ].map((step, i, arr) => (
+                <div key={step.title} className="flex gap-6">
+                  <div className="flex flex-col items-center">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-navy text-sm font-bold text-navy-foreground">
+                      {i + 1}
+                    </div>
+                    {i < arr.length - 1 && <div className="mt-1 w-px flex-1 bg-border" />}
+                  </div>
+                  <div className="pb-8">
+                    <h3 className="text-base font-bold text-navy">{step.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Container>
+        </section>
+
+        {/* Specialities we cover */}
+        <section className="py-14">
+          <Container>
+            <SectionHead align="center" eyebrow="What we treat" title="Specialities We Cover" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {specialities.map((s) => (
+                <div key={s.title} className="rounded-xl border border-border bg-background p-5">
+                  <h3 className="text-base font-bold text-navy">{s.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
+                </div>
+              ))}
+            </div>
+          </Container>
+        </section>
+
+        {/* Values */}
+        <section className="py-14">
           <Container>
             <SectionHead align="center" eyebrow="What guides us" title="Our Values" />
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -152,6 +263,37 @@ function AboutPage() {
                   <h3 className="mt-3 text-base font-bold text-navy">{v.title}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">{v.desc}</p>
                 </div>
+              ))}
+            </div>
+          </Container>
+        </section>
+
+        {/* How we vet our network */}
+        <section className="bg-cream py-14">
+          <Container className="max-w-3xl">
+            <SectionHead eyebrow="Trust & safety" title="How we vet our network" />
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Every partner hospital is expected to meet recognised accreditation and
+              infection-control standards, maintain a functioning ICU or transfer arrangement for
+              elective surgery patients, and pass an in-person facility check before being added to
+              the network. Every partner surgeon's degree and medical council registration is
+              verified directly with the issuing body, and re-checked annually.
+            </p>
+          </Container>
+        </section>
+
+        {/* Where we operate */}
+        <section className="py-14">
+          <Container>
+            <SectionHead eyebrow="Coverage" title="Where We Operate" />
+            <div className="flex flex-wrap gap-2">
+              {operatingCities.map((c) => (
+                <span
+                  key={c}
+                  className="rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-navy"
+                >
+                  {c}
+                </span>
               ))}
             </div>
           </Container>

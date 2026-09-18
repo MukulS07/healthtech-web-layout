@@ -6,7 +6,7 @@ import { Container, Eyebrow } from "@/components/home/primitives";
 const sections = [
   {
     title: "Information We Collect",
-    content: `When you use Prime Care's website or services, we may collect the following types of information:
+    content: `When you use Go Surgery's website or services, we may collect the following types of information:
 
 Personal identification information: name, phone number, email address and city, provided when you fill in any consultation or contact form.
 
@@ -64,7 +64,7 @@ Deletion: request deletion of your data, subject to any legal retention obligati
 Portability: receive your data in a commonly used, machine-readable format.
 Objection: object to our processing of your data for particular purposes.
 
-To exercise any of these rights, contact us at privacy@primecare.in. We will respond within 30 days.`,
+To exercise any of these rights, contact us at privacy@gosurgery.in. We will respond within 30 days.`,
   },
   {
     title: "Cookies",
@@ -78,7 +78,7 @@ You can control cookies through your browser settings. Disabling essential cooki
   },
   {
     title: "Children's Privacy",
-    content: `Prime Care's services are not directed at children under 18. We do not knowingly collect personal data from anyone under 18 years of age. If a parent or guardian believes their child has provided us with personal information, please contact us and we will promptly delete it.`,
+    content: `Go Surgery's services are not directed at children under 18. We do not knowingly collect personal data from anyone under 18 years of age. If a parent or guardian believes their child has provided us with personal information, please contact us and we will promptly delete it.`,
   },
   {
     title: "Changes to This Policy",
@@ -88,19 +88,19 @@ You can control cookies through your browser settings. Disabling essential cooki
     title: "Contact Us",
     content: `For privacy-related queries or to exercise your data rights, contact our Data Protection Officer:
 
-Email: privacy@primecare.in
+Email: privacy@gosurgery.in
 Phone: 1800 000 1234 (Mon–Sat, 9 AM–6 PM)
-Post: Data Protection Officer, Prime Care Health Pvt. Ltd., Sector 18, Gurugram – 122015, Haryana, India.`,
+Post: Data Protection Officer, Go Surgery Health Pvt. Ltd., Sector 18, Gurugram – 122015, Haryana, India.`,
   },
 ];
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy | Prime Care" },
+      { title: "Privacy Policy | Go Surgery" },
       {
         name: "description",
-        content: "How Prime Care collects, uses and protects your personal and health information.",
+        content: "How Go Surgery collects, uses and protects your personal and health information.",
       },
     ],
   }),
@@ -125,9 +125,9 @@ function PrivacyPage() {
         <section className="py-14">
           <Container className="max-w-3xl">
             <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Prime Care Health Pvt. Ltd. ("Prime Care", "we", "our" or "us") is committed to
+              Go Surgery Health Pvt. Ltd. ("Go Surgery", "we", "our" or "us") is committed to
               protecting your personal information and your right to privacy. This Privacy Policy
-              explains how we collect, use and protect data when you use our website (primecare.in)
+              explains how we collect, use and protect data when you use our website (gosurgery.in)
               or any of our services.
             </p>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">

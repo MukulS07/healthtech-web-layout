@@ -78,14 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Prime Care | Modern Healthcare & Medical Support" },
+      { title: "Go Surgery | Modern Healthcare & Medical Support" },
       { name: "description", content: "Connect with trusted specialists, modern hospitals and a dedicated care team for clear guidance from consultation through recovery." },
-      { name: "author", content: "Prime Care" },
-      { property: "og:title", content: "Prime Care | Modern Healthcare & Medical Support" },
+      { name: "author", content: "Go Surgery" },
+      { property: "og:title", content: "Go Surgery | Modern Healthcare & Medical Support" },
       { property: "og:description", content: "Connect with trusted specialists, modern hospitals and a dedicated care team for clear guidance from consultation through recovery." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@PrimeCare" },
+      { name: "twitter:site", content: "@GoSurgery" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

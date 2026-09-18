@@ -151,7 +151,7 @@ export const Route = createFileRoute("/specialities/$slug")({
     const data = specialtyData[params.slug] ?? fallbackSpecialty;
     return {
       meta: [
-        { title: `${data.name} | Prime Care` },
+        { title: `${data.name} | Go Surgery` },
         { name: "description", content: data.tagline },
       ],
     };

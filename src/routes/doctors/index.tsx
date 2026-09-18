@@ -50,7 +50,7 @@ export const Route = createFileRoute("/doctors/")({
   },
   head: () => ({
     meta: [
-      { title: "Find Specialist Doctors | Prime Care" },
+      { title: "Find Specialist Doctors | Go Surgery" },
       {
         name: "description",
         content:
