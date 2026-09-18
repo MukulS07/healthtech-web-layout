@@ -1,145 +1,129 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Star, Quote } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Star, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
-import { Container, SectionHead, Eyebrow } from "@/components/home/primitives";
+import { Container, SectionHead, Eyebrow, OutlineButton } from "@/components/home/primitives";
+import { getReviewsFn } from "@/lib/server-functions/reviews";
 
-const tags = [
-  "All",
-  "Highly Recommended",
-  "Recommend for Precision",
-  "Excellent Recovery",
-  "Best Insurance Support",
-  "5 Star Care",
+const ratingOptions = [
+  { label: "All ratings", value: 0 },
+  { label: "5 stars", value: 5 },
+  { label: "4 stars & up", value: 4 },
+  { label: "3 stars & up", value: 3 },
 ];
 
-const reviews = [
-  {
-    tag: "HIGHLY RECOMMENDED",
-    quote:
-      "From booking to discharge, everything was handled for me. I was back at work within four days of piles surgery. The care coordinator called every single day.",
-    name: "Rohan M.",
-    treatment: "Piles Surgery",
-    city: "Bangalore",
-    rating: 5,
-  },
-  {
-    tag: "RECOMMEND FOR PRECISION",
-    quote:
-      "The insurance approval came through in under an hour. Zero paperwork for my family — the team at Go Surgery handled absolutely everything.",
-    name: "Kavita S.",
-    treatment: "Hernia Repair",
-    city: "Pune",
-    rating: 5,
-  },
-  {
-    tag: "EXCELLENT RECOVERY",
-    quote:
-      "My surgeon explained every step patiently and calmly. The follow-up calls even after discharge made a real difference to my recovery confidence.",
-    name: "Imran A.",
-    treatment: "Laparoscopic Surgery",
-    city: "Hyderabad",
-    rating: 5,
-  },
-  {
-    tag: "BEST INSURANCE SUPPORT",
-    quote:
-      "I was skeptical about cashless treatment. But Go Surgery got my HDFC policy pre-approved within 45 minutes. I paid zero out of pocket.",
-    name: "Deepa R.",
-    treatment: "Cataract Surgery",
-    city: "Delhi NCR",
-    rating: 5,
-  },
-  {
-    tag: "HIGHLY RECOMMENDED",
-    quote:
-      "The hospital was spotless, the team was professional, and I went home the same evening. My husband could not believe how quick the knee surgery was.",
-    name: "Sunita P.",
-    treatment: "Knee Replacement",
-    city: "Mumbai",
-    rating: 4,
-  },
-  {
-    tag: "5 STAR CARE",
-    quote:
-      "As someone who had been putting off hernia surgery for two years, I wish I had come to Go Surgery sooner. No drama, no pain, great result.",
-    name: "Farhan K.",
-    treatment: "Hernia Repair",
-    city: "Chennai",
-    rating: 5,
-  },
-  {
-    tag: "RECOMMEND FOR PRECISION",
-    quote:
-      "Dr. Rao performed my fibroid removal laparoscopically. I discharged the next morning. It was nothing like the horror stories I had heard.",
-    name: "Meghna T.",
-    treatment: "Fibroid Removal",
-    city: "Kochi",
-    rating: 5,
-  },
-  {
-    tag: "EXCELLENT RECOVERY",
-    quote:
-      "Free pick-up, free drop, free follow-up — and the surgery itself was completely cashless. I have recommended Go Surgery to three friends already.",
-    name: "Vijay S.",
-    treatment: "Kidney Stone Treatment",
-    city: "Bangalore",
-    rating: 5,
-  },
-  {
-    tag: "HIGHLY RECOMMENDED",
-    quote:
-      "The care coordinator was available every time I called, before and after surgery. I have never felt so supported through a medical experience.",
-    name: "Priya N.",
-    treatment: "Gallstone Removal",
-    city: "Delhi NCR",
-    rating: 5,
-  },
-  {
-    tag: "BEST INSURANCE SUPPORT",
-    quote:
-      "We were worried about costs since my husband needed a hip replacement. The insurance team sorted everything in one day. We paid only the co-pay.",
-    name: "Anita M.",
-    treatment: "Hip Replacement",
-    city: "Ahmedabad",
-    rating: 5,
-  },
-  {
-    tag: "5 STAR CARE",
-    quote:
-      "ENT surgery done in under 30 minutes. I stayed just two hours for monitoring and was home for dinner. Remarkable.",
-    name: "Bashir A.",
-    treatment: "ENT Procedure",
-    city: "Lucknow",
-    rating: 5,
-  },
-  {
-    tag: "RECOMMEND FOR PRECISION",
-    quote:
-      "The surgeon explained the varicose vein EVLA procedure with complete clarity. Zero discomfort during the procedure, healed beautifully.",
-    name: "Lakshmi V.",
-    treatment: "Varicose Vein Treatment",
-    city: "Hyderabad",
-    rating: 4,
-  },
-];
+function timeAgo(iso: string) {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days <= 0) return "Today";
+  if (days === 1) return "1 day ago";
+  if (days < 30) return `${days} days ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months > 1 ? "s" : ""} ago`;
+  const years = Math.floor(months / 12);
+  return `${years} year${years > 1 ? "s" : ""} ago`;
+}
 
-const tagColorMap: Record<string, string> = {
-  "HIGHLY RECOMMENDED": "bg-emerald-50 text-emerald-700 border-emerald-200",
-  "RECOMMEND FOR PRECISION": "bg-blue-50 text-blue-700 border-blue-200",
-  "EXCELLENT RECOVERY": "bg-purple-50 text-purple-700 border-purple-200",
-  "BEST INSURANCE SUPPORT": "bg-amber-50 text-amber-700 border-amber-200",
-  "5 STAR CARE": "bg-brand-orange-soft text-brand-orange-dark border-brand-orange/20",
-};
+function StarRow({ rating }: { rating: number }) {
+  const rounded = Math.round(rating);
+  return (
+    <div className="flex shrink-0">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={`h-3.5 w-3.5 ${i < rounded ? "fill-brand-orange text-brand-orange" : "text-border"}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface ReviewCard {
+  id: string;
+  patientName: string;
+  rating: number;
+  comment: string;
+  doctorResponse: string;
+  createdAt: string;
+  doctorName: string;
+  doctorSlug: string;
+  treatment: string;
+  city: string;
+}
+
+function ReviewCardItem({ review }: { review: ReviewCard }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = review.comment.length > 220;
+  const shown = expanded || !isLong ? review.comment : `${review.comment.slice(0, 220)}…`;
+
+  return (
+    <article className="break-inside-avoid rounded-xl border border-border bg-background p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-navy text-xs font-bold text-navy-foreground">
+            {review.patientName
+              .split(" ")
+              .map((w) => w[0])
+              .slice(0, 2)
+              .join("")}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-navy">{review.patientName}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {[review.treatment, review.city].filter(Boolean).join(" · ") || "Go Surgery patient"}
+            </p>
+          </div>
+        </div>
+        <StarRow rating={review.rating} />
+      </div>
+      <p className="mt-3 text-sm leading-relaxed text-ink/80">
+        "{shown}"
+        {isLong && (
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            className="ml-1 font-semibold text-brand-orange hover:underline"
+          >
+            {expanded ? "Show less" : "Read More"}
+          </button>
+        )}
+      </p>
+      {review.doctorResponse && (
+        <div className="mt-3 rounded-lg bg-cream p-3">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-navy/70">
+            Response from the doctor
+          </p>
+          <p className="mt-1 text-xs text-ink/70">{review.doctorResponse}</p>
+        </div>
+      )}
+      <p className="mt-3 text-[11px] text-muted-foreground">{timeAgo(review.createdAt)}</p>
+    </article>
+  );
+}
 
 export const Route = createFileRoute("/reviews")({
+  loader: async () => {
+    try {
+      return await getReviewsFn({ data: { page: 1 } });
+    } catch {
+      return {
+        success: false,
+        reviews: [],
+        total: 0,
+        page: 1,
+        limit: 24,
+        averageRating: 0,
+        totalReviews: 0,
+      };
+    }
+  },
   head: () => ({
     meta: [
       { title: "Patient Reviews & Stories | Go Surgery" },
       {
         name: "description",
-        content:
-          "Real stories from 2M+ patients. See why patients across India trust Go Surgery for surgery and specialist care.",
+        content: "Real patient reviews from doctors across the Go Surgery network.",
       },
     ],
   }),
@@ -147,83 +131,123 @@ export const Route = createFileRoute("/reviews")({
 });
 
 function ReviewsPage() {
+  const initialData = Route.useLoaderData();
+  const [reviews, setReviews] = useState<ReviewCard[]>(initialData?.reviews || []);
+  const [page, setPage] = useState(initialData?.page || 1);
+  const [minRating, setMinRating] = useState(0);
+  const [total, setTotal] = useState(initialData?.total || 0);
+  const [averageRating] = useState(initialData?.averageRating || 0);
+  const [totalReviews] = useState(initialData?.totalReviews || 0);
+  const [isLoading, setIsLoading] = useState(false);
+  const limit = initialData?.limit || 24;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      setIsLoading(true);
+      try {
+        const res = await getReviewsFn({ data: { page, minRating: minRating || undefined } });
+        if (isMounted && res.success) {
+          setReviews(res.reviews);
+          setTotal(res.total);
+        }
+      } catch (err) {
+        console.error("Failed to load reviews:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, minRating]);
+
   return (
     <div className="bg-background">
       <Header />
       <main>
-        {/* Stats hero */}
         <section className="bg-navy py-14">
           <Container>
-            <Eyebrow tone="light">Built by trusted hands, valued by thousands</Eyebrow>
+            <Eyebrow tone="light">Real reviews from real patients</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
               Patient Reviews & Stories
             </h1>
-            <div className="mt-8 flex flex-wrap gap-8">
-              {[
-                { value: "2M+", label: "Patients Treated" },
-                { value: "4.8 / 5", label: "Average Rating" },
-                { value: "98%", label: "Would Recommend" },
-                { value: "45+", label: "Cities Covered" },
-              ].map((s) => (
-                <div key={s.label}>
-                  <p className="text-2xl font-extrabold text-brand-orange sm:text-3xl">{s.value}</p>
-                  <p className="mt-0.5 text-xs text-navy-foreground/70">{s.label}</p>
-                </div>
-              ))}
-            </div>
-            {/* Star display */}
             <div className="mt-6 flex items-center gap-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-6 w-6 fill-brand-orange text-brand-orange" />
-              ))}
-              <span className="ml-2 text-sm font-semibold text-navy-foreground">
-                4.8 out of 5 — from 18,000+ verified reviews
+              <StarRow rating={averageRating} />
+              <span className="ml-1 text-sm font-semibold text-navy-foreground">
+                {averageRating || "—"} out of 5 — from {totalReviews.toLocaleString("en-US")} reviews
               </span>
             </div>
           </Container>
         </section>
 
-        {/* Reviews grid */}
         <section className="py-14">
           <Container>
             <SectionHead
               eyebrow="What our patients say"
-              title="Verified Patient Stories"
-              subtitle="These are fictional placeholder reviews. Real patient stories will be added here."
-              align="center"
+              title="Verified Patient Reviews"
+              subtitle="Sourced directly from patient feedback on completed consultations."
             />
-            <div className="columns-1 gap-5 sm:columns-2 lg:columns-3 xl:columns-4 [&>*]:break-inside-avoid [&>*]:mb-5">
-              {reviews.map((r, i) => (
-                <article key={i} className="rounded-xl border border-border bg-background p-5">
-                  <div
-                    className={`w-fit rounded-full border px-3 py-1 text-[10px] font-bold tracking-wide ${tagColorMap[r.tag] ?? "bg-cream text-ink/70 border-border"}`}
-                  >
-                    {r.tag}
-                  </div>
-                  <Quote className="mt-4 h-5 w-5 text-brand-orange opacity-60" />
-                  <p className="mt-2 text-sm italic leading-relaxed text-ink/80">"{r.quote}"</p>
-                  <div className="mt-4 flex items-center gap-3">
-                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-navy text-xs font-bold text-navy-foreground">
-                      {r.name
-                        .split(" ")
-                        .map((w) => w[0])
-                        .join("")}
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-navy">{r.name}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {r.treatment} · {r.city}
-                      </p>
-                    </div>
-                    <div className="ml-auto flex">
-                      {Array.from({ length: r.rating }).map((_, i) => (
-                        <Star key={i} className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" />
-                      ))}
-                    </div>
-                  </div>
-                </article>
+            <div className="mb-6 flex flex-wrap items-center gap-2">
+              {ratingOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    setMinRating(opt.value);
+                    setPage(1);
+                  }}
+                  className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${
+                    minRating === opt.value
+                      ? "border-primary bg-primary text-white"
+                      : "border-border bg-background text-ink/70 hover:border-navy/30"
+                  }`}
+                >
+                  {opt.label}
+                </button>
               ))}
+              {isLoading && (
+                <span className="flex items-center gap-1.5 text-xs text-brand-orange font-medium">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading...
+                </span>
+              )}
             </div>
+
+            {reviews.length === 0 && !isLoading ? (
+              <div className="py-16 text-center text-muted-foreground">
+                No reviews match this filter yet.
+              </div>
+            ) : (
+              <div className="columns-1 gap-5 sm:columns-2 lg:columns-3 [&>*]:mb-5">
+                {reviews.map((r) => (
+                  <ReviewCardItem key={r.id} review={r} />
+                ))}
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="mt-10 flex items-center justify-center gap-3">
+                <OutlineButton
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="px-3 py-2"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Prev
+                </OutlineButton>
+                <span className="text-sm text-muted-foreground">
+                  Page {page} of {totalPages.toLocaleString("en-US")}
+                </span>
+                <OutlineButton
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="px-3 py-2"
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </OutlineButton>
+              </div>
+            )}
           </Container>
         </section>
       </main>

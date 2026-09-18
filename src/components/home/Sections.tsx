@@ -508,14 +508,14 @@ export function Stats() {
 /* ---------------- Insurance ---------------- */
 
 const insurers = [
-  "StarShield",
-  "CareFirst",
-  "NivaHealth",
-  "BajajSecure",
+  "Star Health",
   "HDFC Ergo",
+  "Care Health",
+  "Bajaj Allianz",
   "ICICI Lombard",
   "TATA AIG",
-  "Aditya Health",
+  "Aditya Birla Health",
+  "New India Assurance",
 ];
 
 export function Insurance() {
@@ -532,7 +532,7 @@ export function Insurance() {
             on your health. Flexible payment support is available when insurance does not apply.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="/contact">
+            <a href="/insurance-eligibility">
               <OrangeButton>Check Eligibility</OrangeButton>
             </a>
             <a href="tel:18000001234">

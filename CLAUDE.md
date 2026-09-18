@@ -145,7 +145,11 @@ navy/orange spec) — don't silently pick one.
 /locations/$city                City page — STATIC placeholder content, hardcoded `cityData` record
                                 with one real entry (`delhi-ncr`) + a generic `fallbackCity`
 /blog, /blog/$slug             Health articles — STATIC placeholder content (no BlogPost model)
-/reviews                       Patient reviews wall — STATIC placeholder content (no Testimonial model)
+/reviews                       Patient reviews wall — ⚠️ REWRITTEN 2026-09-18: now DB-backed by a
+                                new `Review` model reading the real `reviews` collection
+                                (247,574 real patient reviews). Paginated, filterable by rating,
+                                doctor name/specialization/city populated in per card. No longer
+                                uses the old fake `Testimonial` model (still orphaned, unused).
 /faqs                          General FAQs (static)
 /careers                       Careers — STATIC content (added 2026-09-18; sample job listings,
                                 not wired to a real ATS — see "How to apply" note in the page)
@@ -155,6 +159,29 @@ navy/orange spec) — don't silently pick one.
 /doctor-onboarding              Doctor/surgeon partner recruitment — STATIC content (added
                                 2026-09-18; registration form shows a client-side confirmation
                                 only — not wired to a real credentialing pipeline)
+/ask-a-question                 Public "ask a doctor" lead form (added 2026-09-18) — REAL DB writes
+                                via a new `Question` model (submitQuestionFn), unlike the earlier
+                                client-side-only forms. Publicly readable "Recently answered"
+                                section only renders once a `Question` has `status: "answered"` —
+                                empty today since there's no admin UI to answer yet (answer via
+                                direct DB edit for now, same gap Consultation had pre-admin-panel).
+/cost                           Treatment cost index (added 2026-09-18) — directory of specialities
+                                + real treatments (via existing getTreatmentsFn), no invented price
+                                numbers (real per-procedure cost data doesn't exist yet — see
+                                "Data model" note on `surgeryfaqpages`). CTA routes to /contact for
+                                a real quote.
+/no-cost-emi                    No-cost EMI info page (added 2026-09-18) — static content, generic
+                                tenure/eligibility language, no specific bank names invented.
+/insurance-eligibility          Cashless insurance eligibility checker (added 2026-09-18) — new
+                                `InsuranceCheck` model + real DB-writing lead form (name/phone/
+                                city/condition/insurer/optional policy number), same public-write
+                                pattern as `/ask-a-question`. No live insurer API — the "insurance
+                                desk" follow-up is manual, same gap other new forms have. Linked
+                                from the homepage `Insurance` section's "Check Eligibility" CTA
+                                (previously linked to generic `/contact`) and from the Footer.
+/pregnancy-due-date-calculator  Pure client-side calculator (added 2026-09-18) — Naegele's Rule
+                                (LMP + 280 days, adjusted for cycle length). No backend, no stored
+                                data.
 /privacy, /terms               Legal (static)
 ```
 
@@ -214,6 +241,27 @@ log around 2026-09-17/18 if that needs re-explaining; it left no trace in the cu
   `Doctor.surgeryTypes` instead.
 - **`Consultation`** — booking submissions, unchanged; still references the placeholder-era
   `city`/`treatment` as free strings, not yet reconciled with real `location`/`surgeryTypes`.
+- **`Review`** (new 2026-09-18, `src/models/Review.ts`) — matches the real `reviews` collection
+  (247,574 docs, local-only): `doctorId` (ref `Doctor`), `patientName`, `rating`, `comment`,
+  optional `doctorResponse`/`responseDate`. Backs the rewritten `/reviews` page
+  (`getReviewsFn` in `src/lib/server-functions/reviews.ts` — paginated, `minRating` filter,
+  populates doctor name/specialization/location for the card). The Atlas production cluster does
+  **not** have this collection (only `users`/`sessions`/`treatments`/`hospitals`/`doctors`/
+  `doctorschedules` were migrated there) — reviews only work against the local restore until
+  someone migrates `reviews` to Atlas too.
+- **`Question`** (new 2026-09-18, `src/models/Question.ts`) — backs `/ask-a-question`. Original
+  schema, not matched against real data: the real prod `questions` collection exists but has 0
+  documents, so there was nothing to match. Fields: `name`, `age`, `gender`, `phone`, `condition`,
+  `message`, `status` (`pending`/`answered`), `answer`, `answeredBy`, `answeredAt`.
+  `submitQuestionFn` is a public write (no login required); `getAnsweredQuestionsFn` is a public
+  read scoped to `status: "answered"` — returns empty until something is answered, since there's
+  no admin UI to answer yet (edit the DB directly in the meantime).
+- **`InsuranceCheck`** (new 2026-09-18, `src/models/InsuranceCheck.ts`) — backs
+  `/insurance-eligibility`. Original schema, same situation as `Question` (no real collection to
+  match). Fields: `name`, `phone`, `city`, `condition`, `insurer`, optional `policyNumber`,
+  `status` (`pending`/`checked`), optional `eligible`/`notes`. `submitInsuranceCheckFn` is a
+  public write; no automated eligibility logic — a human on the insurance desk is expected to act
+  on each row manually (no admin UI for that yet either).
 - **`getDoctorsFn`/`getHospitalsFn`** now paginate (`limit`, default 24, hard-capped at 100;
   `page`) — the old unbounded `.find().lean()` would have tried to return all 227k+ doctors on
   every page load, which the real data made an actual (not hypothetical) problem.
@@ -329,6 +377,30 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
       sections, since both require real, specific, checkable claims (real people's names/titles,
       real awards) that don't exist yet — inventing them would violate the IP-boundary rule below
       against fabricating verifiable facts. Flag to the user before adding either section for real.
+- [x] **pristyncare.com-parity feature set** (added 2026-09-18): `/reviews` rewritten from fake
+      `Testimonial` placeholder data to real DB-backed reviews (new `Review` model, 247,574 real
+      patient reviews, paginated + rating filter + doctor name/specialization/city per card).
+      `/ask-a-question` (new `Question` model, real DB writes — not client-side-only like the
+      other new-page forms). `/cost` (treatment cost index — specialities + real treatments, no
+      invented price numbers, since real per-procedure cost data doesn't exist beyond 5 sample
+      `surgeryfaqpages` docs). `/no-cost-emi` (static info page, generic tenure/eligibility
+      language). `/pregnancy-due-date-calculator` (pure client-side Naegele's Rule calculator, no
+      backend). All linked from Footer "For Patients". Explicitly scoped by the user to avoid
+      fabricating content where real data doesn't exist yet (no invented prices, no fake public
+      Q&A threads) — build the real infrastructure now, backfill real data/content later. See
+      "Data model" above for `Review`/`Question` schema details.
+- [x] **Insurance eligibility checker** (added 2026-09-18, `/insurance-eligibility`): new
+      `InsuranceCheck` model + real DB-writing lead form. Homepage `Insurance` section's insurer
+      name list was also corrected — it previously mixed real names (HDFC Ergo, ICICI Lombard,
+      TATA AIG) with altered/fictional ones (StarShield, CareFirst, NivaHealth, BajajSecure,
+      Aditya Health) that looked like obfuscated versions of the real insurers already used
+      elsewhere (`/patient-help`) — now uses the same real 8-insurer list everywhere for
+      consistency. The homepage "Check Eligibility" CTA now links to this new page instead of the
+      generic `/contact` form. See "Data model" above for `InsuranceCheck` schema.
+      **Not fixed as part of this:** the homepage `Testimonials` section still shows explicitly
+      fake quotes/names (`Rohan M., Bangalore`, etc.) — same category of issue `/reviews` had
+      before its 2026-09-18 rewrite, just not in scope of this particular change. Worth doing the
+      same real-data treatment there next, now that the `Review` model exists.
 
 ---
 

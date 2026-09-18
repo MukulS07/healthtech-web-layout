@@ -41,8 +41,13 @@ const columns = [
     title: "For Patients",
     links: [
       { label: "Book Consultation", href: "/contact" },
+      { label: "Ask a Question", href: "/ask-a-question" },
       { label: "Patient Help", href: "/patient-help" },
       { label: "Patient Stories", href: "/reviews" },
+      { label: "Treatment Cost", href: "/cost" },
+      { label: "No-Cost EMI", href: "/no-cost-emi" },
+      { label: "Check Insurance Eligibility", href: "/insurance-eligibility" },
+      { label: "Pregnancy Due Date Calculator", href: "/pregnancy-due-date-calculator" },
       { label: "FAQs", href: "/faqs" },
       { label: "Find Doctors", href: "/doctors" },
       { label: "Find Hospitals", href: "/hospitals" },

@@ -12,11 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as AskAQuestionRouteImport } from './routes/ask-a-question'
 import { Route as CareersRouteImport } from './routes/careers'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CostRouteImport } from './routes/cost'
 import { Route as DoctorOnboardingRouteImport } from './routes/doctor-onboarding'
 import { Route as FaqsRouteImport } from './routes/faqs'
+import { Route as InsuranceEligibilityRouteImport } from './routes/insurance-eligibility'
+import { Route as NoCostEmiRouteImport } from './routes/no-cost-emi'
 import { Route as PatientHelpRouteImport } from './routes/patient-help'
+import { Route as PregnancyDueDateCalculatorRouteImport } from './routes/pregnancy-due-date-calculator'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -49,6 +54,11 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AskAQuestionRoute = AskAQuestionRouteImport.update({
+  id: '/ask-a-question',
+  path: '/ask-a-question',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CareersRoute = CareersRouteImport.update({
   id: '/careers',
   path: '/careers',
@@ -57,6 +67,11 @@ const CareersRoute = CareersRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CostRoute = CostRouteImport.update({
+  id: '/cost',
+  path: '/cost',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DoctorOnboardingRoute = DoctorOnboardingRouteImport.update({
@@ -69,11 +84,27 @@ const FaqsRoute = FaqsRouteImport.update({
   path: '/faqs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InsuranceEligibilityRoute = InsuranceEligibilityRouteImport.update({
+  id: '/insurance-eligibility',
+  path: '/insurance-eligibility',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoCostEmiRoute = NoCostEmiRouteImport.update({
+  id: '/no-cost-emi',
+  path: '/no-cost-emi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PatientHelpRoute = PatientHelpRouteImport.update({
   id: '/patient-help',
   path: '/patient-help',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PregnancyDueDateCalculatorRoute =
+  PregnancyDueDateCalculatorRouteImport.update({
+    id: '/pregnancy-due-date-calculator',
+    path: '/pregnancy-due-date-calculator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -159,11 +190,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/ask-a-question': typeof AskAQuestionRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/faqs': typeof FaqsRoute
+  '/insurance-eligibility': typeof InsuranceEligibilityRoute
+  '/no-cost-emi': typeof NoCostEmiRoute
   '/patient-help': typeof PatientHelpRoute
+  '/pregnancy-due-date-calculator': typeof PregnancyDueDateCalculatorRoute
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
@@ -185,11 +221,16 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/ask-a-question': typeof AskAQuestionRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/faqs': typeof FaqsRoute
+  '/insurance-eligibility': typeof InsuranceEligibilityRoute
+  '/no-cost-emi': typeof NoCostEmiRoute
   '/patient-help': typeof PatientHelpRoute
+  '/pregnancy-due-date-calculator': typeof PregnancyDueDateCalculatorRoute
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
@@ -212,11 +253,16 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
+  '/ask-a-question': typeof AskAQuestionRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/faqs': typeof FaqsRoute
+  '/insurance-eligibility': typeof InsuranceEligibilityRoute
+  '/no-cost-emi': typeof NoCostEmiRoute
   '/patient-help': typeof PatientHelpRoute
+  '/pregnancy-due-date-calculator': typeof PregnancyDueDateCalculatorRoute
   '/privacy': typeof PrivacyRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
@@ -240,11 +286,16 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/ask-a-question'
     | '/careers'
     | '/contact'
+    | '/cost'
     | '/doctor-onboarding'
     | '/faqs'
+    | '/insurance-eligibility'
+    | '/no-cost-emi'
     | '/patient-help'
+    | '/pregnancy-due-date-calculator'
     | '/privacy'
     | '/reviews'
     | '/terms'
@@ -266,11 +317,16 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/ask-a-question'
     | '/careers'
     | '/contact'
+    | '/cost'
     | '/doctor-onboarding'
     | '/faqs'
+    | '/insurance-eligibility'
+    | '/no-cost-emi'
     | '/patient-help'
+    | '/pregnancy-due-date-calculator'
     | '/privacy'
     | '/reviews'
     | '/terms'
@@ -292,11 +348,16 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
+    | '/ask-a-question'
     | '/careers'
     | '/contact'
+    | '/cost'
     | '/doctor-onboarding'
     | '/faqs'
+    | '/insurance-eligibility'
+    | '/no-cost-emi'
     | '/patient-help'
+    | '/pregnancy-due-date-calculator'
     | '/privacy'
     | '/reviews'
     | '/terms'
@@ -319,11 +380,16 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
+  AskAQuestionRoute: typeof AskAQuestionRoute
   CareersRoute: typeof CareersRoute
   ContactRoute: typeof ContactRoute
+  CostRoute: typeof CostRoute
   DoctorOnboardingRoute: typeof DoctorOnboardingRoute
   FaqsRoute: typeof FaqsRoute
+  InsuranceEligibilityRoute: typeof InsuranceEligibilityRoute
+  NoCostEmiRoute: typeof NoCostEmiRoute
   PatientHelpRoute: typeof PatientHelpRoute
+  PregnancyDueDateCalculatorRoute: typeof PregnancyDueDateCalculatorRoute
   PrivacyRoute: typeof PrivacyRoute
   ReviewsRoute: typeof ReviewsRoute
   TermsRoute: typeof TermsRoute
@@ -365,6 +431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ask-a-question': {
+      id: '/ask-a-question'
+      path: '/ask-a-question'
+      fullPath: '/ask-a-question'
+      preLoaderRoute: typeof AskAQuestionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/careers': {
       id: '/careers'
       path: '/careers'
@@ -377,6 +450,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cost': {
+      id: '/cost'
+      path: '/cost'
+      fullPath: '/cost'
+      preLoaderRoute: typeof CostRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/doctor-onboarding': {
@@ -393,11 +473,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/insurance-eligibility': {
+      id: '/insurance-eligibility'
+      path: '/insurance-eligibility'
+      fullPath: '/insurance-eligibility'
+      preLoaderRoute: typeof InsuranceEligibilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/no-cost-emi': {
+      id: '/no-cost-emi'
+      path: '/no-cost-emi'
+      fullPath: '/no-cost-emi'
+      preLoaderRoute: typeof NoCostEmiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/patient-help': {
       id: '/patient-help'
       path: '/patient-help'
       fullPath: '/patient-help'
       preLoaderRoute: typeof PatientHelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pregnancy-due-date-calculator': {
+      id: '/pregnancy-due-date-calculator'
+      path: '/pregnancy-due-date-calculator'
+      fullPath: '/pregnancy-due-date-calculator'
+      preLoaderRoute: typeof PregnancyDueDateCalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -519,11 +620,16 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
+  AskAQuestionRoute: AskAQuestionRoute,
   CareersRoute: CareersRoute,
   ContactRoute: ContactRoute,
+  CostRoute: CostRoute,
   DoctorOnboardingRoute: DoctorOnboardingRoute,
   FaqsRoute: FaqsRoute,
+  InsuranceEligibilityRoute: InsuranceEligibilityRoute,
+  NoCostEmiRoute: NoCostEmiRoute,
   PatientHelpRoute: PatientHelpRoute,
+  PregnancyDueDateCalculatorRoute: PregnancyDueDateCalculatorRoute,
   PrivacyRoute: PrivacyRoute,
   ReviewsRoute: ReviewsRoute,
   TermsRoute: TermsRoute,
