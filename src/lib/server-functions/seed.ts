@@ -3,6 +3,17 @@ import { connectToDatabase } from "@/lib/db";
 import { Doctor } from "@/models/Doctor";
 import { Hospital } from "@/models/Hospital";
 import { Treatment } from "@/models/Treatment";
+import { City } from "@/models/City";
+
+const initialCities = [
+  { name: "Delhi NCR", slug: "delhi-ncr", state: "Delhi / Haryana / UP" },
+  { name: "Mumbai", slug: "mumbai", state: "Maharashtra" },
+  { name: "Bangalore", slug: "bangalore", state: "Karnataka" },
+  { name: "Hyderabad", slug: "hyderabad", state: "Telangana" },
+  { name: "Chennai", slug: "chennai", state: "Tamil Nadu" },
+  { name: "Kochi", slug: "kochi", state: "Kerala" },
+  { name: "Pune", slug: "pune", state: "Maharashtra" },
+];
 
 const initialDoctors = [
   {
@@ -15,6 +26,8 @@ const initialDoctors = [
     city: "Delhi NCR",
     hospital: "Max Super Speciality Hospital",
     fees: 800,
+    languages: ["Hindi", "English"],
+    treatmentSlugs: [],
   },
   {
     name: "Dr. Pradeep Dutta",
@@ -26,6 +39,8 @@ const initialDoctors = [
     city: "Mumbai",
     hospital: "Fortis Hospital",
     fees: 1000,
+    languages: ["Hindi", "English", "Marathi"],
+    treatmentSlugs: ["gallstone"],
   },
   {
     name: "Dr. Karan Mehta",
@@ -37,6 +52,8 @@ const initialDoctors = [
     city: "Bangalore",
     hospital: "Manipal Hospital",
     fees: 750,
+    languages: ["English", "Kannada", "Hindi"],
+    treatmentSlugs: ["hernia"],
   },
   {
     name: "Dr. Sunita Narang",
@@ -48,6 +65,8 @@ const initialDoctors = [
     city: "Hyderabad",
     hospital: "Apollo Hospitals",
     fees: 900,
+    languages: ["Hindi", "English", "Telugu"],
+    treatmentSlugs: [],
   },
   {
     name: "Dr. Ravi Shankar",
@@ -59,6 +78,8 @@ const initialDoctors = [
     city: "Chennai",
     hospital: "Apollo Hospitals",
     fees: 1100,
+    languages: ["Tamil", "English"],
+    treatmentSlugs: [],
   },
   {
     name: "Dr. Meena Pillai",
@@ -70,6 +91,8 @@ const initialDoctors = [
     city: "Kochi",
     hospital: "Aster Medcity",
     fees: 700,
+    languages: ["Malayalam", "English"],
+    treatmentSlugs: [],
   },
   {
     name: "Dr. Alok Verma",
@@ -81,6 +104,8 @@ const initialDoctors = [
     city: "Delhi NCR",
     hospital: "Medanta - The Medicity",
     fees: 1200,
+    languages: ["Hindi", "English"],
+    treatmentSlugs: ["kidney-stone"],
   },
   {
     name: "Dr. Pooja Sharma",
@@ -92,6 +117,8 @@ const initialDoctors = [
     city: "Pune",
     hospital: "Ruby Hall Clinic",
     fees: 850,
+    languages: ["Hindi", "English", "Marathi"],
+    treatmentSlugs: ["piles-fissure"],
   },
   {
     name: "Dr. Suresh Babu",
@@ -103,6 +130,8 @@ const initialDoctors = [
     city: "Bangalore",
     hospital: "Narayana Health",
     fees: 1050,
+    languages: ["English", "Kannada"],
+    treatmentSlugs: ["gallstone"],
   },
   {
     name: "Dr. Nidhi Kapoor",
@@ -114,6 +143,8 @@ const initialDoctors = [
     city: "Mumbai",
     hospital: "Kokilaben Dhirubhai Ambani Hospital",
     fees: 950,
+    languages: ["Hindi", "English"],
+    treatmentSlugs: [],
   },
 ];
 
@@ -190,16 +221,21 @@ const initialTreatments = [
 
 /**
  * Server function to check and seed default dataset into MongoDB.
+ *
+ * Order matters: hospitals, treatments and cities are seeded first so doctors can be linked
+ * to them via hospitalIds/treatmentIds (best-effort name/slug match against the small sample
+ * set above — not every sample doctor has a matching sample hospital/treatment, which is fine
+ * for seed/demo data).
  */
 export const seedDatabaseFn = createServerFn({ method: "POST" }).handler(async () => {
   try {
     await connectToDatabase();
 
-    const doctorCount = await Doctor.countDocuments();
-    let seededDoctors = 0;
-    if (doctorCount === 0) {
-      await Doctor.insertMany(initialDoctors);
-      seededDoctors = initialDoctors.length;
+    const cityCount = await City.countDocuments();
+    let seededCities = 0;
+    if (cityCount === 0) {
+      await City.insertMany(initialCities);
+      seededCities = initialCities.length;
     }
 
     const hospitalCount = await Hospital.countDocuments();
@@ -216,6 +252,30 @@ export const seedDatabaseFn = createServerFn({ method: "POST" }).handler(async (
       seededTreatments = initialTreatments.length;
     }
 
+    const doctorCount = await Doctor.countDocuments();
+    let seededDoctors = 0;
+    if (doctorCount === 0) {
+      const hospitalsByName = new Map(
+        (await Hospital.find({}, { name: 1 }).lean()).map((h) => [h.name, h._id]),
+      );
+      const treatmentsBySlug = new Map(
+        (await Treatment.find({}, { slug: 1 }).lean()).map((t) => [t.slug, t._id]),
+      );
+
+      const doctorsToInsert = initialDoctors.map(({ treatmentSlugs, ...doctor }) => ({
+        ...doctor,
+        hospitalIds: doctor.hospital && hospitalsByName.has(doctor.hospital)
+          ? [hospitalsByName.get(doctor.hospital)]
+          : [],
+        treatmentIds: treatmentSlugs
+          .map((slug) => treatmentsBySlug.get(slug))
+          .filter((id): id is NonNullable<typeof id> => Boolean(id)),
+      }));
+
+      await Doctor.insertMany(doctorsToInsert);
+      seededDoctors = initialDoctors.length;
+    }
+
     return {
       success: true,
       message: "Database seed operation completed.",
@@ -223,11 +283,13 @@ export const seedDatabaseFn = createServerFn({ method: "POST" }).handler(async (
         doctors: await Doctor.countDocuments(),
         hospitals: await Hospital.countDocuments(),
         treatments: await Treatment.countDocuments(),
+        cities: await City.countDocuments(),
       },
       newlySeeded: {
         doctors: seededDoctors,
         hospitals: seededHospitals,
         treatments: seededTreatments,
+        cities: seededCities,
       },
     };
   } catch (error: unknown) {

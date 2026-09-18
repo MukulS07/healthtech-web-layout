@@ -129,13 +129,18 @@ navy/orange spec) — don't silently pick one.
 /contact                       Book an appointment — login/signup gate, then the booking form
                                 (DB-backed: Consultation)
 /doctors                       Doctor directory — DB-backed (Doctor), filter by city/specialty/sort
-/doctors/$slug                 Doctor profile
+/doctors/$slug                 Doctor profile — ⚠️ NOT DB-backed despite `getDoctorBySlugFn`
+                                existing: the route file hardcodes a `doctorData` record with one
+                                real entry (`dr-ananya-rao`) and a generic `fallbackDoctor` for
+                                every other slug. Discovered 2026-09-17; not previously documented.
 /hospitals                     Hospital directory — DB-backed (Hospital), filter by city
 /hospitals/$slug               Hospital profile
 /treatments                    Treatment directory — DB-backed (Treatment), filter by category
 /treatments/$slug              Treatment detail
 /specialities/$slug            Specialty landing — STATIC placeholder content (no Specialty model)
-/locations, /locations/$city   City directory / city page — STATIC placeholder content
+/locations                     City directory — STATIC placeholder content
+/locations/$city                City page — STATIC placeholder content, hardcoded `cityData` record
+                                with one real entry (`delhi-ncr`) + a generic `fallbackCity`
 /blog, /blog/$slug             Health articles — STATIC placeholder content (no BlogPost model)
 /reviews                       Patient reviews wall — STATIC placeholder content (no Testimonial model)
 /faqs                          General FAQs (static)
@@ -148,20 +153,84 @@ dashboard that was linked from the header nav (disguised as "Hospital Availabili
 unauthenticated `getConsultationsFn` and the `restore.ts` archive-import server functions it
 depended on. Don't recreate anything like it without authentication in front of it.
 
-## Data model (actual — Mongoose, in `src/models/`)
+## Data model (actual — Mongoose, in `src/models/`) — ⚠️ rewritten 2026-09-18 for real production data
 
-- **`User`** — name, email (unique), phone, `passwordHash` (scrypt, salted).
-- **`Session`** — `tokenHash` (SHA-256 of the session cookie value, raw token never stored),
-  `userId`, `expiresAt` (Mongo TTL index auto-deletes expired sessions).
-- **`Doctor`**, **`Hospital`**, **`Treatment`** — as seeded by `src/lib/server-functions/seed.ts`
-  (auto-seeds on first read if the collection is empty).
-- **`Consultation`** — booking submissions: name, phone, email, treatment, city, message,
-  `status` (`pending | contacted | completed | cancelled`), and an optional `userId` linking it to
-  the account that booked it.
-- **Not implemented yet:** `Specialty`, `City`, `Clinic`, `BlogPost`, `Testimonial` models — the
-  pages that would use them (`/specialities`, `/locations`, `/blog`, `/reviews`) currently render
-  static placeholder content, not real DB queries. The Prisma schema with these models that an
-  earlier session sketched was for the abandoned Next.js/Postgres plan and does not exist in this repo.
+**Context:** the user provided a real production MongoDB archive (`prod-sixdoctar`, 2.8GB,
+1,040,621 documents — 227,574 doctors, 34,061 hospitals, 247,574 reviews, plus patients, bookings,
+surgery consultations/FAQs, blogs, pharmacies, diagnostic centers) restored to a **local-only**
+MongoDB instance (see "Local dev database" below). `Doctor`/`Hospital`/new `DoctorSchedule` were
+rewritten field-for-field to match that real schema, replacing the fabricated Phase-1 placeholder
+schema from 2026-09-17 (flat `name`/`specialty`/`cred`/`exp`/`city`/`hospitalIds`/`treatmentIds` —
+none of that matches the real data and is gone). **Before this, a *different*, unrelated archive
+(`jobroomdb.archive` — a "JobRooms" research-recruitment platform's real data: Stripe payments,
+Onfido identity verification, OTPs) was mistakenly imported and then deleted — see git history/session
+log around 2026-09-17/18 if that needs re-explaining; it left no trace in the current schema.**
+
+- **`User`** — name, email (unique), phone, `passwordHash` (scrypt, salted). Unrelated to the real
+  `patients`/`hospitalowners`/`admins` collections that exist in `prod-sixdoctar` (0 docs in
+  `users`) — this app's own auth system hasn't been reconciled with the real one yet; still gates
+  booking via its own signup/login, not by real patient accounts. **Open decision, not resolved.**
+- **`Session`** — as before, unrelated to the real `sessions` collection in the restored data.
+- **`Doctor`** (`src/models/Doctor.ts`, rewritten 2026-09-18) — matches the real `doctors`
+  collection: `firstName`/`lastName` (not `name`), `specialization`/`specializationList`/
+  `additionalSpecializations` (not `specialty`), `qualification` (not `cred`), `experience` (not
+  `exp`), `location`/`locality`/`coordinates` (not `city`), `surgeryTypes: string[]` (slugs like
+  `"c-section"`, `"myomectomy"` — **this is the real "type of surgery" taxonomy**, used directly
+  for treatment filtering instead of the old fake `Treatment` ObjectId lookup), `languages`,
+  `rating: {average, count}`, `isSurgeon`, plus verification/subscription/gallery/video fields
+  typed as `unknown` (shape not fully confirmed — schema uses `strict: false` so nothing is lost).
+  `password` field exists but is `select: false` and never included in server-function output.
+- **`Hospital`** (`src/models/Hospital.ts`, rewritten 2026-09-18) — matches the real `hospitals`
+  collection: `city`/`state`/`locality`/`pincode`/`coordinates`, `departments: string[]`,
+  `services: {name}[]`, `totalDoctors`, `totalBeds`/`icuBeds`. No single `rating` field exists on
+  real hospital docs (that lives in separate `hospitalreviews`/`ratings` collections, not yet
+  wired up) and no hardcoded accreditation list — `getHospitalsFn` no longer fabricates
+  `["NABH", "ISO 9001"]` for every hospital like the old placeholder code did.
+- **`DoctorSchedule`** (new 2026-09-18, `src/models/DoctorSchedule.ts`) — matches the real
+  `doctorschedules` collection (69,452 docs): the **actual** doctor↔hospital relationship
+  (`doctor`/`hospital` ObjectId refs, `weeklySchedule`, `consultationFee`, booking settings).
+  Replaces the guessed `Doctor.hospitalIds` array from Phase 1. `getDoctorBySlugFn` populates a
+  doctor's hospitals through this, not through a field on Doctor directly.
+- **`Treatment`**, **`City`** (fake sample data from Phase 1, 2026-09-17), **`Testimonial`** — left
+  **as-is, now orphaned/inconsistent** with the real data. The real DB's own `treatments` and
+  `cities` collections exist but are empty (0 docs) — real surgery-type taxonomy actually lives in
+  `Doctor.surgeryTypes` (free-text slugs), not a separate collection. `Treatment`'s
+  `ensureFullCatalog()` auto-seed (`treatments.ts`) still fires when `/treatments` is visited,
+  since treatment count is still 0 in the real DB — **this will write the fake 463-procedure
+  sample catalog into the real restored database's `treatments` collection** if that page loads.
+  Not fixed; flagged 2026-09-18. Decide before visiting `/treatments` against real data: keep that
+  auto-seed, gate it, or replace treatment-taxonomy pages with something driven by
+  `Doctor.surgeryTypes` instead.
+- **`Consultation`** — booking submissions, unchanged; still references the placeholder-era
+  `city`/`treatment` as free strings, not yet reconciled with real `location`/`surgeryTypes`.
+- **`getDoctorsFn`/`getHospitalsFn`** now paginate (`limit`, default 24, hard-capped at 100;
+  `page`) — the old unbounded `.find().lean()` would have tried to return all 227k+ doctors on
+  every page load, which the real data made an actual (not hypothetical) problem.
+- Route components (`/doctors`, `/hospitals` listing pages) were **not** changed — the server
+  functions adapt the real fields back to the field names those components already read
+  (`name`, `specialty`, `cred`, `exp`, `city`, `rating`, ...), so they kept working unmodified.
+  `/doctors/$slug` and `/hospitals/$slug` are **still** hardcoded static data (see Sitemap above) —
+  rewriting those to actually use `getDoctorBySlugFn`/a new hospital-by-slug function is unstarted.
+
+### Local dev database (2026-09-18)
+
+Real production data now lives in a **local-only** MongoDB, not committed/shared anywhere:
+- `mongod` (portable, no Windows service) at `C:\Users\storm\mongo-local\mongodb-win32-x86_64-windows-7.0.14\bin\mongod.exe`,
+  data dir `C:\Users\storm\mongo-local\data`, bound to `127.0.0.1:27017` only (never `0.0.0.0` —
+  this data includes real names/emails/phones/registration numbers, keep it off the network).
+- Database name: `prod-sixdoctar`. `.env` (gitignored, not committed) sets
+  `MONGODB_URI=mongodb://127.0.0.1:27017/prod-sixdoctar`.
+- MongoDB Compass and Database Tools (`mongorestore`, `mongosh`) installed via winget for
+  browsing/reimporting if needed. The original `prod-sixdoctar.archive` file
+  (`C:\Users\storm\Downloads\`) was **not** deleted (unlike the earlier mistaken JobRooms
+  archive) since this one is confirmed correct.
+- **Known sandbox gotcha (not a code bug):** the Claude Code sandbox redacts `.env`-sourced env
+  var values to the literal string `"[SENSITIVE]"` for processes spawned through its own tools —
+  `MONGODB_URI` will silently become invalid and `db.ts` will report "Invalid scheme" if a
+  sandboxed agent session tries to run `npm run dev` and read `.env` itself. Passing
+  `MONGODB_URI=... npm run dev` inline (not via `.env`) sidesteps this for in-session testing. The
+  real user running `npm run dev` normally, outside that sandbox, is unaffected — `.env` works
+  as-is for them.
 
 ## Authentication (added; not in the original plan)
 
@@ -190,18 +259,47 @@ look up their appointment status later, which is impossible for anonymous submis
 - [x] Core pages live and DB-backed where it matters: home, doctors, hospitals, treatments
       (listing + detail), contact/booking.
 - [x] Static placeholder pages: about, blog, specialities, locations, reviews, faqs, privacy, terms.
+      (`/doctors/$slug` and `/locations/$city` were *also* discovered to be hardcoded despite
+      looking DB-backed in the sitemap — see those entries above; not fixed yet, flagged 2026-09-17.)
 - [x] Patient authentication: signup/login, session cookies, booking gated behind login,
       `/account` appointment-status page.
 - [x] Removed the exposed `/db-status` diagnostics page and all patient-facing "MongoDB" wording.
+
+### pristyncare.com-parity plan (started 2026-09-17)
+
+pristyncare.com's doctor/city/treatment discovery is a **programmatic SEO engine**: pages are
+auto-generated from a `city × specialty × treatment` matrix
+(`/{city}/treatment/{condition}/`, `/{city}/c/{specialty}/`, `/top-doctors/{condition}/`,
+`/specialist/{slug}/`), which only works because their Doctor is many-to-many with both
+Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase 1:
+
+- [x] **Phase 1 — data model rework** (done 2026-09-17): added `City` and `Testimonial` models;
+      `Doctor.hospitalIds`/`treatmentIds` (many-to-many refs, additive/non-breaking);
+      `getDoctorsFn` accepts a `treatment` slug filter; `getDoctorBySlugFn`/`getDoctorsFn` populate
+      hospital/treatment info; `seed.ts` seeds City + links sample doctors to sample
+      hospitals/treatments where the sample data actually matches. New
+      `src/lib/server-functions/cities.ts` (`getCitiesFn`). **Not done as part of Phase 1:** wiring
+      `/doctors/$slug` or `/locations/$city` off their hardcoded data — that's Phase 2/3.
+- [ ] Phase 2 — programmatic `/treatments/$slug/$city` (and `/specialities/$slug/$city`) landing
+      pages: treatment content + doctors filtered to that city+treatment + clinics in that city.
+      Needs real city+treatment seed coverage first (current sample data only covers a handful of
+      city/treatment combinations — see `initialDoctors` in `seed.ts`).
+- [ ] Phase 3 — doctor directory/profile upgrade: chip-style multi-filter (city+specialty+
+      condition) on `/doctors`; wire `/doctors/$slug` off `getDoctorBySlugFn` instead of the
+      hardcoded `doctorData` record, using the new hospitals/treatments/languages fields.
+- [ ] Phase 4 — SEO: JSON-LD (Physician, MedicalClinic, FAQPage, AggregateRating,
+      BreadcrumbList) on directory/detail pages; generated `sitemap.xml` across city×treatment
+      combinations.
+- [ ] Phase 5 — real content: actual doctor roster, hospital addresses per city, original
+      treatment copy/FAQs, fictional placeholder testimonials (per IP boundary above).
+
 - [ ] **Reconcile the design-system mismatch** (see above) — decide navy/orange+Lexend vs. the
       current green-leaning Manrope/Sora look, then apply consistently.
-- [ ] Real `Specialty`/`City`/`Clinic`/`BlogPost`/`Testimonial` models + real content, swapping out
-      the static placeholder pages.
 - [ ] Persistent database — currently falls back to in-memory MongoDB and loses data on every
       restart unless the user sets up real MongoDB (local or Atlas) and a `.env`.
       Password reset + login rate-limiting.
 - [ ] Admin view to update appointment status (currently everything stays "Pending" forever).
-- [ ] SEO/structured data, sitemap.xml, deploy.
+- [ ] Deploy.
 - [ ] Final real brand name/logo to replace "Prime Care" placeholder.
 
 ---

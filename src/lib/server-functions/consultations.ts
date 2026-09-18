@@ -280,7 +280,8 @@ export const assignConsultationFn = createServerFn({ method: "POST" })
       existing.status = "scheduled";
       await existing.save();
 
-      return { success: true as const, message: `Assigned to ${doctor.name}.` };
+      const doctorName = [doctor.firstName, doctor.lastName].filter(Boolean).join(" ").trim() || "doctor";
+      return { success: true as const, message: `Assigned to ${doctorName}.` };
     } catch (error: unknown) {
       const errMessage = error instanceof Error ? error.message : String(error);
       return { success: false as const, error: errMessage };
