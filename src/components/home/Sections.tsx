@@ -246,14 +246,19 @@ const hospitalFeatures = [
   { icon: Sparkles, label: "Zero Infection Protocols" },
 ];
 
-const hospitals = [
-  { name: "Prime Care Sunrise Hospital", city: "Hyderabad", rating: "4.9", img: hospital1 },
-  { name: "Prime Care Meridian Centre", city: "Gurgaon", rating: "4.8", img: hospital2 },
-  { name: "Prime Care Lakeview Hospital", city: "Kochi", rating: "4.7", img: hospital1 },
-  { name: "Prime Care City Institute", city: "Delhi", rating: "4.6", img: hospital2 },
-];
+const hospitalImages = [hospital1, hospital2];
 
-export function Hospitals() {
+export interface HomeHospital {
+  id: string;
+  name: string;
+  slug: string;
+  city: string;
+  rating: string;
+  img: string;
+}
+
+export function Hospitals({ hospitals }: { hospitals: HomeHospital[] }) {
+  if (!hospitals.length) return null;
   return (
     <section className="bg-navy py-12 sm:py-16 text-navy-foreground">
       <Container>
@@ -282,13 +287,13 @@ export function Hospitals() {
         <Carousel>
           {hospitals.map((h, i) => (
             <article
-              key={i}
+              key={h.id || i}
               className="flex flex-col justify-between w-[280px] shrink-0 snap-start overflow-hidden rounded-xl bg-background text-ink shadow-md sm:w-[320px]"
             >
               <div>
                 <div className="relative">
                   <img
-                    src={h.img}
+                    src={h.img || hospitalImages[i % hospitalImages.length]}
                     alt={h.name}
                     loading="lazy"
                     width={900}
@@ -308,7 +313,7 @@ export function Hospitals() {
               </div>
               <div className="p-4 pt-0">
                 <div className="flex gap-2">
-                  <a href="/hospitals" className="flex-1">
+                  <a href={h.slug ? `/hospitals/${h.slug}` : "/hospitals"} className="flex-1">
                     <OutlineButton className="w-full justify-center px-3 py-2 text-xs">Directions</OutlineButton>
                   </a>
                   <a href="/contact" className="flex-1">
@@ -397,42 +402,21 @@ export function Journey() {
 
 /* ---------------- Doctors ---------------- */
 
-const doctors = [
-  {
-    name: "Dr. Ananya Rao",
-    cat: "Gynecologist",
-    cred: "MBBS, MS (Obstetrics & Gynaecology)",
-    exp: "14 Years",
-    rating: "4.8",
-    img: doctor1,
-  },
-  {
-    name: "Dr. Pradeep Dutta",
-    cat: "General Medicine",
-    cred: "MBBS, MD (Respiratory Medicine)",
-    exp: "27 Years",
-    rating: "4.5",
-    img: doctor2,
-  },
-  {
-    name: "Dr. Karan Mehta",
-    cat: "Laparoscopic Surgeon",
-    cred: "MBBS, MS (General Surgery)",
-    exp: "11 Years",
-    rating: "4.9",
-    img: doctor3,
-  },
-  {
-    name: "Dr. Sunita Narang",
-    cat: "Eye Specialist",
-    cred: "MBBS, MS (Ophthalmology)",
-    exp: "18 Years",
-    rating: "4.7",
-    img: doctor1,
-  },
-];
+const doctorImages = [doctor1, doctor2, doctor3];
 
-export function Doctors() {
+export interface HomeDoctor {
+  id: string;
+  name: string;
+  slug: string;
+  specialty: string;
+  cred: string;
+  exp: number;
+  rating: string;
+  img: string;
+}
+
+export function Doctors({ doctors }: { doctors: HomeDoctor[] }) {
+  if (!doctors.length) return null;
   return (
     <section className="bg-cream py-12 sm:py-16">
       <Container>
@@ -453,13 +437,13 @@ export function Doctors() {
         <Carousel>
           {doctors.map((d, i) => (
             <article
-              key={i}
+              key={d.id || i}
               className="flex flex-col justify-between w-[260px] shrink-0 snap-start overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm hover:shadow-md transition-shadow sm:w-[300px]"
             >
               <div>
                 <div className="relative">
                   <img
-                    src={d.img}
+                    src={d.img || doctorImages[i % doctorImages.length]}
                     alt={d.name}
                     loading="lazy"
                     width={700}
@@ -467,7 +451,7 @@ export function Doctors() {
                     className="h-56 w-full object-cover"
                   />
                   <span className="absolute left-3 top-3 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-navy-foreground shadow-sm">
-                    {d.cat}
+                    {d.specialty}
                   </span>
                   <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy shadow-sm">
                     <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" /> {d.rating}
@@ -476,7 +460,7 @@ export function Doctors() {
                 <div className="p-4">
                   <h3 className="truncate text-base font-bold text-navy">{d.name}</h3>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{d.cred}</p>
-                  <p className="mt-2 text-xs font-semibold text-navy">{d.exp} Experience</p>
+                  <p className="mt-2 text-xs font-semibold text-navy">{d.exp} Years Experience</p>
                 </div>
               </div>
               <div className="p-4 pt-0">

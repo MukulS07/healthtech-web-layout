@@ -16,12 +16,24 @@ import {
   Faq,
   DownloadApp,
 } from "@/components/home/Sections";
+import { getDoctorsFn } from "@/lib/server-functions/doctors";
+import { getHospitalsFn } from "@/lib/server-functions/hospitals";
 
 const title = "Prime Care | Thoughtful Health Support";
 const description =
   "Connect with trusted specialists, modern hospitals and a dedicated care team for clear guidance from consultation through recovery.";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const [doctorsRes, hospitalsRes] = await Promise.all([
+      getDoctorsFn({ data: { limit: 8, sort: "Rating: High to Low" } }).catch(() => null),
+      getHospitalsFn({ data: { limit: 8 } }).catch(() => null),
+    ]);
+    return {
+      doctors: doctorsRes?.success ? doctorsRes.doctors : [],
+      hospitals: hospitalsRes?.success ? hospitalsRes.hospitals : [],
+    };
+  },
   head: () => ({
     meta: [
       { title },
@@ -36,6 +48,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const { doctors, hospitals } = Route.useLoaderData();
   return (
     <div className="bg-background">
       <Header />
@@ -43,9 +56,9 @@ function Index() {
         <Hero />
         <FindCare />
         <PatientExperiences />
-        <Hospitals />
+        <Hospitals hospitals={hospitals} />
         <Journey />
-        <Doctors />
+        <Doctors doctors={doctors} />
         <Stats />
         <Insurance />
         <Testimonials />
