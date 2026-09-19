@@ -514,7 +514,19 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
         wired in, but the core content (symptoms, causes, procedure-type breakdowns, "50,000+
         procedures done"-style stats) has no real backing data at all — that's medical copywriting
         or a business-metrics decision, not a data-wiring task, and guessing at either would be
-        fabrication.
+        fabrication. **`Doctor.specialization` cannot mechanically back a "specialities" count or
+        taxonomy either** — checked 2026-09-19: 1,399 distinct raw values, but it's scraped
+        free-text mixed with non-medical junk ("Bar", "Apartment Building", "Ambulance Service",
+        "Beauty Parlour") and heavy case-duplication ("Alternative Medicine Practitioner" vs
+        "alternative medicine practitioner"); filtering to `isSurgeon: true` doesn't clean it up
+        either. A real specialities list/count needs actual curation (a business decision), not a
+        distinct-values query. The homepage `FindCare` section's hardcoded "View All 20+
+        Specialities" CTA was changed to "View All Specialities" (no number) for this reason — see
+        `src/components/home/Sections.tsx` — rather than either keeping a fabricated number or
+        inventing a different (still-fabricated) one from the dirty data. **Also noted, not
+        fixed:** the section's "Treatments"/"Conditions" tabs don't actually filter anything —
+        the same 4 hardcoded speciality tiles show regardless of which tab is selected
+        (`FindCare` in `Sections.tsx` never branches on `tab`). Cosmetic bug, not data-related.
       - `/blog`, `/blog/$slug`, homepage `Healthfeed` — real `blogs` collection exists (36,782
         docs) but its content is generic health news (e.g. "Chikungunya Alert 2026"), not written
         about Go Surgery's own treatments or doctors — wiring it in means deciding what byline to
