@@ -140,7 +140,7 @@ export function FindCare() {
         <div className="mt-8 flex justify-center">
           <a href="/specialities/proctology">
             <OutlineButton className="inline-flex items-center gap-2 text-sm font-semibold">
-              View All 20+ Specialities <ArrowRight className="h-4 w-4 text-brand-orange" />
+              View All Specialities <ArrowRight className="h-4 w-4 text-brand-orange" />
             </OutlineButton>
           </a>
         </div>
