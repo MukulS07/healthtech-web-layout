@@ -135,7 +135,7 @@ function GlobalSearch({ className, onNavigate }: { className?: string; onNavigat
           role="combobox"
           aria-expanded={open && results.length > 0}
           autoComplete="off"
-          className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted-foreground/80"
+          className="w-full min-w-0 truncate bg-transparent text-sm text-ink outline-none placeholder:text-muted-foreground/80"
           placeholder="Search doctors, treatments, conditions"
           value={q}
           onChange={(e) => {
@@ -275,7 +275,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="text-navy">
         <Container className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-3 lg:flex lg:justify-between">
-          <div className="flex min-w-0 items-center gap-4 lg:gap-5">
+          <div className="flex min-w-0 items-center gap-4 lg:flex-1 lg:gap-5">
             <a href="/" className="flex shrink-0 items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                 <HeartPulse className="h-5 w-5" />
@@ -283,7 +283,7 @@ export function Header() {
               <span className="truncate text-lg font-bold tracking-tight">{SITE.name}</span>
             </a>
             <CityPicker city={city} onChange={setCity} className="hidden lg:flex" />
-            <GlobalSearch className="hidden min-w-0 flex-1 lg:block lg:min-w-[240px] xl:min-w-[300px]" />
+            <GlobalSearch className="hidden min-w-0 max-w-md flex-1 lg:block" />
           </div>
 
           <div className="flex shrink-0 items-center gap-3 lg:gap-4">
