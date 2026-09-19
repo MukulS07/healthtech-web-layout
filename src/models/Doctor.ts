@@ -133,6 +133,10 @@ const DoctorSchema = new Schema<IDoctor>(
 
 DoctorSchema.index({ location: 1, surgeryTypes: 1 });
 DoctorSchema.index({ specialization: 1 });
+// Directory sorts (added 2026-09-19): "most reviewed first" and experience. Without these the
+// listing sorted ~78k surgical doctors in memory (3–4 s per page); with them it's tens of ms.
+DoctorSchema.index({ "rating.count": -1, createdAt: -1 });
+DoctorSchema.index({ experience: -1 });
 
 export const Doctor: Model<IDoctor> =
   (mongoose.models["Doctor"] as Model<IDoctor>) || mongoose.model<IDoctor>("Doctor", DoctorSchema);

@@ -38,7 +38,7 @@ export const getSiteStatsFn = createServerFn({ method: "GET" }).handler(async ()
       surgeons: facets.success ? facets.total : 0,
       hospitals,
       // Cities with a meaningful number of listed surgeons, not every stray location string.
-      cities: facets.success ? facets.cities.filter((c) => c.count >= 10).length : 0,
+      cities: facets.success ? facets.cityCount : 0,
       reviews: r?.n ?? 0,
       averageRating: r && r.n > 0 ? Math.round(r.avg * 10) / 10 : null,
     };

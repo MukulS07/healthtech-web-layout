@@ -45,11 +45,36 @@ export interface GetDoctorsParams {
  * and non-person listings like clinics — see CLAUDE.md), and never rows whose "name" is actually
  * an organisation.
  */
-function surgicalBaseFilter(): Record<string, unknown> {
+const SPEC_VALUES_TTL_MS = 60 * 60 * 1000;
+let specValuesCache: { at: number; values: string[] } | null = null;
+
+/**
+ * The exact raw `specialization` strings that match the surgical whitelist (~700 values), cached
+ * per instance. Filtering with `$in` on these uses the specialization index; running the big
+ * whitelist regex on every request scanned all 227k documents (~4–5 s per listing).
+ */
+async function surgicalSpecValues(): Promise<string[]> {
+  if (specValuesCache && Date.now() - specValuesCache.at < SPEC_VALUES_TTL_MS) return specValuesCache.values;
+  const values = (await Doctor.distinct("specialization", {
+    specialization: { $regex: SURGICAL_DOCTOR_MATCH, $options: "i" },
+  })) as string[];
+  specValuesCache = { at: Date.now(), values: values.filter(Boolean) };
+  return specValuesCache.values;
+}
+
+/** Raw specialization values belonging to one catalog speciality. */
+async function specValuesFor(slug: string): Promise<string[] | null> {
+  const spec = getSpeciality(slug);
+  if (!spec) return null;
+  const re = new RegExp(spec.doctorMatch, "i");
+  return (await surgicalSpecValues()).filter((v) => re.test(v));
+}
+
+async function surgicalBaseFilter(): Promise<Record<string, unknown>> {
   const notOrg = new RegExp(NON_PERSON_NAME_PATTERN, "i");
   return {
     isActive: { $ne: false },
-    specialization: { $regex: SURGICAL_DOCTOR_MATCH, $options: "i" },
+    specialization: { $in: await surgicalSpecValues() },
     firstName: { $not: notOrg },
     lastName: { $not: notOrg },
   };
@@ -129,7 +154,7 @@ export const getDoctorsFn = createServerFn({ method: "GET" })
       await connectToDatabase();
 
       const filter: Record<string, unknown> =
-        data?.scope === "all" ? { isActive: { $ne: false } } : surgicalBaseFilter();
+        data?.scope === "all" ? { isActive: { $ne: false } } : await surgicalBaseFilter();
       const and: Record<string, unknown>[] = [];
 
       if (data?.city && data.city !== "All Cities") {
@@ -138,9 +163,12 @@ export const getDoctorsFn = createServerFn({ method: "GET" })
       }
 
       if (data?.specialty && data.specialty !== "All Specialties") {
-        const spec = getSpeciality(data.specialty);
-        const source = spec ? spec.doctorMatch : escapeRegex(data.specialty);
-        and.push({ specialization: { $regex: source, $options: "i" } });
+        const values = await specValuesFor(data.specialty);
+        and.push(
+          values
+            ? { specialization: { $in: values } }
+            : { specialization: { $regex: escapeRegex(data.specialty), $options: "i" } },
+        );
       }
 
       if (data?.treatment) {
@@ -159,10 +187,9 @@ export const getDoctorsFn = createServerFn({ method: "GET" })
         queryBuilder = queryBuilder.sort({ experience: -1 });
       } else if (data?.sort === "Experience: Low to High") {
         queryBuilder = queryBuilder.sort({ experience: 1 });
-      } else if (data?.sort === "Rating: High to Low") {
-        queryBuilder = queryBuilder.sort({ "rating.count": -1, "rating.average": -1 });
       } else {
-        // "Relevance": doctors with real reviews first, then newest.
+        // "Relevance" and "Rating": most-reviewed first, then newest — both served by the
+        // { "rating.count": -1, createdAt: -1 } index on Doctor.
         queryBuilder = queryBuilder.sort({ "rating.count": -1, createdAt: -1 });
       }
 
@@ -203,6 +230,8 @@ export const getDoctorsFn = createServerFn({ method: "GET" })
 type Facets = {
   specialities: { slug: string; name: string; count: number }[];
   cities: { name: string; count: number }[];
+  /** Cities with at least 10 listed surgeons (uncapped — `cities` is trimmed for the dropdown). */
+  cityCount: number;
   total: number;
 };
 let facetCache: { at: number; value: Facets } | null = null;
@@ -219,7 +248,7 @@ export const getDoctorFacetsFn = createServerFn({ method: "GET" }).handler(async
       return { success: true as const, ...facetCache.value };
     }
     await connectToDatabase();
-    const base = surgicalBaseFilter();
+    const base = await surgicalBaseFilter();
     const [bySpec, byCity] = await Promise.all([
       Doctor.aggregate<{ _id: string; n: number }>([
         { $match: base },
@@ -229,7 +258,6 @@ export const getDoctorFacetsFn = createServerFn({ method: "GET" }).handler(async
         { $match: base },
         { $group: { _id: "$location", n: { $sum: 1 } } },
         { $sort: { n: -1 } },
-        { $limit: 80 },
       ]),
     ]);
 
@@ -245,17 +273,18 @@ export const getDoctorFacetsFn = createServerFn({ method: "GET" }).handler(async
       const display = displayCityFor(row._id);
       cityTotals.set(display, (cityTotals.get(display) || 0) + row.n);
     }
-    const cities = [...cityTotals.entries()]
+    const allCities = [...cityTotals.entries()]
       .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 40);
+      .sort((a, b) => b.count - a.count);
+    const cities = allCities.slice(0, 40);
+    const cityCount = allCities.filter((c) => c.count >= 10).length;
 
-    const value = { specialities, cities, total: bySpec.reduce((s, r) => s + r.n, 0) };
+    const value = { specialities, cities, cityCount, total: bySpec.reduce((s, r) => s + r.n, 0) };
     facetCache = { at: Date.now(), value };
     return { success: true as const, ...value };
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
-    return { success: false as const, specialities: [], cities: [], total: 0, error: errMessage };
+    return { success: false as const, specialities: [], cities: [], cityCount: 0, total: 0, error: errMessage };
   }
 });
 
