@@ -600,8 +600,8 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
       `mukul@test.com` user and any other `role: "admin"` user without 2FA, then create real admins
       with `scripts/create-admin.ts`.
 
-- [x] **2026-09-19 — improvement plan implemented (commit `61a022e`, NOT yet pushed at time of
-      writing — pending a local smoke test).** Source: user's `improvement.md` audit +
+- [x] **2026-09-19 — improvement plan implemented (commits `61a022e` + perf fix `b832cc0`, pushed after a
+      local production smoke test).** Source: user's `improvement.md` audit +
       `gosurgery implementation.docx`. This entry supersedes the per-route "STATIC placeholder" notes
       in the Sitemap section above for `/specialities/*`, `/treatments/*`, `/blog/*`, `/locations/*`.
       - **Curated catalog** (`src/data/catalog/`): 21 surgical specialities, 64 conditions, 123
