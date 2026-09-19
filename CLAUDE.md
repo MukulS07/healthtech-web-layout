@@ -538,6 +538,39 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
         gaps. These are legitimate static company/policy copy (no specific unverifiable claims),
         the same category already established as fine to hand-write per the IP-boundary rule.
 
+- [x] **2026-09-19 — broken directory navigation + intermittent detail-page 404s (production
+      deploy, second Vercel project `healthtech-web-layout-data.vercel.app`, different Atlas
+      cluster `drx-stag-cluster`/`drx-stag-db` with the same migrated data).** Two real bugs found
+      while verifying the live deploy, unrelated to fabricated-data work:
+      - `/doctors` and `/hospitals` listing cards had **no links to their detail pages at all**
+        (pre-existing gap — these route components were never touched during the 2026-09-19
+        fabricated-data audit above), and the Call/Book Now/Get Directions buttons did nothing.
+        Fixed by wrapping cards in real `<a href>` links, matching the plain-anchor convention
+        already used in `Sections.tsx` (not TanStack's `<Link>`).
+      - `getDoctorBySlugFn`, `getHospitalBySlugFn`, and `getReviewsFn` each call Mongoose
+        `.populate()` on a related model (`Hospital`, `Doctor`) **without importing that model in
+        the same file**. Mongoose only registers a model when something imports it; since each
+        server function is its own bundled chunk, populate throws `MissingSchemaError` unless some
+        other code path already imported the other model earlier in that process. The `try/catch`
+        swallows this and returns `success: false`, which the route turns into `notFound()` — so a
+        doctor/hospital/set of reviews that genuinely exists looked like a 404. This is why it
+        silently worked in every prior local verification pass (a long-running dev server keeps
+        models registered forever once anything touches them) but would 404 unpredictably on
+        Vercel, where serverless instances cold-start independently — e.g. any doctor-profile
+        request landing on an instance that hadn't already served a `/hospitals` or homepage
+        request first. Fixed with side-effect-only imports (`import "@/models/Hospital"` /
+        `import "@/models/Doctor"`) in the three affected files. Verified by clearing
+        `node_modules/.vite` and restarting the dev server, then hitting a doctor detail page as
+        the very first request — reproduced the failure, then confirmed the fix. Committed and
+        pushed (`a0b156b`).
+
+      **Lesson:** any server function using Mongoose `.populate("field")` must import the
+      referenced model directly in that same file, even if only for its registration side effect —
+      never rely on another file having already imported it earlier in the request chain. This bug
+      class is invisible in a long-running local dev server and only reproduces on a cold process,
+      so testing locally without restarting the server is not sufficient verification for anything
+      using `populate()`.
+
 ---
 
 ## Superseded original plan (historical record only — do not follow)
