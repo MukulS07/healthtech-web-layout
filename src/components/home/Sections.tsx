@@ -253,7 +253,7 @@ export interface HomeHospital {
   name: string;
   slug: string;
   city: string;
-  rating: string;
+  rating: string | null;
   img: string;
 }
 
@@ -300,9 +300,11 @@ export function Hospitals({ hospitals }: { hospitals: HomeHospital[] }) {
                     height={600}
                     className="h-44 w-full object-cover"
                   />
-                  <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy shadow-sm">
-                    <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" /> {h.rating}
-                  </span>
+                  {h.rating && (
+                    <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy shadow-sm">
+                      <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" /> {h.rating}
+                    </span>
+                  )}
                 </div>
                 <div className="p-4">
                   <h3 className="truncate text-base font-bold text-navy">{h.name}</h3>
@@ -559,34 +561,35 @@ export function Insurance() {
 
 /* ---------------- Testimonials ---------------- */
 
-const testimonials = [
-  {
-    quote: "From booking to discharge everything was handled. I was back at work in four days.",
-    name: "Rohan M., Bangalore",
-  },
-  {
-    quote: "The insurance approval came through in under an hour. Zero paperwork for my family.",
-    name: "Kavita S., Pune",
-  },
-  {
-    quote: "My surgeon explained every step calmly. The follow-up calls really mattered.",
-    name: "Imran A., Hyderabad",
-  },
-];
+export interface HomeTestimonial {
+  id: string;
+  comment: string;
+  patientName: string;
+  city: string;
+  treatment: string;
+}
 
-export function Testimonials() {
+export function Testimonials({ testimonials }: { testimonials: HomeTestimonial[] }) {
+  if (!testimonials.length) return null;
   return (
     <section className="bg-cream py-12 sm:py-16">
       <Container>
         <SectionHead align="center" eyebrow="Patient stories" title="What Our Patients Say" />
         <div className="grid gap-5 lg:grid-cols-3">
           {testimonials.map((t) => (
-            <article key={t.name} className="flex flex-col justify-between rounded-xl border border-border/80 bg-background p-6 shadow-sm">
+            <article key={t.id} className="flex flex-col justify-between rounded-xl border border-border/80 bg-background p-6 shadow-sm">
               <div>
                 <Quote className="h-7 w-7 text-brand-orange" />
-                <p className="mt-4 text-sm italic text-muted-foreground leading-relaxed">"{t.quote}"</p>
+                <p className="mt-4 text-sm italic text-muted-foreground leading-relaxed line-clamp-4">
+                  "{t.comment}"
+                </p>
               </div>
-              <p className="mt-6 text-sm font-semibold text-navy">— {t.name}</p>
+              <p className="mt-6 text-sm font-semibold text-navy">
+                — {t.patientName}
+                {[t.treatment, t.city].filter(Boolean).length > 0
+                  ? `, ${[t.treatment, t.city].filter(Boolean).join(" · ")}`
+                  : ""}
+              </p>
             </article>
           ))}
         </div>

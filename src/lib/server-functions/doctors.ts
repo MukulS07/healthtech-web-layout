@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
 import { Doctor } from "@/models/Doctor";
 import { DoctorSchedule } from "@/models/DoctorSchedule";
+import { locationValuesFor } from "@/lib/city-aliases";
+import { usableImageUrl } from "@/lib/utils";
 
 const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 100;
@@ -39,7 +41,8 @@ export const getDoctorsFn = createServerFn({ method: "GET" })
       const filter: Record<string, unknown> = { isActive: { $ne: false } };
 
       if (data?.city && data.city !== "All Cities") {
-        filter["location"] = data.city;
+        const locations = locationValuesFor(data.city);
+        filter["location"] = locations.length > 1 ? { $in: locations } : locations[0];
       }
 
       if (data?.specialty && data.specialty !== "All Specialties") {
@@ -94,7 +97,7 @@ export const getDoctorsFn = createServerFn({ method: "GET" })
           rating: String(doc.rating?.average ?? 0),
           city: doc.location || "",
           locality: doc.locality || "",
-          img: doc.avatar || "",
+          img: usableImageUrl(doc.avatar),
           fees: doc.homeVisitFee || 0,
           languages: doc.languages || [],
           surgeryTypes: doc.surgeryTypes || [],
@@ -145,7 +148,7 @@ export const getDoctorBySlugFn = createServerFn({ method: "GET" })
           rating: String(doc.rating?.average ?? 0),
           city: doc.location || "",
           locality: doc.locality || "",
-          img: doc.avatar || "",
+          img: usableImageUrl(doc.avatar),
           bio: doc.bio || "",
           fees: doc.homeVisitFee || 0,
           languages: doc.languages || [],

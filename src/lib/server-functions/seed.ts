@@ -11,8 +11,13 @@ const initialCities = [
   { name: "Bangalore", slug: "bangalore", state: "Karnataka" },
   { name: "Hyderabad", slug: "hyderabad", state: "Telangana" },
   { name: "Chennai", slug: "chennai", state: "Tamil Nadu" },
-  { name: "Kochi", slug: "kochi", state: "Kerala" },
   { name: "Pune", slug: "pune", state: "Maharashtra" },
+  { name: "Kolkata", slug: "kolkata", state: "West Bengal" },
+  { name: "Ahmedabad", slug: "ahmedabad", state: "Gujarat" },
+  { name: "Jaipur", slug: "jaipur", state: "Rajasthan" },
+  { name: "Lucknow", slug: "lucknow", state: "Uttar Pradesh" },
+  { name: "Kochi", slug: "kochi", state: "Kerala" },
+  { name: "Indore", slug: "indore", state: "Madhya Pradesh" },
 ];
 
 const initialDoctors = [
@@ -231,11 +236,12 @@ export const seedDatabaseFn = createServerFn({ method: "POST" }).handler(async (
   try {
     await connectToDatabase();
 
-    const cityCount = await City.countDocuments();
+    const existingSlugs = new Set((await City.find().select("slug").lean()).map((c) => c.slug));
+    const missingCities = initialCities.filter((c) => !existingSlugs.has(c.slug));
     let seededCities = 0;
-    if (cityCount === 0) {
-      await City.insertMany(initialCities);
-      seededCities = initialCities.length;
+    if (missingCities.length > 0) {
+      await City.insertMany(missingCities);
+      seededCities = missingCities.length;
     }
 
     const hospitalCount = await Hospital.countDocuments();

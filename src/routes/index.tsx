@@ -18,6 +18,7 @@ import {
 } from "@/components/home/Sections";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { getHospitalsFn } from "@/lib/server-functions/hospitals";
+import { getReviewsFn } from "@/lib/server-functions/reviews";
 
 const title = "Go Surgery | Thoughtful Health Support";
 const description =
@@ -25,13 +26,15 @@ const description =
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const [doctorsRes, hospitalsRes] = await Promise.all([
+    const [doctorsRes, hospitalsRes, reviewsRes] = await Promise.all([
       getDoctorsFn({ data: { limit: 8, sort: "Rating: High to Low" } }).catch(() => null),
       getHospitalsFn({ data: { limit: 8 } }).catch(() => null),
+      getReviewsFn({ data: { minRating: 4.5, limit: 3 } }).catch(() => null),
     ]);
     return {
       doctors: doctorsRes?.success ? doctorsRes.doctors : [],
       hospitals: hospitalsRes?.success ? hospitalsRes.hospitals : [],
+      testimonials: reviewsRes?.success ? reviewsRes.reviews : [],
     };
   },
   head: () => ({
@@ -48,7 +51,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { doctors, hospitals } = Route.useLoaderData();
+  const { doctors, hospitals, testimonials } = Route.useLoaderData();
   return (
     <div className="bg-background">
       <Header />
@@ -61,7 +64,7 @@ function Index() {
         <Doctors doctors={doctors} />
         <Stats />
         <Insurance />
-        <Testimonials />
+        <Testimonials testimonials={testimonials} />
         <About />
         <Healthfeed />
         <Faq />

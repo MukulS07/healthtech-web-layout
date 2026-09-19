@@ -181,10 +181,12 @@ function HospitalsPage() {
                           height={600}
                           className="h-44 w-full object-cover"
                         />
-                        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy">
-                          <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" />{" "}
-                          {h.rating}
-                        </span>
+                        {h.rating && (
+                          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy">
+                            <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" />{" "}
+                            {h.rating}
+                          </span>
+                        )}
                       </div>
                       <div className="p-4">
                         <h2 className="text-sm font-bold leading-snug text-navy">{h.name}</h2>

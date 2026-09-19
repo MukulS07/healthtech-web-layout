@@ -131,20 +131,60 @@ navy/orange spec) — don't silently pick one.
                                 own bookings with status (see Authentication below)
 /contact                       Book an appointment — login/signup gate, then the booking form
                                 (DB-backed: Consultation)
-/doctors                       Doctor directory — DB-backed (Doctor), filter by city/specialty/sort
-/doctors/$slug                 Doctor profile — ⚠️ NOT DB-backed despite `getDoctorBySlugFn`
-                                existing: the route file hardcodes a `doctorData` record with one
-                                real entry (`dr-ananya-rao`) and a generic `fallbackDoctor` for
-                                every other slug. Discovered 2026-09-17; not previously documented.
-/hospitals                     Hospital directory — DB-backed (Hospital), filter by city
-/hospitals/$slug               Hospital profile
+/doctors                       Doctor directory — DB-backed (Doctor), filter by city/specialty/sort.
+                                City filter now correctly maps "Delhi NCR" to the real underlying
+                                `location` values (Delhi/Gurugram/Noida/Ghaziabad/Faridabad) — see
+                                `src/lib/city-aliases.ts`, fixed 2026-09-19 (previously an exact
+                                string match against "Delhi NCR", which no real doctor document
+                                has, silently returned zero results for that filter).
+/doctors/$slug                 Doctor profile — ⚠️ REWRITTEN 2026-09-19: now real, via
+                                `getDoctorBySlugFn` (already existed, was just unused) plus real
+                                reviews for that doctor (`getReviewsFn({doctorId})`). The old
+                                hardcoded `doctorData`/`fallbackDoctor` record (fake bio, fake
+                                education, fake testimonials) is gone.
+/hospitals                     Hospital directory — DB-backed (Hospital), filter by city (same NCR
+                                alias fix as /doctors). `rating` is now a genuine derived average
+                                from the reviews of doctors who practice there (via DoctorSchedule
+                                + Review), not the old hardcoded "4.5" for every hospital.
+/hospitals/$slug               Hospital profile — ⚠️ REWRITTEN 2026-09-19: now real, via new
+                                `getHospitalBySlugFn` (doctor roster via DoctorSchedule, derived
+                                rating from those doctors' reviews, real `description`/`about`/
+                                `emergency24x7`/`phone` fields where present). The old hardcoded
+                                hospital (fake "Sunrise Hospital", fake NABH/ISO accreditations,
+                                fake doctor roster, fake address) is gone. No real accreditation
+                                data exists for this collection, so that section is omitted rather
+                                than shown empty or fabricated.
 /treatments                    Treatment directory — DB-backed (Treatment), filter by category
-/treatments/$slug              Treatment detail
-/specialities/$slug            Specialty landing — STATIC placeholder content (no Specialty model)
-/locations                     City directory — STATIC placeholder content
-/locations/$city                City page — STATIC placeholder content, hardcoded `cityData` record
-                                with one real entry (`delhi-ncr`) + a generic `fallbackCity`
-/blog, /blog/$slug             Health articles — STATIC placeholder content (no BlogPost model)
+/treatments/$slug              Treatment detail — ⚠️ still mostly hardcoded (only "piles-surgery"
+                                has real content; every other slug shows generic fallback
+                                symptoms/causes/procedures/FAQs). Not fixed 2026-09-19 — the real
+                                `Treatment` docs have name/category/description/recoveryTime/
+                                benefits but no symptoms/causes/procedure-type breakdown, so this
+                                needs real medical copywriting, not just data wiring. Flagged to
+                                the user, not addressed without a decision on content source.
+/specialities/$slug            Specialty landing — STATIC placeholder content + fabricated stats
+                                ("50,000+ Procedures Done", "100+ Specialists"). Not fixed
+                                2026-09-19 — same reasoning as /treatments/$slug: no real data
+                                backs "procedures done"/"success rate" claims.
+/locations                     City directory — ⚠️ REWRITTEN 2026-09-19: now real, via
+                                `getCitiesFn` (real doctor/hospital/speciality counts per city,
+                                aggregated from `Doctor`/`Hospital`). The old hardcoded per-city
+                                stats (fake clinic/doctor/specialty counts for 16 cities) are gone.
+                                Also removed the non-functional "Notify Me" email capture (no
+                                backend, wasn't wired to anything).
+/locations/$city                City page — ⚠️ REWRITTEN 2026-09-19: now real, via new
+                                `getCityBySlugFn` (real stats) plus `getDoctorsFn`/`getHospitalsFn`
+                                (real doctor/hospital listings for that city). The old hardcoded
+                                `cityData`/`fallbackCity` record (fake hospitals, fake doctors) is
+                                gone.
+/blog, /blog/$slug             Health articles — STATIC placeholder content, fake posts with fake
+                                doctor bylines (e.g. "Dr. Karan Mehta"). NOT fixed 2026-09-19 — a
+                                real `blogs` collection exists (36,782 real articles) but its
+                                content is generic health news (e.g. "Chikungunya Alert 2026"), not
+                                written about Go Surgery's own treatments/doctors, and wiring it in
+                                is a bigger job (pagination at that scale, relevance filtering,
+                                deciding what byline to show instead of a fake doctor name).
+                                Flagged, not attempted without a decision.
 /reviews                       Patient reviews wall — ⚠️ REWRITTEN 2026-09-18: now DB-backed by a
                                 new `Review` model reading the real `reviews` collection
                                 (247,574 real patient reviews). Paginated, filterable by rating,
@@ -268,8 +308,38 @@ log around 2026-09-17/18 if that needs re-explaining; it left no trace in the cu
 - Route components (`/doctors`, `/hospitals` listing pages) were **not** changed — the server
   functions adapt the real fields back to the field names those components already read
   (`name`, `specialty`, `cred`, `exp`, `city`, `rating`, ...), so they kept working unmodified.
-  `/doctors/$slug` and `/hospitals/$slug` are **still** hardcoded static data (see Sitemap above) —
-  rewriting those to actually use `getDoctorBySlugFn`/a new hospital-by-slug function is unstarted.
+  `/doctors/$slug` and `/hospitals/$slug` were rewritten 2026-09-19 to use real data — see Sitemap
+  above and the "2026-09-19 — full-site fabricated-data audit" roadmap entry below.
+- **`src/lib/city-aliases.ts`** (new 2026-09-19) — shared `locationValuesFor()` helper. The real
+  data records Delhi NCR's satellite cities separately (`Doctor.location`/`Hospital.city` values
+  are "Delhi", "Gurugram", "Noida", "Ghaziabad", "Faridabad" — never a combined "Delhi NCR"), but
+  our own City model/Footer/city filters use "Delhi NCR" as one combined value. This helper maps
+  the display name to the real underlying values everywhere a city filter touches the DB
+  (`getCitiesFn`, `getCityBySlugFn`, `getDoctorsFn`, `getHospitalsFn`) — fixes what was previously
+  a silent zero-results bug for anyone filtering by "Delhi NCR".
+- **`usableImageUrl()`** (new 2026-09-19, `src/lib/utils.ts`) — some real `avatar`/`coverImage`/
+  `logo` values are relative paths into the *original* prod app's own static assets (e.g.
+  `/icons/user-placeholder.png`), which 404 here since we never had those files. This helper only
+  passes through values that are actual absolute URLs; everything else falls back to the existing
+  local stock-photo fallback already used across doctor/hospital cards.
+- **`getHospitalBySlugFn`** (new 2026-09-19, `src/lib/server-functions/hospitals.ts`) — real
+  hospital detail lookup: doctor roster via `DoctorSchedule`, a derived rating from those doctors'
+  real `Review` documents (weighted average, `null` if none reviewed yet — not a fabricated flat
+  number), and the hospital's real `description`/`about`/`phone`/`website`/`emergency24x7` fields
+  where present. `getHospitalsFn`'s listing `rating` is the same derived-average approach (was
+  previously hardcoded to `"4.5"` for every hospital despite the function's own comment already
+  claiming otherwise — a real discrepancy between the code and its own documentation, fixed here).
+- **`getCityBySlugFn`** (new 2026-09-19, `src/lib/server-functions/cities.ts`) — real per-city
+  stats (doctor/hospital/speciality counts) for `/locations/$city`; doctor/hospital listings for
+  that page come from the existing `getDoctorsFn`/`getHospitalsFn` with the city filter.
+  `getCitiesFn` itself had a real bug fixed here too: it grouped `Doctor` documents by `$city`, a
+  field that stopped existing when the Doctor schema was rewritten to match real data
+  (2026-09-18) — the real field is `location`. Every city always showed 0 real doctors as a
+  result; unnoticed because `/locations` never actually called this function before 2026-09-19 (it
+  used its own hardcoded array instead). `initialCities` in `seed.ts` was also extended from 7 to
+  the full 12 cities already used in Footer, and its seeding logic changed from "only seed if the
+  City collection is totally empty" to "insert whichever of these are missing by slug" so it
+  self-heals for a DB that already has some (but not all) of them.
 
 ### Local dev database (2026-09-18)
 
@@ -401,6 +471,72 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
       fake quotes/names (`Rohan M., Bangalore`, etc.) — same category of issue `/reviews` had
       before its 2026-09-18 rewrite, just not in scope of this particular change. Worth doing the
       same real-data treatment there next, now that the `Review` model exists.
+- [x] **2026-09-19 — full-site fabricated-data audit.** User asked to go through every page/
+      section, check the real local database for backing data, wire up what's available, and list
+      what isn't. Read every route file plus the homepage `Sections.tsx` components and
+      cross-checked each against the real `prod-sixdoctar` collections (77 collections, ~1.04M
+      docs total, confirmed intact). Fixed real data wiring where it existed:
+      - `/doctors/$slug` — was 100% hardcoded (fake bio/education/testimonials for one doctor,
+        generic fallback for everyone else) despite `getDoctorBySlugFn` already existing and
+        working. Rewrote to use it, plus real reviews for that doctor via the `Review` model.
+      - `/hospitals/$slug` — was 100% hardcoded (fake hospital, fake NABH/ISO accreditations, fake
+        doctor roster). New `getHospitalBySlugFn`: real doctor roster via `DoctorSchedule`, a
+        derived rating from those doctors' real reviews, real `description`/`phone`/
+        `emergency24x7` where present. Accreditations section omitted entirely — no real
+        accreditation data exists for this collection, so it's left out rather than shown empty
+        or fabricated.
+      - `getHospitalsFn`'s listing `rating` — was hardcoded `"4.5"` for every hospital despite the
+        function's own doc comment already claiming this was fixed. Now a real derived average
+        (or `null` if no reviewed doctors yet), same computation as the detail page.
+      - `/locations` and `/locations/$city` — were 100% hardcoded per-city stats (fake clinic/
+        doctor/specialty counts for 16 cities) and fake hospital/doctor lists per city. Rewrote to
+        use real aggregated counts (`getCitiesFn`, extended with a real specialty count) and real
+        `getDoctorsFn`/`getHospitalsFn` listings filtered by city. Also removed the non-functional
+        "Notify Me" email capture (no backend).
+      - Homepage `Testimonials` — was 3 fabricated quotes with fake names/cities. Now pulled from
+        real `Review` documents (`minRating: 4.5`, top 3).
+      - **Two real bugs found and fixed along the way, unrelated to this being fabricated data:**
+        (1) `getCitiesFn` grouped `Doctor` by a `$city` field that stopped existing when the
+        Doctor schema was rewritten to match real prod data (2026-09-18) — real field is
+        `location` — so every city always showed 0 real doctors; nobody noticed because
+        `/locations` never actually called this function until today. (2) The real data records
+        NCR satellite cities separately ("Delhi", "Gurugram", "Noida", ...) rather than a combined
+        "Delhi NCR" value, so the existing exact-match city filters on `/doctors` and `/hospitals`
+        silently returned zero results whenever someone picked "Delhi NCR" — fixed via a new
+        shared `locationValuesFor()` alias helper (`src/lib/city-aliases.ts`).
+      - **Also found and fixed:** some real `avatar`/`coverImage`/`logo` values are relative paths
+        into the *original* prod app's own static assets (e.g. `/icons/user-placeholder.png`),
+        which 404 in this app since we never had those files. New `usableImageUrl()` helper
+        (`src/lib/utils.ts`) only passes through values that are real absolute URLs.
+
+      **Left deliberately unfixed, listed for the user rather than guessed at:**
+      - `/treatments/$slug` and `/specialities/$slug` — real doctor/treatment listings could be
+        wired in, but the core content (symptoms, causes, procedure-type breakdowns, "50,000+
+        procedures done"-style stats) has no real backing data at all — that's medical copywriting
+        or a business-metrics decision, not a data-wiring task, and guessing at either would be
+        fabrication.
+      - `/blog`, `/blog/$slug`, homepage `Healthfeed` — real `blogs` collection exists (36,782
+        docs) but its content is generic health news (e.g. "Chikungunya Alert 2026"), not written
+        about Go Surgery's own treatments or doctors — wiring it in means deciding what byline to
+        show instead of the current fake "Dr. Karan Mehta," and building pagination/relevance
+        filtering at that scale. Flagged, not attempted.
+      - Homepage `Stats` section (`"2M+ Lives Touched"`, `"800+ Hospitals Connected"`, `"45+
+        Cities Covered"`, `"400+ Expert Surgeons"`) — real counts exist for hospitals/doctors/
+        cities, but showing the raw restored-dataset record count (e.g. 34,061 hospitals) as
+        "Hospitals Connected" would overstate an actual verified partner network in a different
+        way than the current made-up "800+" does — this is a wording/positioning call for the
+        user, not something to wire blindly. "Lives Touched" (patients treated) has no real
+        backing metric in the data at all.
+      - The real `faqs`/`surgeryfaqpages` collections contain auto-generated local-SEO content
+        citing specific named doctors/hospitals/prices that aren't verified to exist in our own
+        `Doctor`/`Hospital` collections (e.g. "highly experienced doctors like Dr. Kumar Manish")
+        — flagged as **not safe to use directly**, this is a fabrication trap inherited from
+        whatever generated the original archive, not a usable resource.
+      - `hospitalreviews` (3 docs) and `ratings` (6 docs) collections are real but too thin to
+        back anything.
+      - `/careers`, `/patient-help`, `/doctor-onboarding`, `/about`, `/faqs`, `/no-cost-emi` — not
+        gaps. These are legitimate static company/policy copy (no specific unverifiable claims),
+        the same category already established as fine to hand-write per the IP-boundary rule.
 
 ---
 
