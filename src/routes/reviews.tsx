@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { Star, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
-import { Container, SectionHead, Eyebrow, OutlineButton } from "@/components/home/primitives";
+import { OrangeButton, Container, SectionHead, Eyebrow, OutlineButton } from "@/components/home/primitives";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
+import { seo } from "@/lib/seo";
 
 const ratingOptions = [
   { label: "All ratings", value: 0 },
@@ -118,15 +119,12 @@ export const Route = createFileRoute("/reviews")({
       };
     }
   },
-  head: () => ({
-    meta: [
-      { title: "Patient Reviews & Stories | Go Surgery" },
-      {
-        name: "description",
-        content: "Real patient reviews from doctors across the Go Surgery network.",
-      },
-    ],
-  }),
+  head: () =>
+    seo({
+      title: "Patient Reviews & Stories",
+      description: "Read what patients say about doctors in the Go Surgery directory — ratings, treatments and cities — and share your own experience.",
+      path: "/reviews",
+    }),
   component: ReviewsPage,
 });
 
@@ -187,8 +185,13 @@ function ReviewsPage() {
           <Container>
             <SectionHead
               eyebrow="What our patients say"
-              title="Verified Patient Reviews"
-              subtitle="Sourced directly from patient feedback on completed consultations."
+              title="Patient Reviews"
+              subtitle="Reviews left by patients for doctors in our directory. Very short reviews aren't shown here."
+              action={
+                <a href="/reviews/write">
+                  <OrangeButton>Write a Review</OrangeButton>
+                </a>
+              }
             />
             <div className="mb-6 flex flex-wrap items-center gap-2">
               {ratingOptions.map((opt) => (

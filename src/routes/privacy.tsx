@@ -22,7 +22,7 @@ Communication records: calls and messages with our care team may be recorded for
 
 • Connect you with appropriate specialist surgeons based on your condition and location.
 • Coordinate your appointment, hospital admission, insurance pre-authorisation and post-operative support.
-• Respond to your enquiries and provide 24x7 care coordination.
+• Respond to your enquiries and provide care coordination.
 • Send appointment reminders and post-treatment follow-up communications (you may opt out at any time).
 • Improve our website and services through aggregate, anonymised analytics.
 • Comply with legal obligations applicable to healthcare providers in India.
@@ -89,8 +89,7 @@ You can control cookies through your browser settings. Disabling essential cooki
     content: `For privacy-related queries or to exercise your data rights, contact our Data Protection Officer:
 
 Email: privacy@gosurgery.in
-Phone: 1800 000 1234 (Mon–Sat, 9 AM–6 PM)
-Post: Data Protection Officer, Go Surgery Health Pvt. Ltd., Sector 18, Gurugram – 122015, Haryana, India.`,
+Grievance Officer: contact grievance@gosurgery.in — we acknowledge complaints within 24 hours and aim to resolve them within 15 days.`,
   },
 ];
 

@@ -5,7 +5,13 @@ export interface IConsultation extends Document {
   name: string;
   phone: string;
   email?: string;
-  treatmentId: Types.ObjectId;
+  treatmentId?: Types.ObjectId;
+  /** Catalog reference, e.g. "t:laser-piles-surgery" / "c:piles" / "s:proctology". */
+  interest?: string;
+  preferredDate?: string;
+  doctorName?: string;
+  sourcePage?: string;
+  consentAt?: Date;
   treatment: string;
   category: string;
   city: string;
@@ -31,7 +37,14 @@ const ConsultationSchema = new Schema<IConsultation>(
     email: { type: String, trim: true },
     // Snapshotted from Treatment at booking time so this stays stable even if the
     // catalog entry is later renamed/re-categorized by an admin.
-    treatmentId: { type: Schema.Types.ObjectId, ref: "Treatment", required: true },
+    // Legacy bookings reference the Treatment collection; new leads reference the curated catalog
+    // via `interest` instead, so treatmentId is optional.
+    treatmentId: { type: Schema.Types.ObjectId, ref: "Treatment" },
+    interest: { type: String, trim: true },
+    preferredDate: { type: String, trim: true },
+    doctorName: { type: String, trim: true },
+    sourcePage: { type: String, trim: true },
+    consentAt: { type: Date },
     treatment: { type: String, required: true, trim: true },
     category: { type: String, required: true, trim: true },
     city: { type: String, required: true, trim: true },

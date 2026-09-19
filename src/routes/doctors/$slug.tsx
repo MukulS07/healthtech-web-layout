@@ -1,207 +1,258 @@
-import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { Star, MapPin, Phone, CheckCircle2, Briefcase, Quote } from "lucide-react";
+import { createFileRoute, notFound } from "@tanstack/react-router";
+import { BadgeCheck, Briefcase, CheckCircle2, Languages, MapPin, Navigation, PenLine, Phone, Quote, Star } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
-import { Container, SectionHead, OrangeButton, OutlineButton, Eyebrow } from "@/components/home/primitives";
+import { Container, Eyebrow, OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { ConsultForm } from "@/components/home/ConsultForm";
+import { DoctorAvatar } from "@/components/doctors/DoctorCard";
+import { Breadcrumbs, Section } from "@/components/care/Blocks";
 import { getDoctorBySlugFn } from "@/lib/server-functions/doctors";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
-import doctorFallbackImg from "@/assets/doctor-1.jpg";
+import { getTreatment } from "@/data/catalog";
+import { SITE, telHref } from "@/lib/site";
+import { breadcrumbLd, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/doctors/$slug")({
   loader: async ({ params }) => {
     const doctorRes = await getDoctorBySlugFn({ data: params.slug });
     if (!doctorRes.success || !doctorRes.doctor) throw notFound();
-
-    const reviewsRes = await getReviewsFn({
-      data: { doctorId: doctorRes.doctor.id, limit: 6 },
-    }).catch(() => null);
-
+    const reviewsRes = await getReviewsFn({ data: { doctorId: doctorRes.doctor.id, limit: 6 } }).catch(() => null);
     return {
       doctor: doctorRes.doctor,
       reviews: reviewsRes?.success ? reviewsRes.reviews : [],
+      reviewTotal: reviewsRes?.success ? reviewsRes.totalReviews : 0,
+      reviewAverage: reviewsRes?.success ? reviewsRes.averageRating : 0,
     };
   },
   head: ({ loaderData }) => {
-    const doctor = loaderData?.doctor;
-    return {
-      meta: [
-        { title: `${doctor?.name ?? "Doctor"} — ${doctor?.specialty ?? ""} | Go Surgery` },
+    const d = loaderData?.doctor;
+    if (!d) return {};
+    const place = d.city ? ` in ${d.city}` : "";
+    const rating =
+      loaderData.reviewTotal > 0
+        ? { "@type": "AggregateRating", ratingValue: loaderData.reviewAverage, reviewCount: loaderData.reviewTotal, bestRating: 5, worstRating: 1 }
+        : undefined;
+    return seo({
+      title: `${d.name}${d.specialty ? ` — ${d.specialty}` : ""}${place}`,
+      description: `${d.name}${d.specialty ? `, ${d.specialty}` : ""}${place}.${d.cred ? ` ${d.cred}.` : ""}${d.exp ? ` ${d.exp} years of experience.` : ""} See hospitals, reviews and book a free consultation.`,
+      path: `/doctors/${d.slug}`,
+      type: "profile",
+      ...(d.img ? { image: d.img } : {}),
+      // Profiles outside our surgical specialities stay reachable but aren't promoted in search.
+      noindex: !d.specialitySlug,
+      jsonLd: [
         {
-          name: "description",
-          content: `${doctor?.name ?? "Doctor"}, ${doctor?.cred ?? ""}. ${doctor?.exp ?? 0} years experience. Book a free consultation.`,
+          "@type": "Physician",
+          name: d.name,
+          url: `${SITE.url}/doctors/${d.slug}`,
+          ...(d.img ? { image: d.img } : {}),
+          ...(d.specialityName ? { medicalSpecialty: d.specialityName } : {}),
+          ...(d.cred ? { hasCredential: d.cred } : {}),
+          ...(d.city ? { address: { "@type": "PostalAddress", addressLocality: d.city, addressCountry: "IN" } } : {}),
+          ...(d.hospitals.length
+            ? { hospitalAffiliation: d.hospitals.filter((h) => h.name).map((h) => ({ "@type": "Hospital", name: h.name, address: h.address || h.city })) }
+            : {}),
+          ...(d.languages.length ? { knowsLanguage: d.languages } : {}),
+          ...(rating ? { aggregateRating: rating } : {}),
         },
+        breadcrumbLd([
+          { name: "Home", path: "/" },
+          { name: "Doctors", path: "/doctors" },
+          { name: d.name, path: `/doctors/${d.slug}` },
+        ]),
       ],
-    };
+    });
   },
   component: DoctorProfile,
 });
 
+function Stars({ value }: { value: number }) {
+  return (
+    <span className="inline-flex">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star key={n} className={n <= Math.round(value) ? "h-3.5 w-3.5 fill-brand-orange text-brand-orange" : "h-3.5 w-3.5 text-border"} />
+      ))}
+    </span>
+  );
+}
+
+/** An "about" paragraph assembled only from the doctor's real, structured fields. */
+function aboutText(d: {
+  name: string;
+  specialty: string;
+  city: string;
+  exp: number | null;
+  cred: string;
+  hospitals: { name: string }[];
+  languages: string[];
+}) {
+  const parts = [
+    `${d.name} is ${d.specialty ? `a ${d.specialty.toLowerCase()}` : "a doctor"}${d.city ? ` based in ${d.city}` : ""}${d.exp ? ` with ${d.exp} years of experience` : ""}.`,
+  ];
+  if (d.cred) parts.push(`Qualifications: ${d.cred}.`);
+  const hosp = d.hospitals.map((h) => h.name).filter(Boolean);
+  if (hosp.length) parts.push(`Practises at ${hosp.slice(0, 3).join(", ")}${hosp.length > 3 ? ` and ${hosp.length - 3} more` : ""}.`);
+  if (d.languages.length) parts.push(`Consults in ${d.languages.join(", ")}.`);
+  return parts.join(" ");
+}
+
 function DoctorProfile() {
-  const { doctor, reviews } = Route.useLoaderData();
+  const { doctor: d, reviews, reviewTotal, reviewAverage } = Route.useLoaderData();
+  const procedures = d.surgeryTypes.map((s: string) => ({ slug: s, treatment: getTreatment(s), label: s.replace(/-/g, " ") }));
 
   return (
     <div className="bg-background">
       <Header />
       <main>
-        <nav className="border-b border-border bg-cream py-3 text-xs text-muted-foreground">
-          <Container className="flex items-center gap-2">
-            <a href="/" className="hover:text-brand-orange">
-              Home
-            </a>
-            <span>/</span>
-            <a href="/doctors" className="hover:text-brand-orange">
-              Doctors
-            </a>
-            <span>/</span>
-            <span className="font-medium text-ink">{doctor.name}</span>
-          </Container>
-        </nav>
+        <Breadcrumbs
+          items={[
+            { name: "Home", href: "/" },
+            { name: "Doctors", href: "/doctors" },
+            ...(d.specialitySlug ? [{ name: d.specialityName ?? "", href: `/doctors?specialty=${d.specialitySlug}` }] : []),
+            { name: d.name },
+          ]}
+        />
 
-        <section className="bg-navy py-12">
+        <section className="bg-navy py-10">
           <Container className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-            <img
-              src={doctor.img || doctorFallbackImg}
-              alt={doctor.name}
-              loading="lazy"
-              width={700}
-              height={700}
-              className="h-36 w-36 shrink-0 rounded-xl object-cover sm:h-44 sm:w-44"
-            />
+            <DoctorAvatar name={d.name} initials={d.initials} img={d.img} className="h-32 w-32 shrink-0 rounded-xl text-4xl sm:h-40 sm:w-40" />
             <div className="min-w-0">
-              <Eyebrow tone="light">{doctor.specialty}</Eyebrow>
-              <h1 className="mt-1.5 text-2xl font-bold text-navy-foreground sm:text-3xl">
-                {doctor.name}
-              </h1>
-              <p className="mt-1 text-sm text-navy-foreground/75">{doctor.cred}</p>
+              {d.specialty ? <Eyebrow tone="light">{d.specialty}</Eyebrow> : null}
+              <h1 className="mt-1.5 text-2xl font-bold text-navy-foreground sm:text-3xl">{d.name}</h1>
+              {d.cred ? <p className="mt-1 text-sm text-navy-foreground/75">{d.cred}</p> : null}
               <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
-                {Number(doctor.rating) > 0 && (
+                {reviewTotal > 0 ? (
                   <span className="flex items-center gap-1.5 font-semibold text-brand-orange">
-                    <Star className="h-4 w-4 fill-brand-orange" /> {doctor.rating}
+                    <Star className="h-4 w-4 fill-brand-orange" /> {reviewAverage} ({reviewTotal} reviews)
                   </span>
-                )}
-                <span className="flex items-center gap-1.5 text-navy-foreground/80">
-                  <Briefcase className="h-4 w-4 text-brand-orange" /> {doctor.exp} Years Experience
-                </span>
-                {doctor.city && (
+                ) : null}
+                {d.exp ? (
                   <span className="flex items-center gap-1.5 text-navy-foreground/80">
-                    <MapPin className="h-4 w-4 text-brand-orange" /> {doctor.city}
+                    <Briefcase className="h-4 w-4 text-brand-orange" /> {d.exp} years experience
                   </span>
-                )}
+                ) : null}
+                {d.city ? (
+                  <span className="flex items-center gap-1.5 text-navy-foreground/80">
+                    <MapPin className="h-4 w-4 text-brand-orange" /> {[d.locality, d.city].filter(Boolean).join(", ")}
+                  </span>
+                ) : null}
+                {d.registrationNumber ? (
+                  <span className="flex items-center gap-1.5 text-navy-foreground/80">
+                    <BadgeCheck className="h-4 w-4 text-brand-orange" /> Reg. no. {d.registrationNumber}
+                  </span>
+                ) : null}
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
-                <a href="/contact">
-                  <OrangeButton>Book Consultation</OrangeButton>
-                </a>
-                <a href="tel:18000001234">
-                  <OutlineButton tone="light">
-                    <Phone className="h-4 w-4" /> Call Now
-                  </OutlineButton>
+                <a href="#book"><OrangeButton>Book Free Consultation</OrangeButton></a>
+                <a href={telHref}>
+                  <OutlineButton tone="light"><Phone className="h-4 w-4" /> Call {SITE.phone.display}</OutlineButton>
                 </a>
               </div>
             </div>
           </Container>
         </section>
 
-        <Container className="grid gap-10 py-12 lg:grid-cols-[1.4fr_0.8fr]">
+        <Container className="grid gap-10 py-10 lg:grid-cols-[1.5fr_0.8fr]">
           <div className="min-w-0 space-y-12">
-            {doctor.bio && (
-              <section>
-                <h2 className="text-xl font-bold text-navy">About {doctor.name}</h2>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  {doctor.bio}
+            <Section eyebrow="Profile" title={`About ${d.name}`}>
+              <p className="text-sm leading-relaxed text-ink/85 sm:text-base">{d.bio || aboutText(d)}</p>
+              {d.languages.length ? (
+                <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                  <Languages className="h-4 w-4 text-primary" />
+                  {d.languages.map((l: string) => (
+                    <span key={l} className="rounded-full bg-cream px-2.5 py-0.5 text-xs font-semibold text-navy">{l}</span>
+                  ))}
                 </p>
-              </section>
-            )}
+              ) : null}
+            </Section>
 
-            {doctor.surgeryTypes.length > 0 && (
-              <section>
-                <h2 className="text-xl font-bold text-navy">Surgery Types</h2>
-                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {doctor.surgeryTypes.map((t: string) => (
-                    <li key={t} className="flex items-center gap-2 text-sm text-ink/80">
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-brand-orange" />{" "}
-                      {t.replace(/-/g, " ")}
+            {procedures.length ? (
+              <Section eyebrow="Procedures" title="Procedures performed">
+                <ul className="grid gap-2 sm:grid-cols-2">
+                  {procedures.map((p) => (
+                    <li key={p.slug} className="flex items-center gap-2 text-sm capitalize text-ink/85">
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                      {p.treatment ? <a href={`/treatments/${p.treatment.slug}`} className="hover:text-primary hover:underline">{p.treatment.name}</a> : p.label}
                     </li>
                   ))}
                 </ul>
-              </section>
-            )}
+                <p className="mt-2 text-[11px] text-muted-foreground">As listed in the doctor's profile.</p>
+              </Section>
+            ) : null}
 
-            {doctor.languages.length > 0 && (
-              <section>
-                <h2 className="text-xl font-bold text-navy">Languages</h2>
-                <div className="mt-3 flex gap-2">
-                  {doctor.languages.map((l: string) => (
-                    <span
-                      key={l}
-                      className="rounded-full bg-brand-orange-soft px-3 py-1.5 text-xs font-semibold text-brand-orange-dark"
-                    >
-                      {l}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {doctor.hospitals.length > 0 && (
-              <section>
-                <h2 className="text-xl font-bold text-navy">Practices At</h2>
-                <div className="mt-4 space-y-3">
-                  {doctor.hospitals.map((h) => (
-                    <div
-                      key={h.id}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-border bg-cream p-4"
-                    >
+            {d.hospitals.length ? (
+              <Section eyebrow="Where to consult" title="Hospitals & clinics">
+                <div className="space-y-3">
+                  {d.hospitals.map((h) => (
+                    <div key={h.id || h.name} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-cream p-4">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-navy">{h.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {[h.locality, h.city].filter(Boolean).join(", ")}
-                        </p>
+                        <p className="text-sm font-bold text-navy">{h.name}</p>
+                        <p className="text-xs text-muted-foreground">{h.address || [h.locality, h.city].filter(Boolean).join(", ")}</p>
+                        {h.consultationFee > 0 ? <p className="mt-1 text-xs text-muted-foreground">Clinic consultation fee: ₹{h.consultationFee}</p> : null}
                       </div>
-                      {h.slug && (
-                        <Link to="/hospitals/$slug" params={{ slug: h.slug }} className="shrink-0">
-                          <OutlineButton className="px-3 py-1.5 text-xs">View</OutlineButton>
-                        </Link>
-                      )}
+                      <div className="flex gap-2">
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([h.name, h.address || h.locality, h.city].filter(Boolean).join(", "))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <OutlineButton className="gap-1 px-3 py-1.5 text-xs"><Navigation className="h-3 w-3" /> Map</OutlineButton>
+                        </a>
+                        {h.slug ? <a href={`/hospitals/${h.slug}`}><OutlineButton className="px-3 py-1.5 text-xs">View</OutlineButton></a> : null}
+                      </div>
                     </div>
                   ))}
                 </div>
-              </section>
-            )}
+              </Section>
+            ) : null}
 
-            <section>
-              <SectionHead eyebrow="Patient feedback" title="What Patients Say" />
-              {reviews.length > 0 ? (
+            <Section
+              eyebrow="Patient feedback"
+              title="What patients say"
+              action={<a href={`/reviews/write?doctor=${d.slug}`}><OutlineButton className="gap-1.5 px-3 py-2 text-xs"><PenLine className="h-3.5 w-3.5" /> Write a review</OutlineButton></a>}
+            >
+              {reviewTotal > 0 ? (
+                <div className="mb-4 flex items-center gap-3 rounded-lg bg-cream p-4">
+                  <p className="text-3xl font-extrabold text-navy">{reviewAverage}</p>
+                  <div>
+                    <Stars value={reviewAverage} />
+                    <p className="text-xs text-muted-foreground">{reviewTotal} patient reviews</p>
+                  </div>
+                </div>
+              ) : null}
+              {reviews.length ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {reviews.map((r) => (
-                    <div key={r.id} className="rounded-lg border border-border bg-cream p-5">
+                    <div key={r.id} className="rounded-lg border border-border bg-background p-5">
                       <div className="flex items-center justify-between">
-                        <Quote className="h-6 w-6 text-brand-orange" />
-                        <span className="flex items-center gap-1 text-xs font-bold text-navy">
-                          <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" />{" "}
-                          {r.rating}
-                        </span>
+                        <Quote className="h-5 w-5 text-brand-orange" />
+                        <Stars value={r.rating} />
                       </div>
-                      <p className="mt-3 text-sm italic text-ink/80">"{r.comment}"</p>
-                      <p className="mt-3 text-xs font-semibold text-navy">— {r.patientName}</p>
+                      <p className="mt-3 text-sm text-ink/80">"{r.comment}"</p>
+                      <p className="mt-3 text-xs font-semibold text-navy">
+                        — {r.patientName}
+                        <span className="font-normal text-muted-foreground"> · {new Date(r.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}</span>
+                      </p>
                     </div>
                   ))}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">No reviews for this doctor yet.</p>
               )}
-            </section>
+            </Section>
           </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-            <ConsultForm />
-            {doctor.fees > 0 && (
-              <div className="rounded-lg border border-border bg-cream p-4">
-                <p className="text-sm font-semibold text-navy">Consultation fee</p>
-                <p className="mt-2 text-lg font-bold text-brand-orange">₹{doctor.fees}</p>
+          <aside id="book" className="scroll-mt-40 space-y-4 lg:sticky lg:top-36 lg:self-start">
+            {d.fees > 0 ? (
+              <div className="rounded-lg border border-primary/30 bg-cream p-4">
+                <p className="text-sm font-semibold text-navy">First consultation via {SITE.name}</p>
+                <p className="mt-1 text-lg font-bold">
+                  <span className="mr-2 text-muted-foreground line-through">₹{d.fees}</span>
+                  <span className="text-primary">FREE</span>
+                </p>
               </div>
-            )}
+            ) : null}
+            <ConsultForm doctorName={d.name} defaultCity={d.city || undefined} defaultInterest={d.specialitySlug ? `s:${d.specialitySlug}` : undefined} />
           </aside>
         </Container>
       </main>

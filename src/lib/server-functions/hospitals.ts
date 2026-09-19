@@ -11,15 +11,39 @@ import { Review } from "@/models/Review";
 import "@/models/Doctor";
 import { locationValuesFor } from "@/lib/city-aliases";
 import { usableImageUrl } from "@/lib/utils";
+import { displayCityFor } from "@/lib/city-aliases";
+import { escapeRegex, formatDoctorName, formatExperience, formatQualification, formatSpecialization } from "@/lib/doctor-format";
+import { getSpeciality, SPECIALITIES } from "@/data/catalog";
+
+/**
+ * Raw hospital `departments` are free text with near-duplicates ("Nephrologist" vs
+ * "Nephrologist/Renal Specialist", "ENT/ Otorhinolaryngologist"). Normalise casing/separators and
+ * drop entries that collapse to the same thing.
+ */
+function tidyDepartments(departments: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of departments) {
+    const first = String(raw).split(/[/(]/)[0] ?? "";
+    const label = formatSpecialization(first.trim());
+    const key = label.toLowerCase().replace(/[^a-z]/g, "");
+    if (!label || seen.has(key)) continue;
+    seen.add(key);
+    out.push(label);
+  }
+  return out;
+}
 
 const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 100;
 
 export interface GetHospitalsParams {
-  city?: string;
-  query?: string;
-  limit?: number;
-  page?: number;
+  city?: string | undefined;
+  /** Catalog speciality slug — hospitals whose departments match it. */
+  speciality?: string | undefined;
+  query?: string | undefined;
+  limit?: number | undefined;
+  page?: number | undefined;
 }
 
 /** Real hospital docs have no rating field of their own — derive one from the ratings of the
@@ -83,8 +107,13 @@ export const getHospitalsFn = createServerFn({ method: "GET" })
         filter["city"] = locations.length > 1 ? { $in: locations } : locations[0];
       }
 
+      if (data?.speciality) {
+        const spec = getSpeciality(data.speciality);
+        if (spec) filter["departments"] = { $regex: spec.doctorMatch, $options: "i" };
+      }
+
       if (data?.query) {
-        const regex = new RegExp(data.query, "i");
+        const regex = new RegExp(escapeRegex(data.query.trim()), "i");
         filter["$or"] = [{ name: regex }, { city: regex }, { address: regex }, { locality: regex }];
       }
 
@@ -108,6 +137,7 @@ export const getHospitalsFn = createServerFn({ method: "GET" })
         total,
         page,
         limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
         hospitals: docs.map((doc) => {
           const rating = ratings.get(String(doc._id));
           return {
@@ -120,7 +150,7 @@ export const getHospitalsFn = createServerFn({ method: "GET" })
             reviewCount: rating?.count || 0,
             beds: doc.totalBeds || 0,
             totalDoctors: doc.totalDoctors || 0,
-            specialties: doc.departments || [],
+            specialties: tidyDepartments(doc.departments || []),
             img: usableImageUrl(doc.coverImage) || usableImageUrl(doc.logo),
             address: doc.address || "",
             accreditations: Array.isArray(doc.accreditations) ? doc.accreditations : [],
@@ -133,6 +163,9 @@ export const getHospitalsFn = createServerFn({ method: "GET" })
         success: false,
         count: 0,
         total: 0,
+        page: 1,
+        limit: DEFAULT_LIMIT,
+        totalPages: 1,
         hospitals: [],
         error: errMessage,
       };
@@ -186,7 +219,7 @@ export const getHospitalBySlugFn = createServerFn({ method: "GET" })
           website: hospital.website || "",
           emergency24x7: Boolean(hospital.emergency24x7),
           emergencyContact: hospital.emergencyContact || "",
-          departments: hospital.departments || [],
+          departments: tidyDepartments(hospital.departments || []),
           services: (hospital.services || [])
             .map((s: { name?: string }) => s.name)
             .filter((s): s is string => Boolean(s)),
@@ -211,11 +244,11 @@ export const getHospitalBySlugFn = createServerFn({ method: "GET" })
               if (!d) return null;
               return {
                 id: String(d._id),
-                name: [d.firstName, d.lastName].filter(Boolean).join(" ").trim() || "Doctor",
+                name: formatDoctorName(d.firstName, d.lastName),
                 slug: d.slug || "",
-                specialty: d.specialization || "",
-                qualification: d.qualification || "",
-                experience: d.experience || 0,
+                specialty: formatSpecialization(d.specialization),
+                qualification: formatQualification(d.qualification),
+                experience: formatExperience(d.experience),
                 img: usableImageUrl(d.avatar),
                 consultationFee: s.consultationFee || 0,
               };
@@ -228,6 +261,51 @@ export const getHospitalBySlugFn = createServerFn({ method: "GET" })
       return { success: false as const, error: errMessage };
     }
   });
+
+let hospitalFacetCache: { at: number; value: { cities: { name: string; count: number }[]; specialities: { slug: string; name: string; count: number }[] } } | null = null;
+
+/** Real counts for the /hospitals city + speciality dropdowns. Cached per instance for an hour. */
+export const getHospitalFacetsFn = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    if (hospitalFacetCache && Date.now() - hospitalFacetCache.at < 60 * 60 * 1000) {
+      return { success: true as const, ...hospitalFacetCache.value };
+    }
+    await connectToDatabase();
+    const base = { isActive: { $ne: false } };
+    const [byCity, byDept] = await Promise.all([
+      Hospital.aggregate<{ _id: string; n: number }>([
+        { $match: base },
+        { $group: { _id: "$city", n: { $sum: 1 } } },
+        { $sort: { n: -1 } },
+        { $limit: 80 },
+      ]),
+      Hospital.aggregate<{ _id: string; n: number }>([
+        { $match: base },
+        { $unwind: "$departments" },
+        { $group: { _id: { $toLower: "$departments" }, n: { $sum: 1 } } },
+      ]),
+    ]);
+    const cityTotals = new Map<string, number>();
+    for (const row of byCity) {
+      if (!row._id) continue;
+      const name = displayCityFor(row._id);
+      cityTotals.set(name, (cityTotals.get(name) || 0) + row.n);
+    }
+    const value = {
+      cities: [...cityTotals.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 40),
+      // Approximate: a hospital with two matching departments counts twice. Used only for ordering/labels.
+      specialities: SPECIALITIES.map((sp) => {
+        const re = new RegExp(sp.doctorMatch, "i");
+        return { slug: sp.slug, name: sp.name, count: byDept.reduce((sum, r) => (r._id && re.test(r._id) ? sum + r.n : sum), 0) };
+      }).filter((x) => x.count > 0),
+    };
+    hospitalFacetCache = { at: Date.now(), value };
+    return { success: true as const, ...value };
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : String(error);
+    return { success: false as const, cities: [], specialities: [], error: errMessage };
+  }
+});
 
 export interface CreateHospitalInput {
   name: string;

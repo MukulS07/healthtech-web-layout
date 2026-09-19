@@ -17,6 +17,7 @@ import { Route as CareersRouteImport } from './routes/careers'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CostRouteImport } from './routes/cost'
 import { Route as DoctorOnboardingRouteImport } from './routes/doctor-onboarding'
+import { Route as EditorialPolicyRouteImport } from './routes/editorial-policy'
 import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as InsuranceEligibilityRouteImport } from './routes/insurance-eligibility'
@@ -26,20 +27,30 @@ import { Route as PregnancyDueDateCalculatorRouteImport } from './routes/pregnan
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReviewsRouteImport } from './routes/reviews'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SitemapDoctorsDotxmlRouteImport } from './routes/sitemap-doctors[.]xml'
+import { Route as SitemapHospitalsDotxmlRouteImport } from './routes/sitemap-hospitals[.]xml'
+import { Route as SitemapPagesDotxmlRouteImport } from './routes/sitemap-pages[.]xml'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSignupRouteImport } from './routes/admin/signup'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as ConditionsIndexRouteImport } from './routes/conditions/index'
+import { Route as ConditionsSlugRouteImport } from './routes/conditions/$slug'
 import { Route as DoctorsIndexRouteImport } from './routes/doctors/index'
 import { Route as DoctorsSlugRouteImport } from './routes/doctors/$slug'
 import { Route as HospitalsIndexRouteImport } from './routes/hospitals/index'
 import { Route as HospitalsSlugRouteImport } from './routes/hospitals/$slug'
 import { Route as LocationsIndexRouteImport } from './routes/locations/index'
 import { Route as LocationsCityRouteImport } from './routes/locations/$city'
+import { Route as ReviewsWriteRouteImport } from './routes/reviews_.write'
+import { Route as SpecialitiesIndexRouteImport } from './routes/specialities/index'
 import { Route as SpecialitiesSlugRouteImport } from './routes/specialities/$slug'
 import { Route as TreatmentsIndexRouteImport } from './routes/treatments/index'
 import { Route as TreatmentsSlugRouteImport } from './routes/treatments/$slug'
+import { Route as SpecialitiesSlugCityRouteImport } from './routes/specialities/$slug_.$city'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -79,6 +90,11 @@ const CostRoute = CostRouteImport.update({
 const DoctorOnboardingRoute = DoctorOnboardingRouteImport.update({
   id: '/doctor-onboarding',
   path: '/doctor-onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorialPolicyRoute = EditorialPolicyRouteImport.update({
+  id: '/editorial-policy',
+  path: '/editorial-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqsRoute = FaqsRouteImport.update({
@@ -127,6 +143,31 @@ const ReviewsRoute = ReviewsRouteImport.update({
   path: '/reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDoctorsDotxmlRoute = SitemapDoctorsDotxmlRouteImport.update({
+  id: '/sitemap-doctors.xml',
+  path: '/sitemap-doctors.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapHospitalsDotxmlRoute = SitemapHospitalsDotxmlRouteImport.update({
+  id: '/sitemap-hospitals.xml',
+  path: '/sitemap-hospitals.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapPagesDotxmlRoute = SitemapPagesDotxmlRouteImport.update({
+  id: '/sitemap-pages.xml',
+  path: '/sitemap-pages.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -150,6 +191,16 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConditionsIndexRoute = ConditionsIndexRouteImport.update({
+  id: '/conditions/',
+  path: '/conditions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConditionsSlugRoute = ConditionsSlugRouteImport.update({
+  id: '/conditions/$slug',
+  path: '/conditions/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DoctorsIndexRoute = DoctorsIndexRouteImport.update({
@@ -182,6 +233,16 @@ const LocationsCityRoute = LocationsCityRouteImport.update({
   path: '/locations/$city',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReviewsWriteRoute = ReviewsWriteRouteImport.update({
+  id: '/reviews_/write',
+  path: '/reviews/write',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpecialitiesIndexRoute = SpecialitiesIndexRouteImport.update({
+  id: '/specialities/',
+  path: '/specialities/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SpecialitiesSlugRoute = SpecialitiesSlugRouteImport.update({
   id: '/specialities/$slug',
   path: '/specialities/$slug',
@@ -197,6 +258,11 @@ const TreatmentsSlugRoute = TreatmentsSlugRouteImport.update({
   path: '/treatments/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SpecialitiesSlugCityRoute = SpecialitiesSlugCityRouteImport.update({
+  id: '/specialities/$slug_/$city',
+  path: '/specialities/$slug/$city',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -207,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
+  '/editorial-policy': typeof EditorialPolicyRoute
   '/faqs': typeof FaqsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/insurance-eligibility': typeof InsuranceEligibilityRoute
@@ -216,20 +283,30 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap-doctors.xml': typeof SitemapDoctorsDotxmlRoute
+  '/sitemap-hospitals.xml': typeof SitemapHospitalsDotxmlRoute
+  '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/conditions/$slug': typeof ConditionsSlugRoute
   '/doctors/$slug': typeof DoctorsSlugRoute
   '/hospitals/$slug': typeof HospitalsSlugRoute
   '/locations/$city': typeof LocationsCityRoute
+  '/reviews/write': typeof ReviewsWriteRoute
   '/specialities/$slug': typeof SpecialitiesSlugRoute
   '/treatments/$slug': typeof TreatmentsSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/conditions/': typeof ConditionsIndexRoute
   '/doctors/': typeof DoctorsIndexRoute
   '/hospitals/': typeof HospitalsIndexRoute
   '/locations/': typeof LocationsIndexRoute
+  '/specialities/': typeof SpecialitiesIndexRoute
   '/treatments/': typeof TreatmentsIndexRoute
+  '/specialities/$slug/$city': typeof SpecialitiesSlugCityRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -240,6 +317,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
+  '/editorial-policy': typeof EditorialPolicyRoute
   '/faqs': typeof FaqsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/insurance-eligibility': typeof InsuranceEligibilityRoute
@@ -249,20 +327,30 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap-doctors.xml': typeof SitemapDoctorsDotxmlRoute
+  '/sitemap-hospitals.xml': typeof SitemapHospitalsDotxmlRoute
+  '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/conditions/$slug': typeof ConditionsSlugRoute
   '/doctors/$slug': typeof DoctorsSlugRoute
   '/hospitals/$slug': typeof HospitalsSlugRoute
   '/locations/$city': typeof LocationsCityRoute
+  '/reviews/write': typeof ReviewsWriteRoute
   '/specialities/$slug': typeof SpecialitiesSlugRoute
   '/treatments/$slug': typeof TreatmentsSlugRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
+  '/conditions': typeof ConditionsIndexRoute
   '/doctors': typeof DoctorsIndexRoute
   '/hospitals': typeof HospitalsIndexRoute
   '/locations': typeof LocationsIndexRoute
+  '/specialities': typeof SpecialitiesIndexRoute
   '/treatments': typeof TreatmentsIndexRoute
+  '/specialities/$slug/$city': typeof SpecialitiesSlugCityRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -274,6 +362,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
+  '/editorial-policy': typeof EditorialPolicyRoute
   '/faqs': typeof FaqsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/insurance-eligibility': typeof InsuranceEligibilityRoute
@@ -283,20 +372,30 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap-doctors.xml': typeof SitemapDoctorsDotxmlRoute
+  '/sitemap-hospitals.xml': typeof SitemapHospitalsDotxmlRoute
+  '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/conditions/$slug': typeof ConditionsSlugRoute
   '/doctors/$slug': typeof DoctorsSlugRoute
   '/hospitals/$slug': typeof HospitalsSlugRoute
   '/locations/$city': typeof LocationsCityRoute
+  '/reviews_/write': typeof ReviewsWriteRoute
   '/specialities/$slug': typeof SpecialitiesSlugRoute
   '/treatments/$slug': typeof TreatmentsSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/conditions/': typeof ConditionsIndexRoute
   '/doctors/': typeof DoctorsIndexRoute
   '/hospitals/': typeof HospitalsIndexRoute
   '/locations/': typeof LocationsIndexRoute
+  '/specialities/': typeof SpecialitiesIndexRoute
   '/treatments/': typeof TreatmentsIndexRoute
+  '/specialities/$slug_/$city': typeof SpecialitiesSlugCityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -309,6 +408,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/cost'
     | '/doctor-onboarding'
+    | '/editorial-policy'
     | '/faqs'
     | '/forgot-password'
     | '/insurance-eligibility'
@@ -318,20 +418,30 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/reviews'
+    | '/robots.txt'
+    | '/sitemap-doctors.xml'
+    | '/sitemap-hospitals.xml'
+    | '/sitemap-pages.xml'
+    | '/sitemap.xml'
     | '/terms'
     | '/admin/signup'
     | '/blog/$slug'
+    | '/conditions/$slug'
     | '/doctors/$slug'
     | '/hospitals/$slug'
     | '/locations/$city'
+    | '/reviews/write'
     | '/specialities/$slug'
     | '/treatments/$slug'
     | '/admin/'
     | '/blog/'
+    | '/conditions/'
     | '/doctors/'
     | '/hospitals/'
     | '/locations/'
+    | '/specialities/'
     | '/treatments/'
+    | '/specialities/$slug/$city'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -342,6 +452,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/cost'
     | '/doctor-onboarding'
+    | '/editorial-policy'
     | '/faqs'
     | '/forgot-password'
     | '/insurance-eligibility'
@@ -351,20 +462,30 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/reviews'
+    | '/robots.txt'
+    | '/sitemap-doctors.xml'
+    | '/sitemap-hospitals.xml'
+    | '/sitemap-pages.xml'
+    | '/sitemap.xml'
     | '/terms'
     | '/admin/signup'
     | '/blog/$slug'
+    | '/conditions/$slug'
     | '/doctors/$slug'
     | '/hospitals/$slug'
     | '/locations/$city'
+    | '/reviews/write'
     | '/specialities/$slug'
     | '/treatments/$slug'
     | '/admin'
     | '/blog'
+    | '/conditions'
     | '/doctors'
     | '/hospitals'
     | '/locations'
+    | '/specialities'
     | '/treatments'
+    | '/specialities/$slug/$city'
   id:
     | '__root__'
     | '/'
@@ -375,6 +496,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/cost'
     | '/doctor-onboarding'
+    | '/editorial-policy'
     | '/faqs'
     | '/forgot-password'
     | '/insurance-eligibility'
@@ -384,20 +506,30 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/reviews'
+    | '/robots.txt'
+    | '/sitemap-doctors.xml'
+    | '/sitemap-hospitals.xml'
+    | '/sitemap-pages.xml'
+    | '/sitemap.xml'
     | '/terms'
     | '/admin/signup'
     | '/blog/$slug'
+    | '/conditions/$slug'
     | '/doctors/$slug'
     | '/hospitals/$slug'
     | '/locations/$city'
+    | '/reviews_/write'
     | '/specialities/$slug'
     | '/treatments/$slug'
     | '/admin/'
     | '/blog/'
+    | '/conditions/'
     | '/doctors/'
     | '/hospitals/'
     | '/locations/'
+    | '/specialities/'
     | '/treatments/'
+    | '/specialities/$slug_/$city'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -409,6 +541,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CostRoute: typeof CostRoute
   DoctorOnboardingRoute: typeof DoctorOnboardingRoute
+  EditorialPolicyRoute: typeof EditorialPolicyRoute
   FaqsRoute: typeof FaqsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InsuranceEligibilityRoute: typeof InsuranceEligibilityRoute
@@ -418,20 +551,30 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReviewsRoute: typeof ReviewsRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapDoctorsDotxmlRoute: typeof SitemapDoctorsDotxmlRoute
+  SitemapHospitalsDotxmlRoute: typeof SitemapHospitalsDotxmlRoute
+  SitemapPagesDotxmlRoute: typeof SitemapPagesDotxmlRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   AdminSignupRoute: typeof AdminSignupRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  ConditionsSlugRoute: typeof ConditionsSlugRoute
   DoctorsSlugRoute: typeof DoctorsSlugRoute
   HospitalsSlugRoute: typeof HospitalsSlugRoute
   LocationsCityRoute: typeof LocationsCityRoute
+  ReviewsWriteRoute: typeof ReviewsWriteRoute
   SpecialitiesSlugRoute: typeof SpecialitiesSlugRoute
   TreatmentsSlugRoute: typeof TreatmentsSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  ConditionsIndexRoute: typeof ConditionsIndexRoute
   DoctorsIndexRoute: typeof DoctorsIndexRoute
   HospitalsIndexRoute: typeof HospitalsIndexRoute
   LocationsIndexRoute: typeof LocationsIndexRoute
+  SpecialitiesIndexRoute: typeof SpecialitiesIndexRoute
   TreatmentsIndexRoute: typeof TreatmentsIndexRoute
+  SpecialitiesSlugCityRoute: typeof SpecialitiesSlugCityRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -490,6 +633,13 @@ declare module '@tanstack/react-router' {
       path: '/doctor-onboarding'
       fullPath: '/doctor-onboarding'
       preLoaderRoute: typeof DoctorOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editorial-policy': {
+      id: '/editorial-policy'
+      path: '/editorial-policy'
+      fullPath: '/editorial-policy'
+      preLoaderRoute: typeof EditorialPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faqs': {
@@ -555,6 +705,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-doctors.xml': {
+      id: '/sitemap-doctors.xml'
+      path: '/sitemap-doctors.xml'
+      fullPath: '/sitemap-doctors.xml'
+      preLoaderRoute: typeof SitemapDoctorsDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-hospitals.xml': {
+      id: '/sitemap-hospitals.xml'
+      path: '/sitemap-hospitals.xml'
+      fullPath: '/sitemap-hospitals.xml'
+      preLoaderRoute: typeof SitemapHospitalsDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-pages.xml': {
+      id: '/sitemap-pages.xml'
+      path: '/sitemap-pages.xml'
+      fullPath: '/sitemap-pages.xml'
+      preLoaderRoute: typeof SitemapPagesDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -588,6 +773,20 @@ declare module '@tanstack/react-router' {
       path: '/blog/$slug'
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conditions/': {
+      id: '/conditions/'
+      path: '/conditions'
+      fullPath: '/conditions/'
+      preLoaderRoute: typeof ConditionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conditions/$slug': {
+      id: '/conditions/$slug'
+      path: '/conditions/$slug'
+      fullPath: '/conditions/$slug'
+      preLoaderRoute: typeof ConditionsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/doctors/': {
@@ -632,6 +831,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocationsCityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reviews_/write': {
+      id: '/reviews_/write'
+      path: '/reviews/write'
+      fullPath: '/reviews/write'
+      preLoaderRoute: typeof ReviewsWriteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/specialities/': {
+      id: '/specialities/'
+      path: '/specialities'
+      fullPath: '/specialities/'
+      preLoaderRoute: typeof SpecialitiesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/specialities/$slug': {
       id: '/specialities/$slug'
       path: '/specialities/$slug'
@@ -653,6 +866,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TreatmentsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/specialities/$slug_/$city': {
+      id: '/specialities/$slug_/$city'
+      path: '/specialities/$slug/$city'
+      fullPath: '/specialities/$slug/$city'
+      preLoaderRoute: typeof SpecialitiesSlugCityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -665,6 +885,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CostRoute: CostRoute,
   DoctorOnboardingRoute: DoctorOnboardingRoute,
+  EditorialPolicyRoute: EditorialPolicyRoute,
   FaqsRoute: FaqsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   InsuranceEligibilityRoute: InsuranceEligibilityRoute,
@@ -674,20 +895,30 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ReviewsRoute: ReviewsRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapDoctorsDotxmlRoute: SitemapDoctorsDotxmlRoute,
+  SitemapHospitalsDotxmlRoute: SitemapHospitalsDotxmlRoute,
+  SitemapPagesDotxmlRoute: SitemapPagesDotxmlRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   AdminSignupRoute: AdminSignupRoute,
   BlogSlugRoute: BlogSlugRoute,
+  ConditionsSlugRoute: ConditionsSlugRoute,
   DoctorsSlugRoute: DoctorsSlugRoute,
   HospitalsSlugRoute: HospitalsSlugRoute,
   LocationsCityRoute: LocationsCityRoute,
+  ReviewsWriteRoute: ReviewsWriteRoute,
   SpecialitiesSlugRoute: SpecialitiesSlugRoute,
   TreatmentsSlugRoute: TreatmentsSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
+  ConditionsIndexRoute: ConditionsIndexRoute,
   DoctorsIndexRoute: DoctorsIndexRoute,
   HospitalsIndexRoute: HospitalsIndexRoute,
   LocationsIndexRoute: LocationsIndexRoute,
+  SpecialitiesIndexRoute: SpecialitiesIndexRoute,
   TreatmentsIndexRoute: TreatmentsIndexRoute,
+  SpecialitiesSlugCityRoute: SpecialitiesSlugCityRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

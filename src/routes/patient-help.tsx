@@ -5,14 +5,15 @@ import { toast } from "sonner";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
+import { SITE, telHref, whatsappHref } from "@/lib/site";
 
 const talkToUs = [
-  { icon: Phone, label: "24×7 helpline", value: "1800 000 1234", href: "tel:18000001234" },
+  { icon: Phone, label: "Helpline", value: SITE.phone.display, href: telHref },
   {
     icon: MessageCircle,
     label: "WhatsApp support",
-    value: "+91 98765 43210",
-    href: "https://wa.me/919876543210",
+    value: SITE.whatsapp.display,
+    href: whatsappHref(),
   },
   { icon: Mail, label: "Email", value: "support@gosurgery.in", href: "mailto:support@gosurgery.in" },
 ];

@@ -4,6 +4,7 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow } from "@/components/home/primitives";
 import { getCitiesFn } from "@/lib/server-functions/cities";
+import { seo } from "@/lib/seo";
 
 const bgGradients = [
   "from-blue-50 to-slate-50",
@@ -20,15 +21,13 @@ export const Route = createFileRoute("/locations/")({
       return { success: false, cities: [] };
     }
   },
-  head: () => ({
-    meta: [
-      { title: "Locations — Cities We Serve | Go Surgery" },
-      {
-        name: "description",
-        content: "Find specialist surgeons and hospitals near you across India.",
-      },
-    ],
-  }),
+  head: () =>
+    seo({
+      title: "Locations — Cities We Serve",
+      description:
+        "Find surgeons and hospitals in Delhi NCR, Mumbai, Bangalore, Hyderabad, Chennai, Pune and more cities across India.",
+      path: "/locations",
+    }),
   component: LocationsPage,
 });
 
@@ -76,24 +75,18 @@ function LocationsPage() {
                       <ArrowRight className="h-4 w-4 text-brand-orange opacity-0 transition-opacity group-hover:opacity-100" />
                     </div>
                     <h2 className="mt-4 text-base font-bold text-navy">{city.name}</h2>
-                    <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-center">
                       <div>
                         <p className="text-lg font-extrabold text-brand-orange">
-                          {city.hospitalCount}
+                          {city.hospitalCount.toLocaleString("en-IN")}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">Hospitals</p>
+                        <p className="text-[10px] text-muted-foreground">Hospitals listed</p>
                       </div>
                       <div>
                         <p className="text-lg font-extrabold text-brand-orange">
-                          {city.doctorCount}
+                          {city.doctorCount.toLocaleString("en-IN")}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">Doctors</p>
-                      </div>
-                      <div>
-                        <p className="text-lg font-extrabold text-brand-orange">
-                          {city.specialtyCount}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">Specialities</p>
+                        <p className="text-[10px] text-muted-foreground">Surgeons listed</p>
                       </div>
                     </div>
                   </Link>

@@ -5,6 +5,7 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
 import { ConsultForm } from "@/components/home/ConsultForm";
+import { SITE, telHref, whatsappHref } from "@/lib/site";
 
 type Faq = { q: string; a: string };
 
@@ -26,7 +27,7 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
       },
       {
         q: "What cities do you operate in?",
-        a: "Go Surgery operates in 45+ cities across India, including all major metros (Delhi NCR, Mumbai, Bangalore, Hyderabad, Chennai, Pune, Kolkata, Kochi) and Tier 2 cities.",
+        a: "We help patients across major Indian cities including Delhi NCR, Mumbai, Bangalore, Hyderabad, Chennai, Pune, Kolkata, Ahmedabad, Jaipur, Lucknow, Kochi and Indore. See the Locations page for surgeons and hospitals in each city.",
       },
       {
         q: "Can I choose my surgeon?",
@@ -39,7 +40,7 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
     faqs: [
       {
         q: "Which insurers do you support?",
-        a: "We are cashless on 100+ insurance providers, including Star Health, HDFC Ergo, Care Health, Bajaj Allianz, ICICI Lombard, TATA AIG, Aditya Birla Health and New India Assurance.",
+        a: "Cashless treatment depends on your insurer and whether the hospital you choose is in its network. We commonly help patients with policies from insurers such as Star Health, HDFC Ergo, Care Health, Bajaj Allianz, ICICI Lombard, TATA AIG, Aditya Birla Health and New India Assurance — share your policy and our team will check your eligibility.",
       },
       {
         q: "How long does insurance pre-authorisation take?",
@@ -76,7 +77,7 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
       },
       {
         q: "What post-surgery support is available?",
-        a: "Your care coordinator is available 24x7 and remains assigned to you until you are fully recovered. Free post-surgery follow-up consultations with your surgeon are included.",
+        a: "Your care coordinator stays assigned to you through discharge and recovery, and helps you book your follow-up review with your surgeon. For emergencies, always call 112 or go to the nearest emergency department.",
       },
       {
         q: "What if there is a complication after surgery?",
@@ -194,7 +195,7 @@ function FaqsPage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   Talk to our care team directly. We're available 7 days a week.
                 </p>
-                <OrangeButton className="mt-4 w-full">Call 1800 000 1234</OrangeButton>
+                <a href={telHref}><OrangeButton className="mt-4 w-full">Call {SITE.phone.display}</OrangeButton></a>
               </div>
             </aside>
           </Container>

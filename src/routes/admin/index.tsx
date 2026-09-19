@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { Container, OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { AdminLogin } from "@/components/auth/AdminLogin";
+import { ReviewModeration } from "@/components/admin/ReviewModeration";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { logoutFn, getRegisteredUsersFn } from "@/lib/server-functions/auth";
 import {
@@ -63,7 +64,7 @@ export const Route = createFileRoute("/admin/")({
   component: AdminRoute,
 });
 
-type TabType = "appointments" | "users" | "doctors" | "hospitals" | "treatments";
+type TabType = "appointments" | "users" | "doctors" | "hospitals" | "treatments" | "reviews";
 
 export function AdminRoute() {
   const { user, setUser, isLoading } = useCurrentUser();
@@ -126,7 +127,7 @@ export function AdminRoute() {
       const [cRes, uRes, dRes, hRes, tRes] = await Promise.all([
         getAllConsultationsFn(),
         getRegisteredUsersFn(),
-        getDoctorsFn({ data: {} }),
+        getDoctorsFn({ data: { scope: "all" } }),
         getHospitalsFn({ data: {} }),
         getTreatmentsFn({ data: {} }),
       ]);
@@ -604,6 +605,7 @@ export function AdminRoute() {
             { id: "doctors", label: "Doctors (doctors)", icon: UserCheck, badge: doctors.length },
             { id: "hospitals", label: "Hospitals (hospitals)", icon: Building2, badge: hospitals.length },
             { id: "treatments", label: "Treatments (treatments)", icon: Stethoscope, badge: treatments.length },
+            { id: "reviews", label: "Review moderation", icon: CheckCircle2, badge: undefined },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -634,6 +636,8 @@ export function AdminRoute() {
             );
           })}
         </div>
+
+        {activeTab === "reviews" && <ReviewModeration />}
 
         {/* TAB 1: Patient Bookings & Approvals */}
         {activeTab === "appointments" && (
@@ -1073,7 +1077,7 @@ export function AdminRoute() {
                       <td className="px-4 py-3 font-bold text-navy">{d.name}</td>
                       <td className="px-4 py-3 font-semibold text-primary">{d.specialty}</td>
                       <td className="px-4 py-3 text-muted-foreground">{d.cred}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{d.exp} yrs • ₹{d.fees}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{d.exp ?? "—"} yrs • ₹{d.fees}</td>
                       <td className="px-4 py-3 text-muted-foreground">{d.city} ({d.hospital})</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">

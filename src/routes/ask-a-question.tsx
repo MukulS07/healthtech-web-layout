@@ -210,7 +210,7 @@ function AskAQuestionPage() {
                 </li>
               </ul>
               <p className="mt-4 text-xs text-muted-foreground">
-                For urgent symptoms, please call our 24×7 helpline at 1800 000 1234 or visit your
+                For urgent symptoms, please call 112 or visit your
                 nearest emergency room instead of waiting for a reply here.
               </p>
             </div>

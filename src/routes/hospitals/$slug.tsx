@@ -13,7 +13,9 @@ import {
 import { ConsultForm } from "@/components/home/ConsultForm";
 import { getHospitalBySlugFn } from "@/lib/server-functions/hospitals";
 import hospitalFallbackImg from "@/assets/hospital-1.jpg";
-import doctorFallbackImg from "@/assets/doctor-1.jpg";
+import { DoctorAvatar } from "@/components/doctors/DoctorCard";
+import { SITE } from "@/lib/site";
+import { breadcrumbLd, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/hospitals/$slug")({
   loader: async ({ params }) => {
@@ -21,15 +23,40 @@ export const Route = createFileRoute("/hospitals/$slug")({
     if (!res.success) throw notFound();
     return res.hospital;
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: `${loaderData?.name ?? "Hospital"} — ${loaderData?.city ?? ""} | Go Surgery` },
-      {
-        name: "description",
-        content: `${loaderData?.name ?? "Hospital"} in ${loaderData?.city ?? "India"}. ${loaderData?.totalBeds || 0} beds, ${loaderData?.totalDoctors || 0} specialists.`,
-      },
-    ],
-  }),
+  head: ({ loaderData: h }) => {
+    if (!h) return {};
+    return seo({
+      title: `${h.name}${h.city ? `, ${h.city}` : ""} — Doctors, Departments & Reviews`,
+      description: `${h.name}${h.locality ? `, ${h.locality}` : ""}${h.city ? `, ${h.city}` : ""}: departments${h.doctors.length ? `, ${h.doctors.length} doctors listed` : ""}, location and patient ratings. Request a free consultation via Go Surgery.`,
+      path: `/hospitals/${h.slug}`,
+      ...(h.img ? { image: h.img } : {}),
+      jsonLd: [
+        {
+          "@type": "Hospital",
+          name: h.name,
+          url: `${SITE.url}/hospitals/${h.slug}`,
+          ...(h.img ? { image: h.img } : {}),
+          address: {
+            "@type": "PostalAddress",
+            ...(h.address ? { streetAddress: h.address } : {}),
+            ...(h.city ? { addressLocality: h.city } : {}),
+            ...(h.state ? { addressRegion: h.state } : {}),
+            ...(h.pincode ? { postalCode: h.pincode } : {}),
+            addressCountry: "IN",
+          },
+          ...(h.departments.length ? { medicalSpecialty: h.departments.slice(0, 20) } : {}),
+          ...(h.rating && h.reviewCount
+            ? { aggregateRating: { "@type": "AggregateRating", ratingValue: h.rating, reviewCount: h.reviewCount, bestRating: 5 } }
+            : {}),
+        },
+        breadcrumbLd([
+          { name: "Home", path: "/" },
+          { name: "Hospitals", path: "/hospitals" },
+          { name: h.name, path: `/hospitals/${h.slug}` },
+        ]),
+      ],
+    });
+  },
   component: HospitalDetail,
 });
 
@@ -108,8 +135,8 @@ function HospitalDetail() {
                   <OutlineButton className="px-3 py-2 text-xs">Get Directions</OutlineButton>
                 </a>
               )}
-              <a href="/contact">
-                <OrangeButton className="px-3 py-2 text-xs">Book Now</OrangeButton>
+              <a href={`/contact?city=${encodeURIComponent(data.city)}`}>
+                <OrangeButton className="px-3 py-2 text-xs">Request consultation</OrangeButton>
               </a>
             </div>
           </Container>
@@ -195,9 +222,9 @@ function HospitalDetail() {
                   eyebrow="Meet the team"
                   title="Doctors at This Hospital"
                   action={
-                    <Link to="/doctors">
+                    <a href={`/doctors?city=${encodeURIComponent(data.city)}`}>
                       <OutlineButton>View All</OutlineButton>
-                    </Link>
+                    </a>
                   }
                 />
                 <Carousel>
@@ -207,21 +234,14 @@ function HospitalDetail() {
                       className="w-[220px] shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-background sm:w-[260px]"
                     >
                       <div className="relative">
-                        <img
-                          src={d.img || doctorFallbackImg}
-                          alt={d.name}
-                          loading="lazy"
-                          width={700}
-                          height={700}
-                          className="h-44 w-full object-cover"
-                        />
+                        <DoctorAvatar name={d.name} img={d.img} className="h-44 w-full text-4xl" />
                       </div>
                       <div className="p-4">
                         <h3 className="truncate text-sm font-bold text-navy">{d.name}</h3>
                         <p className="mt-0.5 text-xs text-muted-foreground">{d.specialty}</p>
-                        <p className="mt-1.5 text-xs font-semibold text-brand-blue">
-                          {d.experience} Years Experience
-                        </p>
+                        {d.experience ? (
+                          <p className="mt-1.5 text-xs font-semibold text-brand-blue">{d.experience} years experience</p>
+                        ) : null}
                         <div className="mt-3 flex gap-2">
                           {d.slug ? (
                             <Link to="/doctors/$slug" params={{ slug: d.slug }} className="flex-1">
@@ -257,10 +277,14 @@ function HospitalDetail() {
                 </div>
               </section>
             )}
+            <p className="text-[11px] text-muted-foreground">
+              Hospital names and trademarks belong to their respective owners. This is a directory listing
+              and does not imply affiliation with or endorsement by the hospital.
+            </p>
           </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-            <ConsultForm />
+          <aside className="space-y-4 lg:sticky lg:top-36 lg:self-start">
+            <ConsultForm defaultCity={data.city || undefined} />
             {(data.phone || data.emergencyContact) && (
               <div className="rounded-lg border border-border bg-cream p-4 text-xs text-muted-foreground">
                 <Eyebrow>Contact</Eyebrow>

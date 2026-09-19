@@ -1,9 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { Types } from "mongoose";
 import { connectToDatabase } from "@/lib/db";
 import { getSessionUser, isAdmin } from "@/lib/auth";
 import { Consultation, type IConsultation } from "@/models/Consultation";
 import { Treatment } from "@/models/Treatment";
 import { Doctor } from "@/models/Doctor";
+import { getCondition, getSpeciality, getTreatment } from "@/data/catalog";
 
 /**
  * Enforces the claim lock: once a booking is claimed, only that admin may act on it
@@ -28,71 +30,118 @@ function assertClaimOwnership(
 export interface SubmitConsultationInput {
   name: string;
   phone: string;
-  email?: string;
-  treatmentId: string;
+  email?: string | undefined;
+  /** Catalog reference: "t:<treatment>", "c:<condition>" or "s:<speciality>". */
+  interest?: string | undefined;
+  /** Legacy: an id from the Treatment collection. */
+  treatmentId?: string | undefined;
   city: string;
-  message?: string;
+  message?: string | undefined;
+  preferredDate?: string | undefined;
+  doctorName?: string | undefined;
+  sourcePage?: string | undefined;
+  consent?: boolean | undefined;
+}
+
+/** Normalises an Indian mobile number to 10 digits, or null if it isn't one. */
+function normaliseIndianMobile(raw: string): string | null {
+  const digits = String(raw || "").replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+  return /^[6-9]\d{9}$/.test(digits) ? digits : null;
+}
+
+/** Resolves a catalog reference to the display name + category snapshot stored on the lead. */
+function resolveInterest(ref?: string): { treatment: string; category: string } | null {
+  if (!ref) return null;
+  const [kind, slug] = ref.split(":");
+  if (!slug) return null;
+  if (kind === "t") {
+    const t = getTreatment(slug);
+    return t ? { treatment: t.name, category: getSpeciality(t.speciality)?.name ?? t.speciality } : null;
+  }
+  if (kind === "c") {
+    const c = getCondition(slug);
+    return c ? { treatment: c.name, category: getSpeciality(c.speciality)?.name ?? c.speciality } : null;
+  }
+  if (kind === "s") {
+    const s = getSpeciality(slug);
+    return s ? { treatment: `${s.name} consultation`, category: s.name } : null;
+  }
+  return null;
 }
 
 /**
- * Server function to submit a consultation request.
+ * Server function to submit a consultation request (lead). No account required — this is the
+ * site's primary conversion point, and a login wall in front of it was losing enquiries. When the
+ * visitor happens to be logged in, the lead is also linked to their account for /account.
  */
 export const submitConsultationFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as SubmitConsultationInput)
   .handler(async ({ data }) => {
     try {
+      const name = String(data?.name || "").trim();
+      const phone = normaliseIndianMobile(data?.phone);
+      const city = String(data?.city || "").trim();
+      if (name.length < 2) return { success: false as const, error: "Please enter your full name." };
+      if (!phone) return { success: false as const, error: "Please enter a valid 10-digit mobile number." };
+      if (!city) return { success: false as const, error: "Please select your city." };
+
       await connectToDatabase();
 
-      if (!data.name || !data.phone || !data.treatmentId || !data.city) {
+      // Look the treatment up server-side so the name/category snapshot can't be spoofed.
+      let snapshot = resolveInterest(data.interest);
+      let treatmentId: Types.ObjectId | undefined;
+      if (!snapshot && data.treatmentId) {
+        const treatment = await Treatment.findById(data.treatmentId).catch(() => null);
+        if (treatment) {
+          snapshot = { treatment: treatment.name, category: treatment.category };
+          treatmentId = treatment._id as Types.ObjectId;
+        }
+      }
+      if (!snapshot) return { success: false as const, error: "Please select a treatment or condition." };
+
+      // Basic flood protection: one open lead per phone number per 10 minutes.
+      const recent = await Consultation.exists({ phone, createdAt: { $gt: new Date(Date.now() - 10 * 60 * 1000) } });
+      if (recent) {
         return {
-          success: false,
-          error: "Name, phone, surgery, and city are required fields.",
+          success: true as const,
+          duplicate: true,
+          message: "We already have your request — our care team will call you shortly.",
+          linkedToAccount: false,
         };
       }
 
-      // Look the treatment up server-side so the name/category snapshot can't be spoofed.
-      const treatment = await Treatment.findById(data.treatmentId);
-      if (!treatment) {
-        return { success: false, error: "Selected surgery could not be found. Please pick again." };
-      }
-
-      // Link the booking to the account when the patient is logged in.
       const user = await getSessionUser();
 
       const consultation = await Consultation.create({
         ...(user ? { userId: user._id } : {}),
-        name: data.name,
-        phone: data.phone,
-        email: data.email || "",
-        treatmentId: treatment._id,
-        treatment: treatment.name,
-        category: treatment.category,
-        city: data.city,
-        message: data.message || "",
+        ...(treatmentId ? { treatmentId } : {}),
+        name: name.slice(0, 100),
+        phone,
+        email: String(data.email || "").trim().slice(0, 120),
+        interest: data.interest || "",
+        treatment: snapshot.treatment,
+        category: snapshot.category,
+        city: city.slice(0, 60),
+        message: String(data.message || "").trim().slice(0, 2000),
+        preferredDate: String(data.preferredDate || "").slice(0, 20),
+        doctorName: String(data.doctorName || "").trim().slice(0, 100),
+        sourcePage: String(data.sourcePage || "").slice(0, 200),
+        ...(data.consent ? { consentAt: new Date() } : {}),
         status: "pending",
       });
 
       return {
-        success: true,
+        success: true as const,
+        duplicate: false,
         id: String(consultation._id),
-        message: "Consultation request saved to database successfully!",
+        message: "Request received! A care coordinator will call you shortly.",
         linkedToAccount: Boolean(user),
-        consultation: {
-          id: String(consultation._id),
-          name: consultation.name,
-          phone: consultation.phone,
-          treatment: consultation.treatment,
-          city: consultation.city,
-          createdAt: consultation.createdAt.toISOString(),
-        },
       };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
-      console.error("Error saving consultation to MongoDB:", errMessage);
+      console.error("Error saving consultation:", error);
       return {
-        success: false,
-        error: errMessage,
-        message: "Failed to save consultation request to database.",
+        success: false as const,
+        error: "We couldn't submit your request. Please try again or call us.",
       };
     }
   });

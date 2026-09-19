@@ -4,71 +4,82 @@ import { Hero } from "@/components/home/Hero";
 import { Footer } from "@/components/home/Footer";
 import {
   FindCare,
+  SpecialisedCentres,
   PatientExperiences,
   Hospitals,
   Journey,
   Doctors,
   Stats,
+  Benefits,
   Insurance,
   Testimonials,
   About,
   Healthfeed,
   Faq,
-  DownloadApp,
+  HOME_FAQS,
+  JoinCommunity,
 } from "@/components/home/Sections";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { getHospitalsFn } from "@/lib/server-functions/hospitals";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
-
-const title = "Go Surgery | Thoughtful Health Support";
-const description =
-  "Connect with trusted specialists, modern hospitals and a dedicated care team for clear guidance from consultation through recovery.";
+import { getSiteStatsFn } from "@/lib/server-functions/site-stats";
+import { seo, faqLd, organizationLd } from "@/lib/seo";
+import { SITE } from "@/lib/site";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const [doctorsRes, hospitalsRes, reviewsRes] = await Promise.all([
+    const [doctorsRes, hospitalsRes, reviewsRes, statsRes] = await Promise.all([
       getDoctorsFn({ data: { limit: 8, sort: "Rating: High to Low" } }).catch(() => null),
       getHospitalsFn({ data: { limit: 8 } }).catch(() => null),
-      getReviewsFn({ data: { minRating: 4.5, limit: 3 } }).catch(() => null),
+      getReviewsFn({ data: { minRating: 4, limit: 6 } }).catch(() => null),
+      getSiteStatsFn().catch(() => null),
     ]);
     return {
       doctors: doctorsRes?.success ? doctorsRes.doctors : [],
       hospitals: hospitalsRes?.success ? hospitalsRes.hospitals : [],
       testimonials: reviewsRes?.success ? reviewsRes.reviews : [],
+      stats: statsRes?.success ? statsRes : null,
     };
   },
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    seo({
+      title: `${SITE.name} — Find Surgeons, Treatments & Free Consultation`,
+      description:
+        "Find experienced surgeons near you, understand your treatment options, and get help with insurance and recovery. Book a free consultation with Go Surgery — no account needed.",
+      path: "/",
+      jsonLd: [
+        organizationLd,
+        { "@type": "WebSite", name: SITE.name, url: SITE.url },
+        faqLd(HOME_FAQS),
+      ],
+    }),
   component: Index,
 });
 
 function Index() {
-  const { doctors, hospitals, testimonials } = Route.useLoaderData();
+  const { doctors, hospitals, testimonials, stats } = Route.useLoaderData();
   return (
     <div className="bg-background">
       <Header />
       <main>
-        <Hero />
+        <Hero stats={stats} />
         <FindCare />
-        <PatientExperiences />
-        <Hospitals hospitals={hospitals} />
-        <Journey />
+        <SpecialisedCentres />
+        <Benefits />
         <Doctors doctors={doctors} />
-        <Stats />
+        <Journey />
+        <Hospitals hospitals={hospitals} />
+        <PatientExperiences />
+        <Stats stats={stats} />
+        <Testimonials
+          testimonials={testimonials}
+          summary={stats && stats.reviews > 0 && stats.averageRating ? { averageRating: stats.averageRating, totalReviews: stats.reviews } : null}
+        />
         <Insurance />
-        <Testimonials testimonials={testimonials} />
         <About />
         <Healthfeed />
         <Faq />
-        <DownloadApp />
+        <JoinCommunity />
       </main>
       <Footer />
     </div>

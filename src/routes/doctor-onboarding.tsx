@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
+import { SITE, telHref, whatsappHref } from "@/lib/site";
 
 const partnerBenefits = [
   {
@@ -326,7 +327,7 @@ function DoctorOnboardingPage() {
             <Eyebrow tone="light">Questions about partnering?</Eyebrow>
             <h2 className="mt-2 text-2xl font-bold sm:text-3xl">We're happy to talk it through</h2>
             <p className="mt-3 text-sm text-navy-foreground/75">
-              Write to doctors@gosurgery.in or call 1800 000 1234, Monday to Saturday.
+              Write to doctors@gosurgery.in or call {SITE.phone.display}.
             </p>
             <a href="mailto:doctors@gosurgery.in" className="mt-6 inline-block">
               <OrangeButton>Email the Onboarding Team</OrangeButton>

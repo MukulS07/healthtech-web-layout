@@ -12,6 +12,12 @@ export interface IReview extends Document {
   comment: string;
   doctorResponse?: string;
   responseDate?: Date;
+  /** Only set on reviews submitted through this site ("pending" until an admin approves).
+   * Imported historical reviews have no status and are treated as published. */
+  status?: "pending" | "approved" | "rejected";
+  city?: string;
+  treatment?: string;
+  source?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +30,10 @@ const ReviewSchema = new Schema<IReview>(
     comment: { type: String, required: true },
     doctorResponse: { type: String },
     responseDate: { type: Date },
+    status: { type: String, enum: ["pending", "approved", "rejected"] },
+    city: { type: String, trim: true },
+    treatment: { type: String, trim: true },
+    source: { type: String, trim: true },
   },
   { timestamps: true, strict: false, collection: "reviews" },
 );

@@ -95,7 +95,7 @@ Before initiating legal proceedings, we encourage you to contact our care team a
     content: `For questions about these Terms, contact us at:
 
 Email: legal@gosurgery.in
-Post: Legal Department, Go Surgery Health Pvt. Ltd., Sector 18, Gurugram – 122015, Haryana, India.`,
+`,
   },
 ];
 

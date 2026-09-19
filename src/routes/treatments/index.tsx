@@ -1,198 +1,91 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Search, ArrowRight, Clock, Database, Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowRight, Search } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
-import { Container, OrangeButton, Eyebrow } from "@/components/home/primitives";
-import { ConsultForm } from "@/components/home/ConsultForm";
-import { getTreatmentsFn, getTreatmentCategoriesFn } from "@/lib/server-functions/treatments";
+import { Container, Eyebrow } from "@/components/home/primitives";
+import { Breadcrumbs } from "@/components/care/Blocks";
+import { SPECIALITIES, TREATMENTS } from "@/data/catalog";
+import { breadcrumbLd, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/treatments/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    category: typeof search["category"] === "string" ? (search["category"] as string) : undefined,
-  }),
-  loader: async () => {
-    try {
-      const res = await getTreatmentsFn();
-      return res;
-    } catch {
-      return { success: false, treatments: [], count: 0 };
-    }
-  },
-  head: () => ({
-    meta: [
-      { title: "All Treatments & Procedures | Go Surgery" },
-      {
-        name: "description",
-        content: "Browse surgical treatments across specialties.",
-      },
-    ],
-  }),
-  component: TreatmentsPage,
+  head: () =>
+    seo({
+      title: `All ${TREATMENTS.length} Surgical Treatments & Procedures`,
+      description: `Browse ${TREATMENTS.length} surgical treatments across ${SPECIALITIES.length} specialities — what each procedure involves, hospital stay, recovery and insurance cover.`,
+      path: "/treatments",
+      jsonLd: [breadcrumbLd([{ name: "Home", path: "/" }, { name: "Treatments", path: "/treatments" }])],
+    }),
+  component: TreatmentsIndex,
 });
 
-function TreatmentsPage() {
-  const initialData = Route.useLoaderData();
-  const { category: categoryFromUrl } = Route.useSearch();
-  const [treatments, setTreatments] = useState(initialData?.treatments || []);
-  const [isLoading, setIsLoading] = useState(false);
-  const [active, setActive] = useState(categoryFromUrl || "All");
-  const [query, setQuery] = useState("");
-
-  // Category chips come from the real catalog, not a hand-maintained guess, so they
-  // always line up with what's actually filterable.
-  const { data: categoriesData } = useQuery({
-    queryKey: ["treatment-categories"],
-    queryFn: () => getTreatmentCategoriesFn(),
-    staleTime: 5 * 60 * 1000,
-  });
-  const specialtyFilters = [
-    "All",
-    ...(categoriesData?.success ? categoriesData.categories.map((c) => c.category) : []),
-  ];
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchFilteredTreatments = async () => {
-      setIsLoading(true);
-      try {
-        const res = await getTreatmentsFn({
-          data: {
-            category: active === "All" ? "All Categories" : active,
-            query,
-          },
-        });
-        if (isMounted && res.success) {
-          setTreatments(res.treatments);
-        }
-      } catch (err) {
-        console.error("Failed to load treatments:", err);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-
-    fetchFilteredTreatments();
-    return () => {
-      isMounted = false;
-    };
-  }, [active, query]);
+function TreatmentsIndex() {
+  const [q, setQ] = useState("");
+  const term = q.trim().toLowerCase();
+  const groups = useMemo(
+    () =>
+      SPECIALITIES.map((s) => ({
+        spec: s,
+        items: TREATMENTS.filter(
+          (t) => t.speciality === s.slug && (!term || `${t.name} ${(t.aka ?? []).join(" ")}`.toLowerCase().includes(term)),
+        ),
+      })).filter((g) => g.items.length),
+    [term],
+  );
+  const shown = groups.reduce((n, g) => n + g.items.length, 0);
 
   return (
     <div className="bg-background">
       <Header />
       <main>
-        <section className="bg-navy py-14">
+        <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Treatments" }]} />
+        <section className="bg-navy py-12">
           <Container>
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <Eyebrow tone="light">What we treat</Eyebrow>
-                <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
-                  All Treatments & Procedures
-                </h1>
-                <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-                  Surgical treatments and procedures across our network.
-                </p>
-              </div>
-              <div className="rounded-xl border border-white/20 bg-white/10 p-4 text-navy-foreground backdrop-blur">
-                <p className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
-                  <Database className="h-4 w-4" /> Live Availability
-                </p>
-                <p className="mt-1 text-2xl font-extrabold">{treatments.length}</p>
-                <p className="text-[11px] text-navy-foreground/70">Treatments Loaded</p>
-              </div>
-            </div>
-
-            <div className="mt-6 flex max-w-lg items-center gap-3 rounded-xl bg-white/10 px-4 py-3">
-              <Search className="h-4 w-4 shrink-0 text-brand-orange" />
-              <input
-                className="w-full bg-transparent text-sm text-navy-foreground placeholder:text-navy-foreground/50 outline-none"
-                placeholder="Search treatments — e.g. piles, hernia, kidney stone…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
+            <Eyebrow tone="light">Treatments</Eyebrow>
+            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">All {TREATMENTS.length} Treatments</h1>
+            <p className="mt-3 max-w-2xl text-sm text-navy-foreground/75 sm:text-base">
+              Understand what a procedure involves before you decide — how it's done, typical hospital
+              stay and recovery, risks and insurance cover.
+            </p>
+            <label className="mt-6 flex max-w-xl items-center gap-2 rounded-lg bg-background px-3 py-2.5">
+              <Search className="h-4 w-4 text-brand-orange" />
+              <span className="sr-only">Search treatments</span>
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search treatments — e.g. laser, hernia, cataract" className="w-full bg-transparent text-sm outline-none" />
+            </label>
           </Container>
         </section>
 
-        <section className="py-12">
-          <Container>
-            <div className="no-scrollbar mb-8 flex gap-2 overflow-x-auto pb-1">
-              {specialtyFilters.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setActive(s)}
-                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                    active === s
-                      ? "bg-navy text-navy-foreground"
-                      : "bg-cream text-ink/70 hover:text-navy"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-
-            <div className="mb-6 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">{treatments.length} treatments found</p>
-              {isLoading && (
-                <span className="flex items-center gap-1.5 text-xs text-brand-orange font-medium">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Searching...
-                </span>
-              )}
-            </div>
-
-            {treatments.length === 0 ? (
-              <div className="py-16 text-center">
-                <Database className="mx-auto h-10 w-10 text-muted-foreground/40" />
-                <p className="mt-3 text-muted-foreground">
-                  No treatments match your search — try a different query.
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {treatments.map((t) => (
-                  <article
-                    key={t.slug || t.id}
-                    className="flex flex-col rounded-lg border border-border bg-background p-5 shadow-sm transition-shadow hover:shadow-md"
-                  >
-                    <span className="w-fit rounded-full bg-brand-orange-soft px-3 py-1 text-[11px] font-semibold text-brand-orange-dark">
-                      {t.category || "General Surgery"}
-                    </span>
-                    <h2 className="mt-3 text-base font-bold text-navy">{t.name}</h2>
-                    <p className="mt-1.5 flex-1 text-sm text-muted-foreground line-clamp-2">
-                      {t.description}
-                    </p>
-                    <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>Recovery: {t.recoveryTime}</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {t.recoveryTime}
-                      </span>
-                    </div>
-                    <div className="mt-4 flex gap-2">
-                      <OrangeButton className="flex-1 py-2 text-xs">Book Free Consult</OrangeButton>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
+        <nav aria-label="Jump to speciality" className="sticky top-[73px] z-30 border-b border-border bg-background/95 backdrop-blur">
+          <Container className="no-scrollbar flex gap-4 overflow-x-auto py-2.5 text-xs font-semibold">
+            {groups.map((g) => (
+              <a key={g.spec.slug} href={`#${g.spec.slug}`} className="shrink-0 text-muted-foreground hover:text-navy">{g.spec.name}</a>
+            ))}
           </Container>
-        </section>
+        </nav>
 
-        <section className="bg-cream py-14">
-          <Container className="grid gap-10 lg:grid-cols-[1.4fr_0.8fr]">
-            <div>
-              <Eyebrow>Not sure which treatment?</Eyebrow>
-              <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">
-                Talk to a specialist — it's free
-              </h2>
-              <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-                Our care coordinators match you with the right specialist in under 30 minutes.
-              </p>
-            </div>
-            <ConsultForm />
+        <section className="py-10">
+          <Container className="space-y-10">
+            {term ? <p className="text-sm text-muted-foreground">{shown} treatments match “{q}”.</p> : null}
+            {groups.map((g) => (
+              <section key={g.spec.slug} id={g.spec.slug} className="scroll-mt-40">
+                <div className="mb-4 flex items-end justify-between gap-3">
+                  <h2 className="text-xl font-bold text-navy">{g.spec.name}</h2>
+                  <a href={`/specialities/${g.spec.slug}`} className="text-xs font-semibold text-primary hover:underline">About {g.spec.name} →</a>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {g.items.map((t) => (
+                    <a key={t.slug} href={`/treatments/${t.slug}`} className="group rounded-lg border border-border bg-background p-4 transition-shadow hover:shadow-md">
+                      <h3 className="flex items-center justify-between gap-2 text-sm font-bold text-navy group-hover:text-primary">
+                        {t.name} <ArrowRight className="h-4 w-4 shrink-0 text-brand-orange" />
+                      </h3>
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.summary}</p>
+                      <p className="mt-2 text-[11px] font-semibold text-primary">Stay: {t.stay}</p>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            ))}
+            {shown === 0 ? <p className="py-10 text-center text-sm text-muted-foreground">No treatments match “{q}”. <a href="/contact" className="font-semibold text-primary underline">Ask our care team</a>.</p> : null}
           </Container>
         </section>
       </main>

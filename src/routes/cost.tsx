@@ -3,16 +3,30 @@ import { Search, IndianRupee } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
-import { getTreatmentsFn } from "@/lib/server-functions/treatments";
+import { SPECIALITIES, TREATMENTS } from "@/data/catalog";
+import { seo } from "@/lib/seo";
 
-const specialities = [
-  { label: "Proctology", slug: "proctology" },
-  { label: "Laparoscopy", slug: "laparoscopy" },
-  { label: "Gynaecology", slug: "gynaecology" },
-  { label: "ENT", slug: "ent" },
-  { label: "Urology", slug: "urology" },
-  { label: "Orthopedics", slug: "orthopedics" },
+const specialities = SPECIALITIES.map((s) => ({ label: s.name, slug: s.slug }));
+const POPULAR = [
+  "laser-piles-surgery",
+  "laparoscopic-cholecystectomy",
+  "laparoscopic-hernia-repair",
+  "phaco-cataract-surgery",
+  "total-knee-replacement",
+  "rirs",
+  "circumcision",
+  "fess",
+  "lasik",
+  "laser-fistula-surgery",
+  "evla",
+  "gynecomastia-surgery",
 ];
+const treatments = POPULAR.map((slug) => TREATMENTS.find((t) => t.slug === slug)!).filter(Boolean).map((t) => ({
+  id: t.slug,
+  slug: t.slug,
+  name: t.name,
+  category: SPECIALITIES.find((s) => s.slug === t.speciality)?.name ?? "",
+}));
 
 const costFactors = [
   "Which hospital and city you choose",
@@ -23,30 +37,16 @@ const costFactors = [
 ];
 
 export const Route = createFileRoute("/cost")({
-  loader: async () => {
-    try {
-      const res = await getTreatmentsFn();
-      return res;
-    } catch {
-      return { success: false, treatments: [], count: 0 };
-    }
-  },
-  head: () => ({
-    meta: [
-      { title: "Treatment Cost Guide | Go Surgery" },
-      {
-        name: "description",
-        content:
-          "Browse treatments by speciality and understand what affects the cost of your surgery.",
-      },
-    ],
-  }),
+  head: () =>
+    seo({
+      title: "Surgery Cost Guide",
+      description: "Understand what affects the cost of surgery in India — hospital, city, room category, technique and insurance — and get a written quote for your case.",
+      path: "/cost",
+    }),
   component: CostIndexPage,
 });
 
 function CostIndexPage() {
-  const { treatments } = Route.useLoaderData();
-
   return (
     <div className="bg-background">
       <Header />
@@ -70,7 +70,7 @@ function CostIndexPage() {
         <section className="py-14">
           <Container>
             <SectionHead eyebrow="Browse by speciality" title="Find your procedure" />
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {specialities.map((s) => (
                 <Link
                   key={s.slug}
@@ -106,7 +106,7 @@ function CostIndexPage() {
                 ))}
               </div>
               <div className="mt-6 text-center">
-                <Link to="/treatments" search={{ category: undefined }} className="inline-flex">
+                <Link to="/treatments" className="inline-flex">
                   <span className="inline-flex items-center gap-2 text-sm font-semibold text-brand-orange hover:underline">
                     <Search className="h-4 w-4" /> See all treatments
                   </span>
@@ -128,8 +128,8 @@ function CostIndexPage() {
             </ul>
             <p className="mt-5 text-sm text-muted-foreground">
               Because of this, we don't publish a fixed price list — every quote is confirmed in
-              writing with you before you commit to a hospital or date, and there are no hidden
-              charges added afterward.
+              writing with you before you commit to a hospital or date, so you know what to expect
+              before admission.
             </p>
           </Container>
         </section>

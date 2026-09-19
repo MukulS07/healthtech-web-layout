@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { SITE } from "@/lib/site";
 
 function NotFoundComponent() {
   return (
@@ -84,8 +85,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Go Surgery | Modern Healthcare & Medical Support" },
       { property: "og:description", content: "Connect with trusted specialists, modern hospitals and a dedicated care team for clear guidance from consultation through recovery." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Go Surgery" },
+      { property: "og:image", content: `${SITE.url}/og-default.png` },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@GoSurgery" },
+      { name: "twitter:image", content: `${SITE.url}/og-default.png` },
+      { name: "theme-color", content: "#0e201a" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -99,6 +103,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/icon-32.png", type: "image/png", sizes: "32x32" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
 

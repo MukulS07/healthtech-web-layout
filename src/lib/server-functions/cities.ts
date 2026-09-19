@@ -1,70 +1,34 @@
 import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
-import { City } from "@/models/City";
 import { Doctor } from "@/models/Doctor";
-import { Hospital } from "@/models/Hospital";
-import { runSeed } from "./seed";
 import { locationValuesFor } from "@/lib/city-aliases";
+import { CITIES } from "@/lib/site";
+import { NON_PERSON_NAME_PATTERN, SPECIALITIES, SURGICAL_DOCTOR_MATCH } from "@/data/catalog";
+import { getDoctorFacetsFn } from "./doctors";
+import { getHospitalFacetsFn } from "./hospitals";
 
 /**
- * Server function to list active cities with live doctor/hospital counts, so /locations and
- * city filter dropdowns can be driven from real data instead of a hardcoded string list.
- *
- * Fixed 2026-09-19: this previously grouped `Doctor` documents by `$city`, a field that stopped
- * existing when the Doctor schema was rewritten to match real prod data (2026-09-18) — the real
- * field is `location`. That bug meant every city always showed 0 real doctors; it went unnoticed
- * because `/locations` never actually called this function (it used its own hardcoded array
- * instead) until this fix wired it in for real.
+ * Cities come from the site's own city list (src/lib/site.ts CITIES), not the `City` collection.
+ * The collection-based version 404'd for any city missing from a given database (e.g.
+ * /locations/delhi-ncr, linked from every page's footer) and triggered the sample-data seeder on
+ * a production database. Counts are real: surgical doctors and hospitals from the cached facets.
  */
 export const getCitiesFn = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    await connectToDatabase();
-
-    // Idempotent — only inserts cities/hospitals/doctors/treatments that don't already exist
-    // (see seed.ts), so this is safe to call every time rather than only when City is empty.
-    await runSeed();
-
-    const cities = await City.find({ isActive: true }).sort({ name: 1 }).lean();
-
-    const [doctorCounts, hospitalCounts, specialtySets] = await Promise.all([
-      Doctor.aggregate<{ _id: string; count: number }>([
-        { $group: { _id: "$location", count: { $sum: 1 } } },
-      ]),
-      Hospital.aggregate<{ _id: string; count: number }>([
-        { $group: { _id: "$city", count: { $sum: 1 } } },
-      ]),
-      Doctor.aggregate<{ _id: string; specialties: string[] }>([
-        { $match: { specialization: { $ne: null } } },
-        { $group: { _id: "$location", specialties: { $addToSet: "$specialization" } } },
-      ]),
-    ]);
-
-    const doctorCountByLocation = new Map(doctorCounts.map((c) => [c._id, c.count]));
-    const hospitalCountByLocation = new Map(hospitalCounts.map((c) => [c._id, c.count]));
-    const specialtiesByLocation = new Map(specialtySets.map((c) => [c._id, c.specialties]));
-
-    const sumFor = (map: Map<string, number>, cityName: string) =>
-      locationValuesFor(cityName).reduce((sum, loc) => sum + (map.get(loc) || 0), 0);
-
-    const specialtyCountFor = (cityName: string) => {
-      const set = new Set<string>();
-      for (const loc of locationValuesFor(cityName)) {
-        for (const s of specialtiesByLocation.get(loc) || []) set.add(s);
-      }
-      return set.size;
-    };
-
+    const [doctorFacets, hospitalFacets] = await Promise.all([getDoctorFacetsFn(), getHospitalFacetsFn()]);
+    const doctorsByCity = new Map((doctorFacets.success ? doctorFacets.cities : []).map((c) => [c.name, c.count]));
+    const hospitalsByCity = new Map((hospitalFacets.success ? hospitalFacets.cities : []).map((c) => [c.name, c.count]));
     return {
       success: true as const,
-      cities: cities.map((c) => ({
-        id: String(c._id),
+      cities: CITIES.map((c) => ({
+        id: c.slug,
         name: c.name,
         slug: c.slug,
-        state: c.state || "",
-        tagline: c.tagline || "",
-        doctorCount: sumFor(doctorCountByLocation, c.name),
-        hospitalCount: sumFor(hospitalCountByLocation, c.name),
-        specialtyCount: specialtyCountFor(c.name),
+        state: "",
+        tagline: "",
+        doctorCount: doctorsByCity.get(c.name) ?? 0,
+        hospitalCount: hospitalsByCity.get(c.name) ?? 0,
+        specialtyCount: 0,
       })),
     };
   } catch (error: unknown) {
@@ -74,38 +38,52 @@ export const getCitiesFn = createServerFn({ method: "GET" }).handler(async () =>
 });
 
 /**
- * Server function to fetch a single city's real stats plus the specialities its doctors
- * actually cover, for the /locations/$slug detail page. Doctor/hospital listings for the page
- * are fetched separately via the existing getDoctorsFn/getHospitalsFn (city filter already
- * handles the same NCR alias mapping via locationValuesFor below).
+ * One city's real stats plus which catalog specialities its surgeons cover (with counts) — instead
+ * of the raw, junk-filled distinct `specialization` dump ("Charity", "Corporate Office", "Cancer
+ * Surgeon In Bhayandar"...) the page used to render.
  */
 export const getCityBySlugFn = createServerFn({ method: "GET" })
   .validator((slug: unknown) => String(slug))
   .handler(async ({ data: slug }) => {
     try {
-      await connectToDatabase();
-      const city = await City.findOne({ slug }).lean();
-      if (!city) {
-        return { success: false as const, error: "City not found" };
-      }
+      const city = CITIES.find((c) => c.slug === slug);
+      if (!city) return { success: false as const, error: "City not found" };
 
+      await connectToDatabase();
       const locations = locationValuesFor(city.name);
-      const [doctorCount, hospitalCount, specialities] = await Promise.all([
-        Doctor.countDocuments({ location: { $in: locations }, isActive: { $ne: false } }),
-        Hospital.countDocuments({ city: { $in: locations }, isActive: { $ne: false } }),
-        Doctor.distinct("specialization", { location: { $in: locations } }),
+      const notOrg = new RegExp(NON_PERSON_NAME_PATTERN, "i");
+      const [bySpec, hospitalFacets] = await Promise.all([
+        Doctor.aggregate<{ _id: string; n: number }>([
+          {
+            $match: {
+              isActive: { $ne: false },
+              location: { $in: locations },
+              specialization: { $regex: SURGICAL_DOCTOR_MATCH, $options: "i" },
+              firstName: { $not: notOrg },
+            },
+          },
+          { $group: { _id: { $toLower: "$specialization" }, n: { $sum: 1 } } },
+        ]),
+        getHospitalFacetsFn(),
       ]);
+
+      const specialities = SPECIALITIES.map((s) => {
+        const re = new RegExp(s.doctorMatch, "i");
+        return { slug: s.slug, name: s.name, count: bySpec.reduce((sum, r) => (r._id && re.test(r._id) ? sum + r.n : sum), 0) };
+      })
+        .filter((s) => s.count > 0)
+        .sort((a, b) => b.count - a.count);
 
       return {
         success: true as const,
         city: {
-          id: String(city._id),
+          id: city.slug,
           name: city.name,
           slug: city.slug,
-          state: city.state || "",
-          doctorCount,
-          hospitalCount,
-          specialities: specialities.filter(Boolean).sort(),
+          state: "",
+          doctorCount: bySpec.reduce((sum, r) => sum + r.n, 0),
+          hospitalCount: hospitalFacets.success ? (hospitalFacets.cities.find((c) => c.name === city.name)?.count ?? 0) : 0,
+          specialities,
           locationValues: locations,
         },
       };

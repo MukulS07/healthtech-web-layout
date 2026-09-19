@@ -13,3 +13,14 @@ export const CITY_LOCATION_ALIASES: Record<string, string[]> = {
 export function locationValuesFor(cityName: string): string[] {
   return CITY_LOCATION_ALIASES[cityName] || [cityName];
 }
+
+const DISPLAY_FOR_LOCATION = new Map(
+  Object.entries(CITY_LOCATION_ALIASES).flatMap(([display, locations]) =>
+    locations.map((l) => [l.toLowerCase(), display] as const),
+  ),
+);
+
+/** The display city a raw location rolls up to ("Gurugram" → "Delhi NCR"; others unchanged). */
+export function displayCityFor(location: string): string {
+  return DISPLAY_FOR_LOCATION.get(location.trim().toLowerCase()) ?? location.trim();
+}

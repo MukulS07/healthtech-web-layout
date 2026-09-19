@@ -218,7 +218,7 @@ function InsuranceEligibilityPage() {
       <main>
         <section className="bg-navy py-14">
           <Container>
-            <Eyebrow tone="light">Cashless on 100+ insurers</Eyebrow>
+            <Eyebrow tone="light">Insurance support</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
               Check Your Insurance Eligibility
             </h1>
