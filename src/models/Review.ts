@@ -5,6 +5,8 @@ import mongoose, { Schema, Document, Model } from "mongoose";
  * reviews, keyed by doctorId) — field names are taken directly from that data. See CLAUDE.md
  * "Data model" for context on the wider restore this belongs to.
  */
+export type ReviewFlag = "blank-doctor-name" | "duplicate-text" | "non-standard-rating";
+
 export interface IReview extends Document {
   doctorId: mongoose.Types.ObjectId;
   patientName: string;
@@ -18,6 +20,12 @@ export interface IReview extends Document {
   city?: string;
   treatment?: string;
   source?: string;
+  /**
+   * Why an imported review is held back (set by scripts/flag-reviews.ts together with
+   * status "pending"). Nothing is deleted — `--undo` restores flagged reviews.
+   */
+  flagReason?: ReviewFlag[];
+  flaggedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +42,8 @@ const ReviewSchema = new Schema<IReview>(
     city: { type: String, trim: true },
     treatment: { type: String, trim: true },
     source: { type: String, trim: true },
+    flagReason: { type: [String], default: undefined },
+    flaggedAt: { type: Date },
   },
   { timestamps: true, strict: false, collection: "reviews" },
 );

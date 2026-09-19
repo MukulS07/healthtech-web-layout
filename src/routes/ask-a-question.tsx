@@ -206,7 +206,7 @@ function AskAQuestionPage() {
                 </li>
                 <li className="flex gap-2">
                   <span className="font-bold text-brand-orange">3.</span> You get a response by
-                  phone or WhatsApp — usually within 24 hours.
+                  phone or WhatsApp.
                 </li>
               </ul>
               <p className="mt-4 text-xs text-muted-foreground">

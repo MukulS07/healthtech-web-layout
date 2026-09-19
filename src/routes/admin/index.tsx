@@ -1244,6 +1244,11 @@ export function AdminRoute() {
                   {treatments.length} procedures across{" "}
                   {new Set(treatments.map((t) => t.category)).size} categories
                 </p>
+                <p className="mt-1 max-w-xl text-[11px] font-medium text-amber-700">
+                  Sample data loaded by the app on 18 Sep 2026 — not from the original database and not
+                  shown on the public site (public treatment pages use the curated catalog in
+                  src/data/catalog). Kept for reference; nothing here has been deleted.
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <OutlineButton

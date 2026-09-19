@@ -10,6 +10,7 @@ import { getDoctorFacetsFn, getDoctorsFn } from "@/lib/server-functions/doctors"
 import { getSpeciality } from "@/data/catalog";
 import { cn } from "@/lib/utils";
 import { seo } from "@/lib/seo";
+import { CONSULT_PHRASE } from "@/lib/site";
 
 const sortOptions = ["Relevance", "Experience: High to Low", "Rating: High to Low"];
 const PAGE_SIZE = 24;
@@ -52,7 +53,7 @@ export const Route = createFileRoute("/doctors/")({
     const qs = params.toString();
     return seo({
       title: `${title}${search.page ? ` — Page ${search.page}` : ""}`,
-      description: `Browse surgeons${spec ? ` specialising in ${spec}` : ""}${place}. Compare qualifications, experience and hospitals, and book a free consultation with Go Surgery.`,
+      description: `Browse surgeons${spec ? ` specialising in ${spec}` : ""}${place}. Compare qualifications, experience and hospitals, and book ${CONSULT_PHRASE} with Go Surgery.`,
       path: `/doctors${qs ? `?${qs}` : ""}`,
       // Free-text search results shouldn't be indexed.
       noindex: Boolean(search.q),
@@ -123,7 +124,7 @@ function DoctorsPage() {
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-navy-foreground/75 sm:text-base">
               Surgeons and surgical specialists listed in our directory. Compare qualifications,
-              experience and where they practise — then book a free consultation and our care team
+              experience and where they practise — then book {CONSULT_PHRASE} and our care team
               will help you choose.
             </p>
           </Container>

@@ -5,7 +5,7 @@ import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, OutlineButton, Eyebrow } from "@/components/home/primitives";
 import heroDoctor from "@/assets/hero-doctor.png";
 import { SPECIALITIES } from "@/data/catalog";
-import { CITIES, SITE } from "@/lib/site";
+import { BOOK_LABEL, CALLBACK_PHRASE, CALLER, cap, CITIES, promiseEnabled, SITE } from "@/lib/site";
 import { seo } from "@/lib/seo";
 
 const values = [
@@ -23,7 +23,7 @@ const values = [
   },
   {
     title: "Whole-journey support",
-    desc: "A care coordinator stays with each patient from the first call through discharge and follow-up.",
+    desc: "We help each patient from the first call through admission and booking their follow-up.",
   },
 ];
 
@@ -53,7 +53,7 @@ function AboutPage() {
                 recovery — with one team on their side.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <a href="/contact"><OrangeButton>Book Free Consultation</OrangeButton></a>
+                <a href="/contact"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
                 <a href="/doctors"><OutlineButton tone="light">Find a Surgeon</OutlineButton></a>
               </div>
             </div>
@@ -72,8 +72,8 @@ function AboutPage() {
                 one at all.
               </p>
               <p>
-                {SITE.name} exists to join those steps up. A care coordinator helps from the first
-                conversation about symptoms through to the follow-up after surgery, and our guides
+                {SITE.name} exists to join those steps up. Our team helps from the first
+                conversation about symptoms through to booking the follow-up after surgery, and our guides
                 explain conditions and treatments in plain language so patients can ask better
                 questions.
               </p>
@@ -108,10 +108,10 @@ function AboutPage() {
           <Container className="max-w-3xl">
             <SectionHead eyebrow="Step by step" title={`How the ${SITE.name} journey works`} />
             {[
-              { title: "Free first consultation", desc: "A specialist reviews your symptoms or reports and explains whether surgery is needed, and what alternatives exist." },
-              { title: "A clear estimate", desc: "Before you agree to anything, we explain the expected costs and what your insurance is likely to cover." },
-              { title: "Insurance and scheduling", desc: "Your coordinator helps with cashless pre-authorisation where applicable and books the hospital slot and surgeon." },
-              { title: "Surgery and discharge", desc: "Your coordinator helps with admission and discharge paperwork so your family isn't left to figure it out." },
+              { title: promiseEnabled("free-consult") ? "Free first consultation" : "First consultation", desc: "A specialist reviews your symptoms or reports and explains whether surgery is needed, and what alternatives exist." },
+              { title: "A clear estimate", desc: "Before you agree to anything, ask the hospital for an estimate — we help you understand it and what your insurance may cover." },
+              { title: "Insurance and scheduling", desc: "We help you check cashless eligibility and book the hospital slot and surgeon." },
+              { title: "Surgery and discharge", desc: "We explain the admission and discharge steps so your family isn't left to figure it out." },
               { title: "Recovery follow-up", desc: "Check-in calls and a route back to your surgeon if anything feels wrong during recovery." },
             ].map((step, i, arr) => (
               <div key={step.title} className="flex gap-6">
@@ -174,10 +174,10 @@ function AboutPage() {
           <Container className="max-w-2xl text-center">
             <h2 className="text-2xl font-bold text-navy-foreground sm:text-3xl">Ready to take the first step?</h2>
             <p className="mt-3 text-sm text-navy-foreground/75">
-              Your first consultation is free. A care coordinator will call you back within {SITE.callbackTime}.
+              {promiseEnabled("free-consult") ? "Your first consultation is free. " : ""}{cap(CALLER)} will call you back {CALLBACK_PHRASE}.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <a href="/contact"><OrangeButton>Book Free Consultation</OrangeButton></a>
+              <a href="/contact"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
               <a href="/treatments"><OutlineButton tone="light">Browse Treatments</OutlineButton></a>
             </div>
           </Container>

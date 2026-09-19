@@ -14,7 +14,7 @@ import { ConsultForm } from "@/components/home/ConsultForm";
 import { getHospitalBySlugFn } from "@/lib/server-functions/hospitals";
 import hospitalFallbackImg from "@/assets/hospital-1.jpg";
 import { DoctorAvatar } from "@/components/doctors/DoctorCard";
-import { SITE } from "@/lib/site";
+import { SITE, CONSULT_PHRASE } from "@/lib/site";
 import { breadcrumbLd, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/hospitals/$slug")({
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/hospitals/$slug")({
     if (!h) return {};
     return seo({
       title: `${h.name}${h.city ? `, ${h.city}` : ""} — Doctors, Departments & Reviews`,
-      description: `${h.name}${h.locality ? `, ${h.locality}` : ""}${h.city ? `, ${h.city}` : ""}: departments${h.doctors.length ? `, ${h.doctors.length} doctors listed` : ""}, location and patient ratings. Request a free consultation via Go Surgery.`,
+      description: `${h.name}${h.locality ? `, ${h.locality}` : ""}${h.city ? `, ${h.city}` : ""}: departments${h.doctors.length ? `, ${h.doctors.length} doctors listed` : ""}, location and patient ratings. Request ${CONSULT_PHRASE} via Go Surgery.`,
       path: `/hospitals/${h.slug}`,
       ...(h.img ? { image: h.img } : {}),
       jsonLd: [

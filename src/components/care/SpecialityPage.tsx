@@ -9,6 +9,7 @@ import {
   Breadcrumbs,
   FaqList,
   InsuranceEmiBlock,
+  ContentReviewNote,
   MedicalDisclaimer,
   ReadMore,
   Section,
@@ -20,7 +21,7 @@ import {
   treatmentsForSpeciality,
   type Speciality,
 } from "@/data/catalog";
-import { CITIES } from "@/lib/site";
+import { BOOK_LABEL, CITIES, CONSULT_PHRASE } from "@/lib/site";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { getHospitalsFn } from "@/lib/server-functions/hospitals";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
@@ -64,8 +65,8 @@ export function specialityHead(
   return seo({
     title: cityName ? `Best ${spec.name} Doctors & Treatment${where}` : `${spec.name} — Conditions, Treatments & Specialists`,
     description: cityName
-      ? `Find ${spec.name.toLowerCase()} surgeons${where}${data?.doctorTotal ? ` (${data.doctorTotal} listed)` : ""}, compare hospitals and read patient reviews. Book a free consultation with Go Surgery.`
-      : `${spec.tagline} Learn about conditions and treatments, find specialists near you and book a free consultation.`,
+      ? `Find ${spec.name.toLowerCase()} surgeons${where}${data?.doctorTotal ? ` (${data.doctorTotal} listed)` : ""}, compare hospitals and read patient reviews. Book ${CONSULT_PHRASE} with Go Surgery.`
+      : `${spec.tagline} Learn about conditions and treatments, find specialists near you and book ${CONSULT_PHRASE}.`,
     path,
     // A city page with no doctors and no hospitals would be a thin doorway page — keep it out of the index.
     noindex: Boolean(cityName && data && data.doctorTotal === 0 && data.hospitalTotal === 0),
@@ -146,8 +147,9 @@ export function SpecialityPage({
               {where}
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-navy-foreground/80 sm:text-base">{spec.tagline}</p>
+            <ContentReviewNote reviewedBy={spec.reviewedBy} />
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#book"><OrangeButton>Book Free Consultation</OrangeButton></a>
+              <a href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
               <a href="#doctors"><OutlineButton tone="light">Find a {spec.name} doctor</OutlineButton></a>
             </div>
             {data.reviewSummary.count > 0 || data.doctorTotal > 0 ? (
@@ -229,6 +231,10 @@ export function SpecialityPage({
                   </a>
                 }
               >
+                <p className="-mt-2 mb-3 text-xs text-muted-foreground">
+                  Matched by the speciality recorded in each doctor's profile. Profiles aren't individually
+                  verified yet — ask our team if you need a surgeon for a specific procedure.
+                </p>
                 <CityPicker specSlug={spec.slug} active={city?.slug} />
                 {data.doctors.length ? (
                   <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

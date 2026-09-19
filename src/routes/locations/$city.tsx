@@ -9,7 +9,7 @@ import { Breadcrumbs, FaqList, InsuranceEmiBlock, Section } from "@/components/c
 import { getCityBySlugFn } from "@/lib/server-functions/cities";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { getHospitalsFn } from "@/lib/server-functions/hospitals";
-import { SITE } from "@/lib/site";
+import { CONSULT_PHRASE, SITE } from "@/lib/site";
 import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
 import hospitalFallbackImg from "@/assets/hospital-1.jpg";
 
@@ -17,7 +17,7 @@ function cityFaqs(name: string, doctorCount: number, hospitalCount: number) {
   return [
     {
       q: `How do I find a good surgeon in ${name}?`,
-      a: `Browse surgeons in ${name} by speciality on this page, compare qualifications, experience, hospitals and patient reviews — or fill in the form and a ${SITE.name} care coordinator will suggest suitable specialists for your condition.`,
+      a: `Browse surgeons in ${name} by speciality on this page, compare qualifications, experience, hospitals and patient reviews — or fill in the form and our team will suggest suitable specialists for your condition.`,
     },
     {
       q: `How many surgeons and hospitals does ${SITE.name} list in ${name}?`,
@@ -53,7 +53,7 @@ export const Route = createFileRoute("/locations/$city")({
     if (!city) return {};
     return seo({
       title: `Surgery & Specialist Surgeons in ${city.name}`,
-      description: `Find surgeons in ${city.name} across ${city.specialities.length} specialities — compare doctors and hospitals, read patient reviews and book a free consultation with ${SITE.name}.`,
+      description: `Find surgeons in ${city.name} across ${city.specialities.length} specialities — compare doctors and hospitals, read patient reviews and book ${CONSULT_PHRASE} with ${SITE.name}.`,
       path: `/locations/${city.slug}`,
       jsonLd: [
         faqLd(cityFaqs(city.name, city.doctorCount, city.hospitalCount)),

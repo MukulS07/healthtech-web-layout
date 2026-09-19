@@ -4,7 +4,7 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow } from "@/components/home/primitives";
 import { ConsultForm } from "@/components/home/ConsultForm";
-import { SITE, telHref, whatsappHref, ENABLED_PROMISES } from "@/lib/site";
+import { CALLBACK_PHRASE, CALLER, cap, CONSULT_PHRASE, ENABLED_PROMISES, promiseEnabled, SITE, telHref, whatsappHref } from "@/lib/site";
 import { seo } from "@/lib/seo";
 
 const teamEmails = [
@@ -32,8 +32,8 @@ export const Route = createFileRoute("/contact")({
   }),
   head: () =>
     seo({
-      title: "Book a Free Consultation",
-      description: `Book a free consultation with a surgeon — no account needed. Share your details and a Go Surgery care coordinator will call you back within ${SITE.callbackTime}.`,
+      title: promiseEnabled("free-consult") ? "Book a Free Consultation" : "Book a Consultation",
+      description: `Book ${CONSULT_PHRASE} with a surgeon — no account needed. Share your details and ${CALLER} will call you back ${CALLBACK_PHRASE}.`,
       path: "/contact",
     }),
   component: ContactPage,
@@ -48,11 +48,11 @@ function ContactPage() {
       <main>
         <section className="bg-navy py-12">
           <Container>
-            <Eyebrow tone="light">Free consultation</Eyebrow>
+            <Eyebrow tone="light">{promiseEnabled("free-consult") ? "Free consultation" : "Consultation"}</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">Book Your Consultation</h1>
             <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-              Tell us what you need help with — no account required. A care coordinator will call you
-              back within {SITE.callbackTime} to understand your concern and match you with the right
+              Tell us what you need help with — no account required. {cap(CALLER)} will call you
+              back {CALLBACK_PHRASE} to understand your concern and match you with the right
               specialist.
             </p>
           </Container>

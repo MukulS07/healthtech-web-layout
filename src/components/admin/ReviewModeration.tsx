@@ -4,16 +4,31 @@ import { toast } from "sonner";
 import { getPendingReviewsFn, moderateReviewFn } from "@/lib/server-functions/reviews";
 
 type Pending = Awaited<ReturnType<typeof getPendingReviewsFn>>["reviews"][number];
+type Flagged = { reason: string; count: number };
+
+const FLAG_LABELS: Record<string, string> = {
+  "blank-doctor-name": "doctor's name missing from the text",
+  "duplicate-text": "same text as other reviews",
+  "non-standard-rating": "rating isn't a whole 1–5 star value",
+};
 
 /** Admin queue for reviews submitted through /reviews/write — nothing is public until approved. */
 export function ReviewModeration() {
   const [items, setItems] = useState<Pending[]>([]);
+  const [flagged, setFlagged] = useState<Flagged[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = () => {
     setLoading(true);
     getPendingReviewsFn()
-      .then((res) => (res.success ? setItems(res.reviews) : toast.error(res.error || "Could not load reviews")))
+      .then((res) => {
+        if (!res.success) {
+          toast.error(res.error || "Could not load reviews");
+          return;
+        }
+        setItems(res.reviews);
+        setFlagged(res.flagged);
+      })
       .finally(() => setLoading(false));
   };
   useEffect(load, []);
@@ -33,11 +48,31 @@ export function ReviewModeration() {
       </div>
     );
   }
+  const flaggedNote = flagged.length ? (
+    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+      <p className="font-semibold">Imported reviews held back (not shown publicly, not deleted)</p>
+      <ul className="mt-1 list-disc pl-5">
+        {flagged.map((f) => (
+          <li key={f.reason}>
+            {f.count.toLocaleString("en-IN")} — {FLAG_LABELS[f.reason] || f.reason}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1">A review can have more than one reason. Restore them with <code>npx tsx scripts/flag-reviews.ts --undo</code>.</p>
+    </div>
+  ) : null;
+
   if (!items.length) {
-    return <p className="rounded-lg border border-border bg-white p-6 text-sm text-muted-foreground">No reviews waiting for moderation.</p>;
+    return (
+      <div className="space-y-3">
+        {flaggedNote}
+        <p className="rounded-lg border border-border bg-white p-6 text-sm text-muted-foreground">No website reviews waiting for moderation.</p>
+      </div>
+    );
   }
   return (
     <div className="space-y-3">
+      {flaggedNote}
       {items.map((r) => (
         <div key={r.id} className="rounded-lg border border-border bg-white p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">

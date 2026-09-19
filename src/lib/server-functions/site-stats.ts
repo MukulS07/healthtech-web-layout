@@ -29,7 +29,7 @@ export const getSiteStatsFn = createServerFn({ method: "GET" }).handler(async ()
       getDoctorFacetsFn(),
       Hospital.countDocuments({ isActive: { $ne: false } }),
       Review.aggregate<{ avg: number; n: number }>([
-        { $match: { status: { $ne: "pending" } } },
+        { $match: { status: { $nin: ["pending", "rejected"] } } },
         { $group: { _id: null, avg: { $avg: "$rating" }, n: { $sum: 1 } } },
       ]),
     ]);

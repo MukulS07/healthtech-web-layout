@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
 import { InsuranceCheck } from "@/models/InsuranceCheck";
+import { CALLBACK_PHRASE } from "@/lib/site";
 
 export interface SubmitInsuranceCheckInput {
   name: string;
@@ -43,7 +44,7 @@ export const submitInsuranceCheckFn = createServerFn({ method: "POST" })
       return {
         success: true as const,
         id: String(check._id),
-        message: "Request received. Our insurance desk will confirm your eligibility within 30 minutes.",
+        message: `Request received. Our team will call you ${CALLBACK_PHRASE} about your eligibility.`,
       };
     } catch (error: unknown) {
       const errMessage = error instanceof Error ? error.message : String(error);

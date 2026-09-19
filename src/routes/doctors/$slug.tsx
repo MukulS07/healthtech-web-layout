@@ -9,7 +9,7 @@ import { Breadcrumbs, Section } from "@/components/care/Blocks";
 import { getDoctorBySlugFn } from "@/lib/server-functions/doctors";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { getTreatment } from "@/data/catalog";
-import { SITE, telHref } from "@/lib/site";
+import { BOOK_LABEL, CONSULT_PHRASE, SITE, telHref } from "@/lib/site";
 import { breadcrumbLd, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/doctors/$slug")({
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/doctors/$slug")({
         : undefined;
     return seo({
       title: `${d.name}${d.specialty ? ` — ${d.specialty}` : ""}${place}`,
-      description: `${d.name}${d.specialty ? `, ${d.specialty}` : ""}${place}.${d.cred ? ` ${d.cred}.` : ""}${d.exp ? ` ${d.exp} years of experience.` : ""} See hospitals, reviews and book a free consultation.`,
+      description: `${d.name}${d.specialty ? `, ${d.specialty}` : ""}${place}.${d.cred ? ` ${d.cred}.` : ""}${d.exp ? ` ${d.exp} years of experience.` : ""} See hospitals, reviews and book ${CONSULT_PHRASE}.`,
       path: `/doctors/${d.slug}`,
       type: "profile",
       ...(d.img ? { image: d.img } : {}),
@@ -143,7 +143,7 @@ function DoctorProfile() {
                 ) : null}
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
-                <a href="#book"><OrangeButton>Book Free Consultation</OrangeButton></a>
+                <a href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
                 <a href={telHref}>
                   <OutlineButton tone="light"><Phone className="h-4 w-4" /> Call {SITE.phone.display}</OutlineButton>
                 </a>

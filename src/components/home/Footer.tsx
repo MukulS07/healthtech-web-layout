@@ -1,6 +1,6 @@
 import { CalendarCheck, HeartPulse, Mail, MessageCircle, Phone } from "lucide-react";
 import { Container } from "./primitives";
-import { CITIES, SITE, telHref, whatsappHref } from "@/lib/site";
+import { BOOK_LABEL, CITIES, SITE, telHref, whatsappHref } from "@/lib/site";
 import { SPECIALITIES } from "@/data/catalog";
 
 const columns = [
@@ -27,7 +27,7 @@ const columns = [
   {
     title: "For Patients",
     links: [
-      { label: "Book Free Consultation", href: "/contact" },
+      { label: BOOK_LABEL, href: "/contact" },
       { label: "Find Doctors", href: "/doctors" },
       { label: "Find Hospitals", href: "/hospitals" },
       { label: "Ask a Question", href: "/ask-a-question" },

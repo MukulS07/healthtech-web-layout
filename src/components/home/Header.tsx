@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Container, OrangeButton } from "./primitives";
 import { CONDITIONS, SPECIALITIES, TREATMENTS } from "@/data/catalog";
-import { CITIES, SITE, telHref } from "@/lib/site";
+import { BOOK_LABEL, CITIES, SITE, telHref } from "@/lib/site";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,7 @@ const CITY_KEY = "gs-city";
 
 const MENUS = {
   "For Patients": [
-    { label: "Book Free Consultation", href: "/contact" },
+    { label: BOOK_LABEL, href: "/contact" },
     { label: "Find a Doctor", href: "/doctors" },
     { label: "Find a Hospital", href: "/hospitals" },
     { label: "Specialities", href: "/specialities" },
@@ -298,7 +298,7 @@ export function Header() {
               <Phone className="h-4 w-4 text-brand-orange" /> {SITE.phone.display}
             </a>
             <a href="/contact" className="hidden md:inline-flex">
-              <OrangeButton className="px-4 py-2.5">Book Free Consultation</OrangeButton>
+              <OrangeButton className="px-4 py-2.5">{BOOK_LABEL}</OrangeButton>
             </a>
             <button
               type="button"
@@ -370,7 +370,7 @@ export function Header() {
             ))}
             <div className="flex flex-col gap-2.5 border-t border-border pt-4">
               <a href="/contact">
-                <OrangeButton className="w-full justify-center">Book Free Consultation</OrangeButton>
+                <OrangeButton className="w-full justify-center">{BOOK_LABEL}</OrangeButton>
               </a>
               <a href={telHref} className="flex items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-semibold text-navy">
                 <Phone className="h-4 w-4 text-brand-orange" /> Call {SITE.phone.display}

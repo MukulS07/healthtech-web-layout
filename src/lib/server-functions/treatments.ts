@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
 import { getSessionUser, isAdmin, requireAdminUser } from "@/lib/auth";
 import { Treatment } from "@/models/Treatment";
-import { runSeed } from "./seed";
 import surgeryCatalog from "@/data/surgery-catalog.json";
 
 export interface GetTreatmentsParams {
@@ -19,12 +18,9 @@ export const getTreatmentsFn = createServerFn({ method: "GET" })
     try {
       await connectToDatabase();
 
-      // Ensure DB has seed data if empty
-      const treatmentCount = await Treatment.countDocuments();
-      if (treatmentCount === 0) {
-        await runSeed();
-      }
-      await ensureFullCatalog();
+      // No automatic seeding here: this used to write sample treatments (and cities) into whatever
+      // database it ran against — including the real one. Sample data is only ever loaded by an
+      // explicit admin action now (importSurgeryCatalogFn / seedDatabaseFn).
 
       const filter: Record<string, unknown> = {};
 
@@ -72,11 +68,6 @@ export const getTreatmentCategoriesFn = createServerFn({ method: "GET" }).handle
   try {
     await connectToDatabase();
 
-    const treatmentCount = await Treatment.countDocuments();
-    if (treatmentCount === 0) {
-      await runSeed();
-    }
-    await ensureFullCatalog();
 
     const categories = await Treatment.aggregate<{ _id: string; count: number }>([
       { $group: { _id: "$category", count: { $sum: 1 } } },
@@ -167,10 +158,6 @@ function categoryShortSlug(category: string): string {
   return slugify(category).split("-").slice(0, 2).join("-");
 }
 
-const CATALOG_PROCEDURE_COUNT = (
-  surgeryCatalog as { category: string; procedures: string[] }[]
-).reduce((sum, c) => sum + c.procedures.length, 0);
-
 /**
  * Idempotently imports the full surgical catalog (463 procedures across 17 categories, from
  * "Complete List of Surgical Categories and Procedures") into the Treatment collection.
@@ -219,20 +206,9 @@ async function importSurgeryCatalog() {
 }
 
 /**
- * Ensures the full surgical catalog is present, running the import automatically the first
- * time it's needed (e.g. on a fresh/in-memory DB that only has the small default-seed set).
- * Cheap no-op once the collection already has the full catalog.
- */
-async function ensureFullCatalog() {
-  const treatmentCount = await Treatment.countDocuments();
-  if (treatmentCount < CATALOG_PROCEDURE_COUNT) {
-    await importSurgeryCatalog();
-  }
-}
-
-/**
- * Admin-only: manually re-run the catalog import (e.g. after hand-editing procedures so the
- * automatic ensureFullCatalog() top-up no longer covers everything).
+ * Admin-only: manually re-run the catalog import — loads the sample procedure list into the
+ * `treatments` collection. Only used by the admin Treatments tab; the public site reads the
+ * curated catalog in src/data/catalog instead.
  */
 export const importSurgeryCatalogFn = createServerFn({ method: "POST" }).handler(async () => {
   try {

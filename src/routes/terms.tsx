@@ -26,7 +26,7 @@ Parents or legal guardians may use our services on behalf of minors in their car
   },
   {
     title: "Consultations and Appointments",
-    content: `Free first consultations are offered subject to availability of specialists in your city. Go Surgery reserves the right to modify, reschedule or cancel consultations and will notify you in advance where possible.
+    content: `Consultations are offered subject to availability of specialists in your city. Go Surgery reserves the right to modify, reschedule or cancel consultations and will notify you in advance where possible.
 
 Appointments are not binding contracts for medical services. Treatment decisions rest with the patient and the treating doctor after the consultation.
 

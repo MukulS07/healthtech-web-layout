@@ -37,7 +37,7 @@ import hospital1 from "@/assets/hospital-1.jpg";
 import hospital2 from "@/assets/hospital-2.jpg";
 import { CONDITIONS, SPECIALITIES, TREATMENTS } from "@/data/catalog";
 import { BLOG_POSTS } from "@/data/blog";
-import { ENABLED_PROMISES, whatsappHref } from "@/lib/site";
+import { CALLER, cap, ENABLED_PROMISES, whatsappHref } from "@/lib/site";
 import { roundDownPlus } from "@/lib/format";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { subscribeFn } from "@/lib/server-functions/subscribers";
@@ -285,7 +285,7 @@ const experiences = [
     tag: "Before surgery",
     img: expPre,
     points: [
-      "A care coordinator listens to your symptoms and questions",
+      `${cap(CALLER)} listens to your symptoms and questions`,
       "A consultation with a surgeon who explains every option",
       "A clear plan: tests needed, procedure, stay and recovery",
       "Help checking your insurance and payment options",
@@ -296,7 +296,7 @@ const experiences = [
     img: expDuring,
     points: [
       "Admission steps explained in advance",
-      "Your coordinator available to you and your family",
+      "A point of contact for you and your family",
       "Updates for family members while you're in surgery",
       "Minimally invasive techniques where suitable",
     ],
@@ -431,11 +431,11 @@ export function Hospitals({ hospitals }: { hospitals: HomeHospital[] }) {
 /* ---------------- Journey ---------------- */
 
 const journey = [
-  { icon: Phone, title: "Tell us what's going on", desc: "Fill in the form or call us. A care coordinator calls you back to understand your symptoms." },
+  { icon: Phone, title: "Tell us what's going on", desc: `Fill in the form or call us. ${cap(CALLER)} calls you back to understand your symptoms.` },
   { icon: Stethoscope, title: "Meet the right surgeon", desc: "We suggest suitable specialists near you and book a consultation at a time that works." },
   { icon: ClipboardList, title: "Understand your plan", desc: "Your surgeon explains the diagnosis, options, risks, stay and recovery — so you can decide calmly." },
-  { icon: Wallet, title: "Sort out payment", desc: "We check your insurance for cashless eligibility and explain EMI options if you need them." },
-  { icon: HeartHandshake, title: "Surgery and recovery", desc: "Your coordinator stays in touch through admission, discharge and your follow-up review." },
+  { icon: Wallet, title: "Sort out payment", desc: "Ask us to check your insurance for cashless eligibility, or about EMI options if you need them." },
+  { icon: HeartHandshake, title: "Surgery and recovery", desc: "We help you with admission steps and booking your follow-up review." },
 ];
 
 export function Journey() {
@@ -751,13 +751,13 @@ export function About() {
             <p>
               Go Surgery helps patients in India get planned surgery with less confusion and less
               running around. We help you find an experienced surgeon, understand your treatment,
-              deal with insurance and paperwork, and we stay in touch until you've recovered.
+              and get help with insurance and paperwork.
             </p>
             <ul className="space-y-3 pt-2">
               {[
-                ["One point of contact", "A care coordinator who knows your case — from the first call to your follow-up."],
+                ["One point of contact", "One team that knows your case — from the first call to your follow-up."],
                 ["Clear information", "Plain-language guides to conditions and treatments, so you can ask better questions."],
-                ["Honest about costs", "We explain what insurance covers and what you may pay, before you commit."],
+                ["Honest about costs", "We help you understand what insurance may cover and what you may pay, before you commit."],
               ].map(([title, text]) => (
                 <li key={title} className="flex gap-3">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
@@ -901,7 +901,7 @@ export function JoinCommunity() {
           </h2>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-navy-foreground/85 sm:text-base">
             Join the Go Surgery community for practical articles on conditions, surgery preparation
-            and recovery. No spam — unsubscribe anytime.
+            and recovery.
           </p>
           <ul className="mt-5 space-y-2 text-sm text-navy-foreground/85">
             {["New plain-language health guides", "Recovery tips from our care team", "Updates on insurance and EMI options"].map((t) => (

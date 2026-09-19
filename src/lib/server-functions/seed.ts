@@ -237,6 +237,15 @@ export async function runSeed() {
   try {
     await connectToDatabase();
 
+    // Sample data is for an empty development database only. Against the real directory it would
+    // mix invented doctors/hospitals/cities in with real records, so refuse.
+    if (await Doctor.exists({})) {
+      return {
+        success: false,
+        message: "This database already has real doctor records — sample data was not added.",
+      };
+    }
+
     const existingSlugs = new Set((await City.find().select("slug").lean()).map((c) => c.slug));
     const missingCities = initialCities.filter((c) => !existingSlugs.has(c.slug));
     let seededCities = 0;

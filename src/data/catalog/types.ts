@@ -11,6 +11,19 @@
 
 export type InsuranceCover = "usually" | "case-by-case" | "rarely";
 
+/**
+ * Set only when a real, named clinician has actually reviewed the page. Until then pages show
+ * "Pending medical review" (see ContentReviewNote) — never fill this in speculatively.
+ */
+export interface ClinicalReview {
+  name: string;
+  credentials: string;
+  /** ISO date of the review. */
+  date: string;
+  /** Doctor profile slug, if they're in our directory. */
+  profileSlug?: string;
+}
+
 export interface Faq {
   q: string;
   a: string;
@@ -18,6 +31,7 @@ export interface Faq {
 
 export interface Speciality {
   slug: string;
+  reviewedBy?: ClinicalReview;
   name: string;
   /** One line under the H1. */
   tagline: string;
@@ -33,6 +47,7 @@ export interface Speciality {
 
 export interface Condition {
   slug: string;
+  reviewedBy?: ClinicalReview;
   name: string;
   aka?: string[];
   speciality: string;
@@ -49,6 +64,7 @@ export interface Condition {
 
 export interface Treatment {
   slug: string;
+  reviewedBy?: ClinicalReview;
   name: string;
   aka?: string[];
   speciality: string;

@@ -644,6 +644,37 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
         (no real price data); Hindi/hreflang; videos; doctor comparison view; clinic-level pages;
         moving off `*.vercel.app`; migrating the `reviews` collection to any Atlas DB that lacks it.
 
+- [x] **2026-09-19 — real-vs-made-up data audit + fixes (user: "do not delete anything from the
+      database; hold unusable data as pending so we can fix it later").**
+      - **Reviews:** the imported `reviews` collection shows template-generation signs (4,001 with a
+        blank doctor-name slot like "Dr.  and…", 7,189 sharing word-for-word text, 32,194 with
+        4.1/4.2 ratings). `scripts/flag-reviews.ts` sets those 40,395 to `status: "pending"` +
+        `flagReason[]` + `flaggedAt` — **run on the local DB; nothing deleted** (`--undo` restores,
+        `--dry-run` previews). Public lists/counts already skip pending → 207,179 remain public. The
+        admin "Review moderation" tab lists only website submissions and shows flagged counts.
+        UI no longer says "real reviews from real patients" — "reviews in our directory".
+        **Still open:** `Doctor.rating.{average,count}` (the star chip on cards) is stored on the
+        doctor docs, derived from these same reviews and doesn't always match them — not changed.
+      - **Promises off:** `SERVICE_PROMISES` coordinator / free-consult / insurance / emi are now
+        `enabled: false` (had been switched on without the user confirming) and
+        `SITE.callbackTime` is `null`. All copy reads `BOOK_LABEL`, `CONSULT_PHRASE`, `CALLER`,
+        `CALLBACK_PHRASE`, `promiseEnabled()` from `src/lib/site.ts`, so flipping a flag restores the
+        wording site-wide. `/faqs` rewritten — it still claimed free cab, "all partner hospitals NABH
+        accredited", "zero-infection protocols", "every surgeon verified", 30–60 min pre-auth.
+      - **Medical review label:** speciality/condition/treatment pages show `ContentReviewNote`
+        ("Written by the Go Surgery Editorial Team · Pending medical review") until the catalog entry
+        gets a real `reviewedBy` (new optional `ClinicalReview` field in `src/data/catalog/types.ts`).
+      - **Doctor matching:** `Doctor.surgeryTypes` turned out to be bulk-filled per speciality (e.g.
+        every general surgeon has the same list — 4,336 doctors for ~150 different procedures), so it
+        can't say who does which operation. Treatment/condition pages keep speciality matching and now
+        say "not every surgeon shown performs X".
+      - **Sample data kept, no longer written:** 467 `treatments` + 12 `cities` docs were inserted by
+        the old auto-seeder on 2026-09-18 (not from the original archive). Kept, labelled as sample
+        data in the admin Treatments tab. `getTreatmentsFn`/`getTreatmentCategoriesFn` no longer
+        auto-seed; `runSeed()` refuses when the DB has any doctors.
+      - Local DB: 227,415 doctors vs 227,574 recorded at import — 159-doctor gap still unexplained
+        (no recent doctor inserts; nothing in this codebase deletes doctors).
+
 ---
 
 ## Superseded original plan (historical record only — do not follow)

@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from "react";
 import { ChevronDown, FileCheck2, HeartHandshake, Info, ShieldCheck, Stethoscope, Wallet } from "lucide-react";
 import { OrangeButton, OutlineButton } from "@/components/home/primitives";
-import { ENABLED_PROMISES } from "@/lib/site";
+import { CALLER, cap, ENABLED_PROMISES } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import type { Faq } from "@/data/catalog";
+import type { ClinicalReview } from "@/data/catalog/types";
 
 export function Breadcrumbs({ items }: { items: { name: string; href?: string }[] }) {
   return (
@@ -75,7 +76,7 @@ export function WhyChooseUs({ specialityName }: { specialityName: string }) {
   const blocks = [
     { icon: Stethoscope, title: "Expert consultation", text: `Get your ${specialityName.toLowerCase()} problem assessed by an experienced surgeon, who explains every option — including not operating.` },
     { icon: FileCheck2, title: "Modern techniques", text: "Where suitable, minimally invasive and laser procedures that mean smaller wounds and a quicker recovery." },
-    { icon: HeartHandshake, title: "Guided surgery journey", text: "A care coordinator handles scheduling, admission steps and paperwork so you're not left to figure it out." },
+    { icon: HeartHandshake, title: "Guided surgery journey", text: `${cap(CALLER)} helps with scheduling, admission steps and paperwork so you're not left to figure it out.` },
     { icon: ShieldCheck, title: "Support through recovery", text: "Clear recovery instructions and help arranging your follow-up review with the surgeon." },
   ];
   return (
@@ -115,10 +116,10 @@ export function InsuranceEmiBlock() {
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="rounded-xl border border-border bg-cream p-5">
         <ShieldCheck className="h-6 w-6 text-primary" />
-        <h3 className="mt-3 text-base font-bold text-navy">End-to-end insurance help</h3>
+        <h3 className="mt-3 text-base font-bold text-navy">Check your insurance</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          We check your policy for cashless eligibility, help with pre-authorisation, and explain any
-          amount you'd pay yourself — before you're admitted.
+          Share your policy details and our team will check whether your treatment could be covered
+          cashless, and what you may need to pay yourself.
         </p>
         <a href="/insurance-eligibility" className="mt-4 inline-block">
           <OrangeButton className="px-4 py-2 text-sm">Check eligibility</OrangeButton>
@@ -126,16 +127,45 @@ export function InsuranceEmiBlock() {
       </div>
       <div className="rounded-xl border border-border bg-cream p-5">
         <Wallet className="h-6 w-6 text-primary" />
-        <h3 className="mt-3 text-base font-bold text-navy">Easy EMI options</h3>
+        <h3 className="mt-3 text-base font-bold text-navy">Paying in instalments</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          If insurance doesn't cover your treatment, we can walk you through no-cost and low-cost EMI
-          options, where available, so cost doesn't delay care.
+          If insurance doesn't cover your treatment, ask us about EMI options. Where plans are
+          available, eligibility and terms are set by the lender.
         </p>
         <a href="/no-cost-emi" className="mt-4 inline-block">
           <OutlineButton className="px-4 py-2 text-sm">Learn about EMI</OutlineButton>
         </a>
       </div>
     </div>
+  );
+}
+
+/**
+ * Who wrote the page and whether a clinician has reviewed it. Shows "Pending medical review" until
+ * the catalog entry has a real `reviewedBy` — never implies a review that hasn't happened.
+ */
+export function ContentReviewNote({ reviewedBy, tone = "dark" }: { reviewedBy?: ClinicalReview | undefined; tone?: "dark" | "light" }) {
+  const base = tone === "dark" ? "bg-white/10 text-navy-foreground/85" : "bg-cream text-muted-foreground border border-border";
+  return (
+    <p className={cn("mt-4 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg px-3 py-2 text-xs", base)}>
+      <Info className="h-3.5 w-3.5 shrink-0" />
+      <span>Written by the Go Surgery Editorial Team</span>
+      <span aria-hidden>·</span>
+      {reviewedBy ? (
+        <span>
+          Medically reviewed by{" "}
+          {reviewedBy.profileSlug ? (
+            <a href={`/doctors/${reviewedBy.profileSlug}`} className="font-semibold underline">{reviewedBy.name}</a>
+          ) : (
+            <span className="font-semibold">{reviewedBy.name}</span>
+          )}
+          , {reviewedBy.credentials} ({new Date(reviewedBy.date).toLocaleDateString("en-IN", { month: "short", year: "numeric" })})
+        </span>
+      ) : (
+        <span className="font-semibold">Pending medical review</span>
+      )}
+      <a href="/editorial-policy" className="underline">How we write our content</a>
+    </p>
   );
 }
 

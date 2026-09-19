@@ -1,7 +1,7 @@
 import { Building2, MapPin, Phone, Star } from "lucide-react";
 import { OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { cn } from "@/lib/utils";
-import { telHref } from "@/lib/site";
+import { BOOK_LABEL_SHORT, telHref } from "@/lib/site";
 
 export interface DoctorCardData {
   id: string;
@@ -86,7 +86,7 @@ export function DoctorCard({
         </OutlineButton>
       </a>
       <a href={bookHref} className="flex-1">
-        <OrangeButton className="w-full justify-center px-2 py-2 text-xs">Book Free Consult</OrangeButton>
+        <OrangeButton className="w-full justify-center px-2 py-2 text-xs">{BOOK_LABEL_SHORT}</OrangeButton>
       </a>
     </div>
   );

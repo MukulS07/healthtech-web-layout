@@ -24,7 +24,7 @@ export function Hero({ stats }: { stats: SiteStats | null }) {
                   {stats.averageRating && stats.reviews > 0 ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-background px-3 py-1.5 text-xs font-semibold text-navy shadow-sm">
                       <Star className="h-3.5 w-3.5 shrink-0 fill-primary text-primary" /> {stats.averageRating}/5 from{" "}
-                      {roundDownPlus(stats.reviews)} patient reviews
+                      {roundDownPlus(stats.reviews)} reviews in our directory
                     </span>
                   ) : null}
                   {stats.surgeons > 0 ? (

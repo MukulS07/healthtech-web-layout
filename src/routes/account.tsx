@@ -44,13 +44,13 @@ const statusMeta: Record<
 > = {
   pending: {
     label: "Pending",
-    description: "Request received. A care coordinator will call you shortly.",
+    description: "Request received. Our team will call you shortly.",
     icon: Clock,
     className: "bg-amber-100 text-amber-800 border-amber-200",
   },
   contacted: {
     label: "Confirmed",
-    description: "Our coordinator has contacted you and your consultation is being scheduled.",
+    description: "Our team has contacted you and your consultation is being scheduled.",
     icon: PhoneCall,
     className: "bg-sky-100 text-sky-800 border-sky-200",
   },
@@ -205,7 +205,7 @@ function AppointmentList() {
           <CalendarCheck className="mx-auto h-8 w-8 text-brand-orange" />
           <p className="mt-3 font-semibold text-navy">No appointments yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Book a free consultation while logged in and it will show up here.
+            Book a consultation while logged in and it will show up here.
           </p>
         </div>
       ) : (

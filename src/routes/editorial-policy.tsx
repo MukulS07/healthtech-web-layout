@@ -34,7 +34,8 @@ const sections = [
   {
     h: "Patient reviews",
     p: [
-      "Reviews come from patients. Reviews submitted on this website are checked by our team before publication; we don't edit their wording, but we remove abusive or promotional content and anything that identifies other people. Very short reviews are not displayed on public review walls.",
+      "Reviews submitted on this website are checked by our team before publication; we don't edit their wording, but we remove abusive or promotional content and anything that identifies other people.",
+      "Older reviews come from our directory's existing records, and we are still verifying their source. Reviews that fail automated checks — for example text that is repeated word-for-word across different reviews, a missing doctor name, or a rating outside the normal 1–5 stars — are held back and not shown until they can be checked. Very short reviews are not displayed on public review walls.",
     ],
   },
   {

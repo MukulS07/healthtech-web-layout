@@ -53,7 +53,7 @@ const onboardingSteps = [
   },
   {
     title: "Go live",
-    desc: "Start receiving matched patient consultations through your Go Surgery coordinator, with your first case typically scheduled within two to three weeks of approval.",
+    desc: "Start receiving matched patient consultations through the Go Surgery team once your profile is approved.",
   },
 ];
 

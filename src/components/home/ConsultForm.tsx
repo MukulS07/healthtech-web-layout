@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { submitConsultationFn } from "@/lib/server-functions/consultations";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { CONDITIONS, SPECIALITIES, TREATMENTS } from "@/data/catalog";
-import { CITIES, SITE, whatsappHref } from "@/lib/site";
+import { BOOK_LABEL, CALLBACK_PHRASE, CALLER, cap, CITIES, promiseEnabled, SITE, whatsappHref } from "@/lib/site";
 
 /** Options for the "treatment or condition" select, grouped by speciality. */
 function useInterestGroups() {
@@ -130,14 +130,14 @@ export function ConsultForm({
         <p className="text-base font-bold text-navy">
           {title ?? (
             <>
-              Book a <span className="text-primary">free consultation</span>
+              Book a <span className="text-primary">{promiseEnabled("free-consult") ? "free consultation" : "consultation"}</span>
             </>
           )}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
           {doctorName
             ? `Request a consultation with ${doctorName}. Our care team will confirm availability.`
-            : `Share a few details — a care coordinator will call you back within ${SITE.callbackTime}.`}
+            : `Share a few details — ${CALLER} will call you back ${CALLBACK_PHRASE}.`}
         </p>
       </div>
 
@@ -149,7 +149,7 @@ export function ConsultForm({
             <p className="mt-1 text-sm text-muted-foreground">{doneMessage}</p>
           </div>
           <ol className="space-y-1.5 rounded-lg bg-cream p-3 text-left text-xs text-ink/80">
-            <li>1. A care coordinator calls you on {phone.replace(/\D/g, "").slice(-10)}.</li>
+            <li>1. {cap(CALLER)} calls you on {phone.replace(/\D/g, "").slice(-10)}.</li>
             <li>2. They understand your symptoms and suggest the right specialist.</li>
             <li>3. Your consultation is scheduled at a time that suits you.</li>
           </ol>
@@ -260,7 +260,7 @@ export function ConsultForm({
                 <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
               </span>
             ) : (
-              "Book Free Consultation"
+              BOOK_LABEL
             )}
           </OrangeButton>
           <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">

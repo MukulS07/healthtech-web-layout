@@ -5,33 +5,43 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
 import { ConsultForm } from "@/components/home/ConsultForm";
-import { SITE, telHref, whatsappHref } from "@/lib/site";
+import { SITE, promiseEnabled, telHref, whatsappHref } from "@/lib/site";
 
 type Faq = { q: string; a: string };
 
+/*
+ * Answers only describe what the service verifiably does today. Operational promises (free
+ * consultation, free cab, turnaround times, "no hidden costs", accreditation of every hospital)
+ * were removed — they need the business to confirm them first. See SERVICE_PROMISES in
+ * src/lib/site.ts; the "free consultation" answer switches on automatically with that flag.
+ */
 const faqCategories: { label: string; faqs: Faq[] }[] = [
   {
     label: "General",
     faqs: [
-      {
-        q: "Is the first consultation really free?",
-        a: "Yes, absolutely. Your first consultation with a specialist — including diagnosis discussion, treatment options and a cost estimate — is completely free. No hidden charges.",
-      },
+      ...(promiseEnabled("free-consult")
+        ? [
+            {
+              q: "Is the first consultation free?",
+              a: "Yes. Your first consultation with a specialist is free. Our team will explain what any further tests or treatment would cost before anything is booked.",
+            },
+          ]
+        : []),
       {
         q: "How quickly can I get an appointment?",
-        a: "In most cities we can arrange a consultation within 24–48 hours. In our key cities (Delhi NCR, Mumbai, Bangalore, Hyderabad) same-day appointments are often available.",
+        a: "It depends on the specialist and your city. When our team calls you back, they'll tell you the earliest available slots with suitable surgeons.",
       },
       {
         q: "Do I need a referral from a GP?",
-        a: "No. You can directly book a consultation with any Go Surgery specialist without a prior referral. We do recommend bringing any existing reports or prescriptions to the appointment.",
+        a: "No. You can request a consultation directly. Please bring any existing reports or prescriptions to the appointment.",
       },
       {
         q: "What cities do you operate in?",
-        a: "We help patients across major Indian cities including Delhi NCR, Mumbai, Bangalore, Hyderabad, Chennai, Pune, Kolkata, Ahmedabad, Jaipur, Lucknow, Kochi and Indore. See the Locations page for surgeons and hospitals in each city.",
+        a: "We help patients across major Indian cities including Delhi NCR, Mumbai, Bangalore, Hyderabad, Chennai, Pune, Kolkata, Ahmedabad, Jaipur, Lucknow, Kochi and Indore. See the Locations page for surgeons and hospitals listed in each city.",
       },
       {
         q: "Can I choose my surgeon?",
-        a: "Yes. Once your condition is assessed, we'll suggest 2–3 specialists who are experienced with your specific situation. You can review their profiles and choose who you're most comfortable with.",
+        a: "Yes. You can browse surgeon profiles in our directory and ask for a specific doctor, or ask our team to suggest specialists suited to your condition.",
       },
     ],
   },
@@ -40,23 +50,23 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
     faqs: [
       {
         q: "Which insurers do you support?",
-        a: "Cashless treatment depends on your insurer and whether the hospital you choose is in its network. We commonly help patients with policies from insurers such as Star Health, HDFC Ergo, Care Health, Bajaj Allianz, ICICI Lombard, TATA AIG, Aditya Birla Health and New India Assurance — share your policy and our team will check your eligibility.",
+        a: "Cashless treatment depends on your insurer and whether the hospital you choose is in its network. Share your policy details through the insurance eligibility form and our team will check it for you.",
       },
       {
         q: "How long does insurance pre-authorisation take?",
-        a: "In most cases, we receive pre-authorisation within 30–60 minutes. We have a dedicated insurance desk that maintains active relationships with all major insurers.",
+        a: "It varies by insurer and hospital. Pre-authorisation is decided by your insurer (or its TPA), not by us — the hospital's insurance desk submits the request and the insurer responds.",
       },
       {
         q: "What if my insurance doesn't cover the procedure?",
-        a: "We offer flexible payment options including no-cost EMI through partner banks (typically 3–12 months). Our team will walk through all available options so you can plan effectively.",
+        a: "Ask our team about payment options. Where EMI plans are available through lenders, eligibility and terms are set by the lender.",
       },
       {
-        q: "Are there any hidden costs?",
-        a: "No. Before proceeding with surgery, you'll receive a detailed cost breakdown covering surgeon fees, hospital charges, anaesthesia, consumables and post-op medication. The number you see is the number you pay.",
+        q: "How will I know what the treatment costs?",
+        a: "Costs depend on the procedure, the hospital, room category and your medical needs. Ask the hospital for a written estimate before admission, and check what your insurance covers.",
       },
       {
         q: "Can I claim reimbursement if I pay upfront?",
-        a: "Yes. Our insurance team will provide all necessary documentation — discharge summary, bills, prescriptions — formatted to meet your insurer's reimbursement requirements.",
+        a: "Usually, yes, if your policy covers the treatment. Keep your discharge summary, bills, prescriptions and reports — insurers need the originals for a reimbursement claim.",
       },
     ],
   },
@@ -65,23 +75,19 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
     faqs: [
       {
         q: "Are the procedures minimally invasive?",
-        a: "For the majority of our treatments, yes. We prioritise laparoscopic, laser and endoscopic approaches that reduce incision size, blood loss and recovery time compared to open surgery.",
+        a: "Many common procedures can be done laparoscopically, endoscopically or with laser techniques, which usually means smaller cuts and quicker recovery. Whether that's suitable for you is your surgeon's decision after examining you.",
       },
       {
         q: "How long does recovery take?",
-        a: "Most minimally invasive procedures allow discharge within 24 hours and return to desk work within 2–5 days. Complex procedures like knee or hip replacement have longer recovery timelines which your surgeon will explain in detail.",
-      },
-      {
-        q: "Do you provide free pick-up and drop on surgery day?",
-        a: "Yes. Free comfortable vehicle pick-up and drop is arranged on the day of surgery and on discharge day for all eligible patients in serviceable cities.",
+        a: "It depends on the procedure. Many minimally invasive procedures allow discharge within a day or two; joint replacements and major surgery take longer. Each treatment page lists typical ranges, and your surgeon will tell you what applies to you.",
       },
       {
         q: "What post-surgery support is available?",
-        a: "Your care coordinator stays assigned to you through discharge and recovery, and helps you book your follow-up review with your surgeon. For emergencies, always call 112 or go to the nearest emergency department.",
+        a: "Your surgeon and hospital are responsible for your post-operative care and follow-up. Our team can help you book your follow-up review. For emergencies, always call 112 or go to the nearest emergency department.",
       },
       {
         q: "What if there is a complication after surgery?",
-        a: "Complications are rare with our surgical team. If any concern arises, contact your care coordinator immediately — they will arrange emergency consultation and hospital support without delay.",
+        a: "Contact your surgeon or the hospital straight away, and for anything urgent call 112 or go to the nearest emergency department. Every surgery carries some risk — your surgeon will explain the specific risks before you consent.",
       },
     ],
   },
@@ -89,16 +95,16 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
     label: "Hospitals & Safety",
     faqs: [
       {
-        q: "Are your partner hospitals accredited?",
-        a: "All Go Surgery partner hospitals are NABH accredited and meet our internal safety standards, including modular OTs, post-op care units and zero-infection protocols.",
+        q: "Are the hospitals accredited?",
+        a: "Accreditation varies by hospital. Our hospital directory lists hospitals from records we hold — it isn't a partner network, and we don't yet show accreditation status. Ask the hospital directly (for example about NABH accreditation) before you decide.",
       },
       {
-        q: "How do you verify your surgeons?",
-        a: "Every surgeon in our network is verified for qualifications, registration with the Medical Council of India, peer reputation and minimum procedural volume before listing.",
+        q: "How are surgeons listed?",
+        a: "Our directory is built from doctor records we hold, filtered to surgical specialities. Profiles aren't individually verified yet — check a doctor's registration on the National Medical Commission's Indian Medical Register before treatment.",
       },
       {
         q: "Can I visit the hospital before surgery?",
-        a: "Yes. We encourage pre-surgical facility visits. Your care coordinator will arrange a tour at a time convenient for you.",
+        a: "Usually, yes. Ask the hospital when you book — most are happy for patients and families to see the facilities beforehand.",
       },
     ],
   },

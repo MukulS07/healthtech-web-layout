@@ -6,6 +6,7 @@ import { Consultation, type IConsultation } from "@/models/Consultation";
 import { Treatment } from "@/models/Treatment";
 import { Doctor } from "@/models/Doctor";
 import { getCondition, getSpeciality, getTreatment } from "@/data/catalog";
+import { CALLBACK_PHRASE, CALLER, cap } from "@/lib/site";
 
 /**
  * Enforces the claim lock: once a booking is claimed, only that admin may act on it
@@ -134,7 +135,7 @@ export const submitConsultationFn = createServerFn({ method: "POST" })
         success: true as const,
         duplicate: false,
         id: String(consultation._id),
-        message: "Request received! A care coordinator will call you shortly.",
+        message: `Request received! ${cap(CALLER)} will call you ${CALLBACK_PHRASE}.`,
         linkedToAccount: Boolean(user),
       };
     } catch (error: unknown) {

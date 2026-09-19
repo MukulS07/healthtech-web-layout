@@ -4,6 +4,7 @@ import { Wallet, ShieldCheck, FileText, Clock, ChevronDown } from "lucide-react"
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
+import { BOOK_LABEL } from "@/lib/site";
 
 const benefits = [
   {
@@ -168,7 +169,7 @@ function NoCostEmiPage() {
               We'll confirm your exact eligibility and tenure once your treatment is finalised.
             </p>
             <a href="/contact" className="mt-6 inline-block">
-              <OrangeButton>Book a Free Consultation</OrangeButton>
+              <OrangeButton>{BOOK_LABEL}</OrangeButton>
             </a>
           </Container>
         </section>

@@ -5,7 +5,7 @@ import { Footer } from "@/components/home/Footer";
 import { Container, Eyebrow, OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { ConsultForm } from "@/components/home/ConsultForm";
 import { DoctorCard } from "@/components/doctors/DoctorCard";
-import { Breadcrumbs, FaqList, InsuranceEmiBlock, MedicalDisclaimer, Section } from "@/components/care/Blocks";
+import { Breadcrumbs, ContentReviewNote, FaqList, InsuranceEmiBlock, MedicalDisclaimer, Section } from "@/components/care/Blocks";
 import {
   conditionsForTreatment,
   getSpeciality,
@@ -14,7 +14,7 @@ import {
   treatmentsForSpeciality,
 } from "@/data/catalog";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
-import { CITIES } from "@/lib/site";
+import { BOOK_LABEL, CITIES, CONSULT_PHRASE } from "@/lib/site";
 import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/treatments/$slug")({
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/treatments/$slug")({
     const spec = getSpeciality(t.speciality);
     return seo({
       title: `${t.name} — Procedure, Recovery & Best Surgeons`,
-      description: `${t.summary.split(". ")[0]}. Learn who needs it, how it's done, recovery time and insurance cover, and book a free consultation.`,
+      description: `${t.summary.split(". ")[0]}. Learn who needs it, how it's done, recovery time and insurance cover, and book ${CONSULT_PHRASE}.`,
       path: `/treatments/${t.slug}`,
       jsonLd: [
         {
@@ -91,8 +91,9 @@ function TreatmentPage() {
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">{t.name}</h1>
             {t.aka?.length ? <p className="mt-1 text-sm text-navy-foreground/60">Also known as: {t.aka.join(", ")}</p> : null}
             <p className="mt-3 max-w-3xl text-sm text-navy-foreground/80 sm:text-base">{t.summary}</p>
+            <ContentReviewNote reviewedBy={t.reviewedBy} />
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#book"><OrangeButton>Book Free Consultation</OrangeButton></a>
+              <a href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
               <a href={`/doctors?specialty=${spec.slug}`}><OutlineButton tone="light">Find a surgeon</OutlineButton></a>
             </div>
           </Container>
@@ -171,6 +172,10 @@ function TreatmentPage() {
                   title={`${spec.name} surgeons`}
                   action={<a href={`/doctors?specialty=${spec.slug}`}><OutlineButton className="px-3 py-2 text-xs">View all</OutlineButton></a>}
                 >
+                  <p className="-mt-2 mb-4 text-xs text-muted-foreground">
+                    Surgeons listed under {spec.name} in our directory — not every surgeon shown performs {t.name}.
+                    Ask our team to match you with one who does.
+                  </p>
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {doctors.map((d) => <DoctorCard key={d.id} doctor={d} />)}
                   </div>

@@ -5,6 +5,7 @@ import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
 import { SPECIALITIES, TREATMENTS } from "@/data/catalog";
 import { seo } from "@/lib/seo";
+import { BOOK_LABEL } from "@/lib/site";
 
 const specialities = SPECIALITIES.map((s) => ({ label: s.name, slug: s.slug }));
 const POPULAR = [
@@ -138,13 +139,13 @@ function CostIndexPage() {
           <Container>
             <Eyebrow tone="light">Want an exact number?</Eyebrow>
             <h2 className="mt-2 text-2xl font-bold sm:text-3xl">
-              Get a written quote for your case
+              Ask about costs for your case
             </h2>
             <p className="mt-3 text-sm text-navy-foreground/75">
-              Free consultation — no obligation to book.
+              Tell us your treatment and city — no obligation to book.
             </p>
             <a href="/contact" className="mt-6 inline-block">
-              <OrangeButton>Book a Free Consultation</OrangeButton>
+              <OrangeButton>{BOOK_LABEL}</OrangeButton>
             </a>
           </Container>
         </section>

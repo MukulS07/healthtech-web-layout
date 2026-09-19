@@ -24,7 +24,7 @@ import { getHospitalsFn } from "@/lib/server-functions/hospitals";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { getSiteStatsFn } from "@/lib/server-functions/site-stats";
 import { seo, faqLd, organizationLd } from "@/lib/seo";
-import { SITE } from "@/lib/site";
+import { CONSULT_PHRASE, SITE } from "@/lib/site";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
@@ -43,9 +43,9 @@ export const Route = createFileRoute("/")({
   },
   head: () =>
     seo({
-      title: `${SITE.name} — Find Surgeons, Treatments & Free Consultation`,
+      title: `${SITE.name} — Find Surgeons, Treatments & Specialists`,
       description:
-        "Find experienced surgeons near you, understand your treatment options, and get help with insurance and recovery. Book a free consultation with Go Surgery — no account needed.",
+        `Find experienced surgeons near you, understand your treatment options, and get help with insurance. Book ${CONSULT_PHRASE} with Go Surgery — no account needed.`,
       path: "/",
       jsonLd: [
         organizationLd,

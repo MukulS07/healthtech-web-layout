@@ -168,7 +168,7 @@ function ReviewsPage() {
       <main>
         <section className="bg-navy py-14">
           <Container>
-            <Eyebrow tone="light">Real reviews from real patients</Eyebrow>
+            <Eyebrow tone="light">Reviews in our directory</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
               Patient Reviews & Stories
             </h1>
@@ -186,7 +186,7 @@ function ReviewsPage() {
             <SectionHead
               eyebrow="What our patients say"
               title="Patient Reviews"
-              subtitle="Reviews left by patients for doctors in our directory. Very short reviews aren't shown here."
+              subtitle="Reviews held in our directory records for listed doctors. We're verifying where older reviews came from — any that fail our checks are held back, and very short reviews aren't shown."
               action={
                 <a href="/reviews/write">
                   <OrangeButton>Write a Review</OrangeButton>

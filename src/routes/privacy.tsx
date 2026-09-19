@@ -49,7 +49,7 @@ We do not share identifiable health data with any commercial third party without
 
 • All data transmissions are encrypted using TLS 1.2 or higher.
 • Personal and health data is stored in encrypted databases with restricted access controls.
-• Access to patient records is limited to care coordinators and clinical staff directly involved in your care.
+• Access to patient records is limited to Go Surgery staff and clinicians directly involved in your care.
 • We conduct regular security audits and penetration tests.
 
 No data transmission over the internet is 100% secure. While we use best-practice measures, we cannot guarantee absolute security of data transmitted to our website.`,

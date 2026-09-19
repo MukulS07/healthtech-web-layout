@@ -196,18 +196,31 @@ export const submitReviewFn = createServerFn({ method: "POST" })
     }
   });
 
-/** Admin: pending website reviews awaiting moderation. */
+/**
+ * Admin: pending website reviews awaiting moderation. Imported reviews held back by
+ * scripts/flag-reviews.ts are also "pending" but are only counted here, not listed — there are
+ * tens of thousands and they need a data decision, not one-by-one moderation.
+ */
 export const getPendingReviewsFn = createServerFn({ method: "GET" }).handler(async () => {
   const user = await getSessionUser();
-  if (!isAdmin(user)) return { success: false as const, reviews: [], error: "Unauthorized: Admin access required." };
+  if (!isAdmin(user)) return { success: false as const, reviews: [], flagged: [], error: "Unauthorized: Admin access required." };
   await connectToDatabase();
-  const docs = await Review.find({ status: "pending" })
-    .sort({ createdAt: -1 })
-    .limit(200)
-    .populate("doctorId", "firstName lastName slug")
-    .lean();
+  const [docs, flagged] = await Promise.all([
+    Review.find({ status: "pending", flagReason: { $exists: false } })
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .populate("doctorId", "firstName lastName slug")
+      .lean(),
+    Review.aggregate<{ _id: string; n: number }>([
+      { $match: { status: "pending", flagReason: { $exists: true } } },
+      { $unwind: "$flagReason" },
+      { $group: { _id: "$flagReason", n: { $sum: 1 } } },
+      { $sort: { n: -1 } },
+    ]),
+  ]);
   return {
     success: true as const,
+    flagged: flagged.map((f) => ({ reason: f._id, count: f.n })),
     reviews: docs.map((d) => {
       const doc = d.doctorId as unknown as PopulatedDoctorRef | null;
       return {
@@ -230,6 +243,7 @@ export const moderateReviewFn = createServerFn({ method: "POST" })
     if (!isAdmin(user)) return { success: false as const, error: "Unauthorized: Admin access required." };
     if (!["approved", "rejected"].includes(data.decision)) return { success: false as const, error: "Invalid decision." };
     await connectToDatabase();
-    await Review.updateOne({ _id: data.id, status: "pending" }, { status: data.decision });
+    // Only website submissions are moderated here; flagged imports are handled by the script.
+    await Review.updateOne({ _id: data.id, status: "pending", flagReason: { $exists: false } }, { status: data.decision });
     return { success: true as const };
   });

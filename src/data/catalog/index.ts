@@ -115,10 +115,10 @@ export function conditionFaqs(c: Condition): Faq[] {
 export const BOOKING_FAQS: Faq[] = [
   {
     q: "How do I book a consultation?",
-    a: "Fill in the short form on this page with your name, phone number, condition and city. A care coordinator will call you back to understand your needs and arrange a consultation — no account is needed.",
+    a: "Fill in the short form on this page with your name, phone number, condition and city. Our team will call you back to understand your needs and arrange a consultation — no account is needed.",
   },
   {
     q: "Does Go Surgery help with insurance and EMI?",
-    a: "Yes. Our team can check your policy for cashless eligibility and explain no-cost EMI options where available before you decide.",
+    a: "Our team can check your policy for cashless eligibility, and you can ask about EMI options — where available, eligibility and terms are set by the lender.",
   },
 ];

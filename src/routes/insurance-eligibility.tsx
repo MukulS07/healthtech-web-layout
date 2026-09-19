@@ -27,12 +27,12 @@ const howItWorks = [
   {
     icon: ShieldCheck,
     title: "We check your coverage",
-    desc: "Our insurance desk verifies cashless eligibility directly with your insurer.",
+    desc: "Our team checks your policy for cashless eligibility using the details you share.",
   },
   {
     icon: Clock3,
-    title: "Get a call within 30 minutes",
-    desc: "We confirm what's covered, what isn't, and any co-pay — in writing, before you commit.",
+    title: "Get a call back",
+    desc: "We explain what's likely to be covered, what isn't, and any co-pay, before you commit.",
   },
 ];
 
@@ -43,15 +43,15 @@ const faqs = [
   },
   {
     q: "What if my insurer isn't listed?",
-    a: "List it anyway using \"Something else\" in the form — our desk works with most major insurers, not just the ones shown here.",
+    a: "List it anyway using \"Something else\" in the form — we can look at policies from insurers not shown here.",
   },
   {
     q: "What if I'm not eligible for cashless treatment?",
-    a: "You can still get reimbursement claim support after treatment, or use No-Cost EMI to spread the cost instead.",
+    a: "You may still be able to claim reimbursement after treatment, or ask us about EMI options to spread the cost.",
   },
   {
     q: "Do I need my policy number right now?",
-    a: "No — it speeds things up if you have it, but our desk can look up your policy with just your name and insurer.",
+    a: "No — it helps if you have it, but you can submit the form with just your name and insurer.",
   },
 ];
 
@@ -223,8 +223,8 @@ function InsuranceEligibilityPage() {
               Check Your Insurance Eligibility
             </h1>
             <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-              Find out what your policy covers before you commit to anything — free, and usually
-              confirmed within 30 minutes.
+              Find out what your policy is likely to cover before you commit to anything — free, with
+              no obligation to book.
             </p>
           </Container>
         </section>
