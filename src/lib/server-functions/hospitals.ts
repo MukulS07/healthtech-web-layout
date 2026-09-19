@@ -4,6 +4,10 @@ import { connectToDatabase } from "@/lib/db";
 import { Hospital } from "@/models/Hospital";
 import { DoctorSchedule } from "@/models/DoctorSchedule";
 import { Review } from "@/models/Review";
+// Imported for its side effect (registering the "Doctor" model with Mongoose) — DoctorSchedule's
+// populate("doctor") below throws MissingSchemaError without it if this is the first code path in
+// the process to touch a doctor/hospital relationship (e.g. a cold Vercel function instance).
+import "@/models/Doctor";
 import { locationValuesFor } from "@/lib/city-aliases";
 import { usableImageUrl } from "@/lib/utils";
 

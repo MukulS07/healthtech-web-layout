@@ -1,6 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
 import { Review } from "@/models/Review";
+// Imported for its side effect (registering the "Doctor" model with Mongoose) — the
+// populate("doctorId") below throws MissingSchemaError without it if this is the first code path
+// in the process to touch a review/doctor relationship (e.g. a cold Vercel function instance).
+import "@/models/Doctor";
 
 const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 60;

@@ -172,45 +172,55 @@ function HospitalsPage() {
                       key={h.slug || h.id}
                       className="overflow-hidden rounded-lg border border-border bg-background shadow-sm transition-shadow hover:shadow-md"
                     >
-                      <div className="relative">
-                        <img
-                          src={img}
-                          alt={h.name}
-                          loading="lazy"
-                          width={900}
-                          height={600}
-                          className="h-44 w-full object-cover"
-                        />
-                        {h.rating && (
-                          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy">
-                            <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" />{" "}
-                            {h.rating}
-                          </span>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <h2 className="text-sm font-bold leading-snug text-navy">{h.name}</h2>
-                        <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                          <MapPin className="h-3 w-3" /> {h.city} · {h.beds} Beds
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {h.accreditations.map((a) => (
-                            <span
-                              key={a}
-                              className="rounded-full bg-brand-orange-soft px-2 py-0.5 text-[10px] font-semibold text-brand-orange-dark"
-                            >
-                              {a}
+                      <a href={h.slug ? `/hospitals/${h.slug}` : "/hospitals"}>
+                        <div className="relative">
+                          <img
+                            src={img}
+                            alt={h.name}
+                            loading="lazy"
+                            width={900}
+                            height={600}
+                            className="h-44 w-full object-cover"
+                          />
+                          {h.rating && (
+                            <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs font-bold text-navy">
+                              <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" />{" "}
+                              {h.rating}
                             </span>
-                          ))}
+                          )}
                         </div>
-                        <p className="mt-2 text-xs text-muted-foreground line-clamp-1">
-                          {h.specialties.join(" · ")}
-                        </p>
-                        <div className="mt-4 flex gap-2">
-                          <OutlineButton className="flex-1 px-2 py-2 text-xs">
-                            Get Directions
-                          </OutlineButton>
-                          <OrangeButton className="flex-1 px-2 py-2 text-xs">Book Now</OrangeButton>
+                        <div className="p-4 pb-0">
+                          <h2 className="text-sm font-bold leading-snug text-navy">{h.name}</h2>
+                          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3" /> {h.city} · {h.beds} Beds
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {h.accreditations.map((a) => (
+                              <span
+                                key={a}
+                                className="rounded-full bg-brand-orange-soft px-2 py-0.5 text-[10px] font-semibold text-brand-orange-dark"
+                              >
+                                {a}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="mt-2 text-xs text-muted-foreground line-clamp-1">
+                            {h.specialties.join(" · ")}
+                          </p>
+                        </div>
+                      </a>
+                      <div className="p-4">
+                        <div className="flex gap-2">
+                          <a href={h.slug ? `/hospitals/${h.slug}` : "/hospitals"} className="flex-1">
+                            <OutlineButton className="w-full justify-center px-2 py-2 text-xs">
+                              Get Directions
+                            </OutlineButton>
+                          </a>
+                          <a href="/contact" className="flex-1">
+                            <OrangeButton className="w-full justify-center px-2 py-2 text-xs">
+                              Book Now
+                            </OrangeButton>
+                          </a>
                         </div>
                       </div>
                     </article>

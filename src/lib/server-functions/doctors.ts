@@ -2,6 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
 import { Doctor } from "@/models/Doctor";
 import { DoctorSchedule } from "@/models/DoctorSchedule";
+// Imported for its side effect (registering the "Hospital" model with Mongoose) — DoctorSchedule's
+// populate("hospital") below throws MissingSchemaError without it if this is the first code path in
+// the process to touch a doctor/hospital relationship (e.g. a cold Vercel function instance that
+// hasn't already served a /hospitals or homepage request).
+import "@/models/Hospital";
 import { locationValuesFor } from "@/lib/city-aliases";
 import { usableImageUrl } from "@/lib/utils";
 
