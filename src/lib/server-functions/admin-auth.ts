@@ -2,33 +2,50 @@ import { createServerFn } from "@tanstack/react-start";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { generateTotpSecret, generateQrCodeDataUrl, verifyTotpToken } from "@/lib/totp";
-import { hashPassword, verifyPassword, createSession, toPublicUser } from "@/lib/auth";
+import {
+  clearFailedLogins,
+  createSession,
+  hashPassword,
+  loginLockMessage,
+  recordFailedLogin,
+  requireAdminUser,
+  toPublicUser,
+  verifyPassword,
+} from "@/lib/auth";
 
 /**
- * STEP 1 — Admin fills in name/email/password.
- * Creates the admin account (unverified 2FA), returns a QR code to scan.
- * The account cannot log in yet until the TOTP code is confirmed (step 2).
+ * STEP 1 — an EXISTING admin invites a new administrator (name/email/password).
+ * Public self-registration is deliberately impossible: the caller must already hold a
+ * 2FA-verified admin session. The very first admin is bootstrapped from the command line with
+ * `scripts/create-admin.ts`, never through the website.
+ * Returns a QR code for the new admin to scan; the account cannot log in until step 2 succeeds.
  */
 export const adminSignup = createServerFn({ method: "POST" })
   .validator((data: { name: string; email: string; password: string }) => data)
   .handler(async ({ data }) => {
+    await requireAdminUser();
     await connectDB();
 
-    const existing = await User.findOne({ email: data.email });
+    const email = String(data.email || "").trim().toLowerCase();
+    if (!data.name?.trim() || !email || !data.password || data.password.length < 12) {
+      throw new Error("Name, email and a password of at least 12 characters are required.");
+    }
+
+    const existing = await User.findOne({ email });
     if (existing) {
       throw new Error("An account with this email already exists.");
     }
 
     const passwordHash = await hashPassword(data.password);
-    const { secret, otpauthUrl } = generateTotpSecret(data.email);
+    const { secret, otpauthUrl } = generateTotpSecret(email);
 
     const admin = await User.create({
-      name: data.name,
-      email: data.email,
+      name: data.name.trim(),
+      email,
       passwordHash,
       role: "admin",
       totpSecret: secret,
-      totpEnabled: false, // stays false until confirmAdminTotp succeeds
+      totpEnabled: false, // stays false (and so not an admin — see isAdmin) until step 2
     });
 
     const qrCodeDataUrl = await generateQrCodeDataUrl(otpauthUrl);
@@ -41,8 +58,9 @@ export const adminSignup = createServerFn({ method: "POST" })
   });
 
 /**
- * STEP 2 — Admin scans the QR code in their authenticator app, then types
- * the 6-digit code it shows to confirm setup worked before we enable 2FA.
+ * STEP 2 — the new admin scans the QR code in their authenticator app and enters the 6-digit
+ * code to confirm setup. Does NOT log anyone in — the new admin signs in normally afterwards
+ * (so an inviting admin's own session is never swapped out).
  */
 export const confirmAdminTotp = createServerFn({ method: "POST" })
   .validator((data: { userId: string; token: string }) => data)
@@ -50,15 +68,11 @@ export const confirmAdminTotp = createServerFn({ method: "POST" })
     await connectDB();
 
     const admin = await User.findById(data.userId).select("+totpSecret");
-    if (!admin || admin.role !== "admin") {
-      throw new Error("Admin account not found.");
+    if (!admin || admin.role !== "admin" || admin.totpEnabled || !admin.totpSecret) {
+      throw new Error("This admin setup link is invalid or already completed.");
     }
 
-    if (!admin.totpSecret) {
-      throw new Error("TOTP secret is missing for this account.");
-    }
-
-    const isValid = verifyTotpToken(admin.totpSecret, data.token);
+    const isValid = verifyTotpToken(admin.totpSecret, String(data.token || "").trim());
     if (!isValid) {
       throw new Error("Incorrect code. Check your authenticator app and try again.");
     }
@@ -66,9 +80,7 @@ export const confirmAdminTotp = createServerFn({ method: "POST" })
     admin.totpEnabled = true;
     await admin.save();
 
-    await createSession(admin._id.toString());
-
-    return { success: true, user: toPublicUser(admin) };
+    return { success: true };
   });
 
 /**
@@ -79,46 +91,39 @@ export const adminLogin = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await connectDB();
 
-    const admin = await User.findOne({ email: data.email, role: "admin" }).select(
-      "+passwordHash +totpSecret"
-    );
+    const email = String(data.email || "").trim().toLowerCase();
+    const admin = await User.findOne({ email, role: "admin" }).select("+passwordHash +totpSecret");
     if (!admin) {
-      throw new Error("Invalid email or password.");
+      throw new Error("Invalid email, password or authenticator code.");
     }
+
+    const locked = loginLockMessage(admin);
+    if (locked) throw new Error(locked);
 
     const passwordOk = await verifyPassword(data.password, admin.passwordHash);
-    if (!passwordOk) {
-      throw new Error("Invalid email or password.");
+    const tokenOk =
+      Boolean(admin.totpEnabled && admin.totpSecret) &&
+      /^\d{6}$/.test(String(data.token || "").trim()) &&
+      verifyTotpToken(admin.totpSecret as string, String(data.token).trim());
+
+    if (!passwordOk || !tokenOk) {
+      await recordFailedLogin(admin);
+      throw new Error("Invalid email, password or authenticator code.");
     }
 
-    if (!admin.totpEnabled) {
-      throw new Error("Two-factor setup is incomplete for this account. Please complete 2FA setup at /admin/signup.");
-    }
-
-    if (!admin.totpSecret) {
-      throw new Error("TOTP secret is missing for this account.");
-    }
-
-    if (!data.token || data.token.trim().length !== 6) {
-      throw new Error("Please enter the 6-digit authenticator code from your 2FA app.");
-    }
-
-    const tokenOk = verifyTotpToken(admin.totpSecret, data.token.trim());
-    if (!tokenOk) {
-      throw new Error("Incorrect authenticator code. Check your TOTP app and try again.");
-    }
-
+    await clearFailedLogins(admin);
     await createSession(admin._id.toString());
 
     return { success: true, name: admin.name, user: toPublicUser(admin) };
   });
 
 /**
- * Helper to fetch all saved admin accounts and their 2FA status from the database.
+ * Lists admin accounts and their 2FA status. Admin-only.
  */
 export const getAdminAccountsFn = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdminUser();
   await connectDB();
-  const admins = await User.find({ role: "admin" }).select("+passwordHash +totpSecret").lean();
+  const admins = await User.find({ role: "admin" }).lean();
   return {
     success: true,
     count: admins.length,
@@ -128,7 +133,6 @@ export const getAdminAccountsFn = createServerFn({ method: "GET" }).handler(asyn
       email: a.email,
       role: a.role,
       totpEnabled: Boolean(a.totpEnabled),
-      hasTotpSecret: Boolean(a.totpSecret),
       createdAt: new Date(a.createdAt).toISOString(),
     })),
   };

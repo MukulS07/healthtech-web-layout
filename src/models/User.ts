@@ -8,6 +8,10 @@ export interface IUser extends Document {
   role: "patient" | "admin";
   totpSecret?: string | null;
   totpEnabled?: boolean;
+  failedLoginCount?: number;
+  lockedUntil?: Date | null;
+  passwordResetTokenHash?: string | null;
+  passwordResetExpiresAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,6 +25,10 @@ const UserSchema = new Schema<IUser>(
     role: { type: String, enum: ["patient", "admin"], default: "patient" },
     totpSecret: { type: String, default: null, select: false },
     totpEnabled: { type: Boolean, default: false },
+    failedLoginCount: { type: Number, default: 0 },
+    lockedUntil: { type: Date, default: null },
+    passwordResetTokenHash: { type: String, default: null, select: false },
+    passwordResetExpiresAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

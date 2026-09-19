@@ -3,7 +3,7 @@ import { connectToDatabase } from "@/lib/db";
 import { City } from "@/models/City";
 import { Doctor } from "@/models/Doctor";
 import { Hospital } from "@/models/Hospital";
-import { seedDatabaseFn } from "./seed";
+import { runSeed } from "./seed";
 import { locationValuesFor } from "@/lib/city-aliases";
 
 /**
@@ -22,7 +22,7 @@ export const getCitiesFn = createServerFn({ method: "GET" }).handler(async () =>
 
     // Idempotent — only inserts cities/hospitals/doctors/treatments that don't already exist
     // (see seed.ts), so this is safe to call every time rather than only when City is empty.
-    await seedDatabaseFn();
+    await runSeed();
 
     const cities = await City.find({ isActive: true }).sort({ name: 1 }).lean();
 

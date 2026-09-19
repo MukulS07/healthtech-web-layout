@@ -54,7 +54,10 @@ export function AdminSignup() {
   if (step === "details") {
     return (
       <form onSubmit={handleSignup} className="space-y-4">
-        <h2 className="text-lg font-semibold">Create admin account</h2>
+        <h2 className="text-lg font-semibold">Invite a new administrator</h2>
+        <p className="text-sm text-gray-600">
+          The new admin must be present to scan the authenticator QR code in the next step.
+        </p>
 
         <input
           type="text"
@@ -74,11 +77,11 @@ export function AdminSignup() {
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Password (12+ characters)"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           required
-          minLength={8}
+          minLength={12}
           className="w-full border rounded px-3 py-2"
         />
 
@@ -129,7 +132,7 @@ export function AdminSignup() {
     <div className="text-center space-y-2">
       <h2 className="text-lg font-semibold">You're all set</h2>
       <p className="text-sm text-gray-600">
-        Two-factor authentication is enabled. You can now log in with your password and authenticator code.
+        Two-factor authentication is enabled. The new admin can now sign in at /admin with their password and authenticator code.
       </p>
     </div>
   );

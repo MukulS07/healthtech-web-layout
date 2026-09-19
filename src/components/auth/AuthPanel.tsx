@@ -55,17 +55,11 @@ export function AuthPanel({
       if (res.success) {
         setUser(res.user);
         setPassword("");
-        if (res.user.role === "admin") {
-          toast.success("Welcome Admin! Directing to Admin Portal...");
-          onSuccess?.();
-          navigate({ to: "/admin" });
-        } else {
-          toast.success(
-            mode === "signup" ? `Welcome, ${res.user.name}!` : `Welcome back, ${res.user.name}!`,
-          );
-          onSuccess?.();
-          navigate({ to: "/account" });
-        }
+        toast.success(
+          mode === "signup" ? `Welcome, ${res.user.name}!` : `Welcome back, ${res.user.name}!`,
+        );
+        onSuccess?.();
+        navigate({ to: "/account" });
       } else {
         setError(res.error);
       }
@@ -121,6 +115,14 @@ export function AuthPanel({
               />
 
               {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
+              <div className="flex justify-end">
+                <a
+                  href={`/forgot-password${email ? `?email=${encodeURIComponent(email)}` : ""}`}
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Forgot password?
+                </a>
+              </div>
 
               <OrangeButton type="submit" disabled={isSubmitting} className="w-full">
                 {isSubmitting ? (

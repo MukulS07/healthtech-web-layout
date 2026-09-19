@@ -6,7 +6,6 @@ import {
   X,
   HeartPulse,
   UserRound,
-  ShieldCheck,
   Stethoscope,
   Building2,
 } from "lucide-react";
@@ -69,12 +68,6 @@ export function Header() {
               className="hidden items-center gap-1.5 text-sm font-semibold text-navy hover:text-brand-orange sm:flex transition-colors"
             >
               <UserRound className="h-4 w-4 text-brand-orange" /> My Appointments
-            </a>
-            <a
-              href="/admin"
-              className="hidden items-center gap-1 text-xs font-bold text-white bg-navy px-3 py-1.5 rounded-md hover:bg-primary transition-colors sm:flex"
-            >
-              <ShieldCheck className="h-3.5 w-3.5" /> Admin
             </a>
             <a
               href="tel:18000001234"
@@ -157,13 +150,6 @@ export function Header() {
                 className="flex items-center gap-2 rounded-lg bg-cream p-3 hover:bg-cream/80"
               >
                 <UserRound className="h-4 w-4 text-brand-orange" /> Appointments
-              </a>
-              <a
-                href="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 rounded-lg bg-navy text-white p-3 hover:bg-primary"
-              >
-                <ShieldCheck className="h-4 w-4" /> Admin Portal
               </a>
             </div>
 

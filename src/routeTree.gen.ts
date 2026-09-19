@@ -18,11 +18,13 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CostRouteImport } from './routes/cost'
 import { Route as DoctorOnboardingRouteImport } from './routes/doctor-onboarding'
 import { Route as FaqsRouteImport } from './routes/faqs'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as InsuranceEligibilityRouteImport } from './routes/insurance-eligibility'
 import { Route as NoCostEmiRouteImport } from './routes/no-cost-emi'
 import { Route as PatientHelpRouteImport } from './routes/patient-help'
 import { Route as PregnancyDueDateCalculatorRouteImport } from './routes/pregnancy-due-date-calculator'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -84,6 +86,11 @@ const FaqsRoute = FaqsRouteImport.update({
   path: '/faqs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InsuranceEligibilityRoute = InsuranceEligibilityRouteImport.update({
   id: '/insurance-eligibility',
   path: '/insurance-eligibility',
@@ -108,6 +115,11 @@ const PregnancyDueDateCalculatorRoute =
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReviewsRoute = ReviewsRouteImport.update({
@@ -196,11 +208,13 @@ export interface FileRoutesByFullPath {
   '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/faqs': typeof FaqsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/insurance-eligibility': typeof InsuranceEligibilityRoute
   '/no-cost-emi': typeof NoCostEmiRoute
   '/patient-help': typeof PatientHelpRoute
   '/pregnancy-due-date-calculator': typeof PregnancyDueDateCalculatorRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
   '/admin/signup': typeof AdminSignupRoute
@@ -227,11 +241,13 @@ export interface FileRoutesByTo {
   '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/faqs': typeof FaqsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/insurance-eligibility': typeof InsuranceEligibilityRoute
   '/no-cost-emi': typeof NoCostEmiRoute
   '/patient-help': typeof PatientHelpRoute
   '/pregnancy-due-date-calculator': typeof PregnancyDueDateCalculatorRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
   '/admin/signup': typeof AdminSignupRoute
@@ -259,11 +275,13 @@ export interface FileRoutesById {
   '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/faqs': typeof FaqsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/insurance-eligibility': typeof InsuranceEligibilityRoute
   '/no-cost-emi': typeof NoCostEmiRoute
   '/patient-help': typeof PatientHelpRoute
   '/pregnancy-due-date-calculator': typeof PregnancyDueDateCalculatorRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/terms': typeof TermsRoute
   '/admin/signup': typeof AdminSignupRoute
@@ -292,11 +310,13 @@ export interface FileRouteTypes {
     | '/cost'
     | '/doctor-onboarding'
     | '/faqs'
+    | '/forgot-password'
     | '/insurance-eligibility'
     | '/no-cost-emi'
     | '/patient-help'
     | '/pregnancy-due-date-calculator'
     | '/privacy'
+    | '/reset-password'
     | '/reviews'
     | '/terms'
     | '/admin/signup'
@@ -323,11 +343,13 @@ export interface FileRouteTypes {
     | '/cost'
     | '/doctor-onboarding'
     | '/faqs'
+    | '/forgot-password'
     | '/insurance-eligibility'
     | '/no-cost-emi'
     | '/patient-help'
     | '/pregnancy-due-date-calculator'
     | '/privacy'
+    | '/reset-password'
     | '/reviews'
     | '/terms'
     | '/admin/signup'
@@ -354,11 +376,13 @@ export interface FileRouteTypes {
     | '/cost'
     | '/doctor-onboarding'
     | '/faqs'
+    | '/forgot-password'
     | '/insurance-eligibility'
     | '/no-cost-emi'
     | '/patient-help'
     | '/pregnancy-due-date-calculator'
     | '/privacy'
+    | '/reset-password'
     | '/reviews'
     | '/terms'
     | '/admin/signup'
@@ -386,11 +410,13 @@ export interface RootRouteChildren {
   CostRoute: typeof CostRoute
   DoctorOnboardingRoute: typeof DoctorOnboardingRoute
   FaqsRoute: typeof FaqsRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   InsuranceEligibilityRoute: typeof InsuranceEligibilityRoute
   NoCostEmiRoute: typeof NoCostEmiRoute
   PatientHelpRoute: typeof PatientHelpRoute
   PregnancyDueDateCalculatorRoute: typeof PregnancyDueDateCalculatorRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ReviewsRoute: typeof ReviewsRoute
   TermsRoute: typeof TermsRoute
   AdminSignupRoute: typeof AdminSignupRoute
@@ -473,6 +499,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/insurance-eligibility': {
       id: '/insurance-eligibility'
       path: '/insurance-eligibility'
@@ -506,6 +539,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reviews': {
@@ -626,11 +666,13 @@ const rootRouteChildren: RootRouteChildren = {
   CostRoute: CostRoute,
   DoctorOnboardingRoute: DoctorOnboardingRoute,
   FaqsRoute: FaqsRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   InsuranceEligibilityRoute: InsuranceEligibilityRoute,
   NoCostEmiRoute: NoCostEmiRoute,
   PatientHelpRoute: PatientHelpRoute,
   PregnancyDueDateCalculatorRoute: PregnancyDueDateCalculatorRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ReviewsRoute: ReviewsRoute,
   TermsRoute: TermsRoute,
   AdminSignupRoute: AdminSignupRoute,

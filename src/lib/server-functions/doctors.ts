@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
+import { requireAdminUser } from "@/lib/auth";
 import { Doctor } from "@/models/Doctor";
 import { DoctorSchedule } from "@/models/DoctorSchedule";
 // Imported for its side effect (registering the "Hospital" model with Mongoose) — DoctorSchedule's
@@ -209,6 +210,7 @@ export const createDoctorFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as CreateDoctorInput)
   .handler(async ({ data }) => {
     try {
+      await requireAdminUser();
       await connectToDatabase();
       const base = `${data.firstName} ${data.lastName}`
         .toLowerCase()
@@ -235,6 +237,7 @@ export const updateDoctorFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as UpdateDoctorInput)
   .handler(async ({ data }) => {
     try {
+      await requireAdminUser();
       await connectToDatabase();
       const { id, ...updates } = data;
       const updated = await Doctor.findByIdAndUpdate(id, updates, { new: true });
@@ -251,6 +254,7 @@ export const deleteDoctorFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as { id: string })
   .handler(async ({ data }) => {
     try {
+      await requireAdminUser();
       await connectToDatabase();
       await Doctor.findByIdAndDelete(data.id);
       return { success: true as const, message: "Doctor deleted successfully." };

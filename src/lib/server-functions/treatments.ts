@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, isAdmin, requireAdminUser } from "@/lib/auth";
 import { Treatment } from "@/models/Treatment";
-import { seedDatabaseFn } from "./seed";
+import { runSeed } from "./seed";
 import surgeryCatalog from "@/data/surgery-catalog.json";
 
 export interface GetTreatmentsParams {
@@ -22,7 +22,7 @@ export const getTreatmentsFn = createServerFn({ method: "GET" })
       // Ensure DB has seed data if empty
       const treatmentCount = await Treatment.countDocuments();
       if (treatmentCount === 0) {
-        await seedDatabaseFn();
+        await runSeed();
       }
       await ensureFullCatalog();
 
@@ -74,7 +74,7 @@ export const getTreatmentCategoriesFn = createServerFn({ method: "GET" }).handle
 
     const treatmentCount = await Treatment.countDocuments();
     if (treatmentCount === 0) {
-      await seedDatabaseFn();
+      await runSeed();
     }
     await ensureFullCatalog();
 
@@ -105,6 +105,7 @@ export const createTreatmentFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as CreateTreatmentInput)
   .handler(async ({ data }) => {
     try {
+      await requireAdminUser();
       await connectToDatabase();
       const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
 
@@ -128,6 +129,7 @@ export const updateTreatmentFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as UpdateTreatmentInput)
   .handler(async ({ data }) => {
     try {
+      await requireAdminUser();
       await connectToDatabase();
       const { id, ...updates } = data;
       const updated = await Treatment.findByIdAndUpdate(id, updates, { new: true });
@@ -144,6 +146,7 @@ export const deleteTreatmentFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as { id: string })
   .handler(async ({ data }) => {
     try {
+      await requireAdminUser();
       await connectToDatabase();
       await Treatment.findByIdAndDelete(data.id);
       return { success: true as const, message: "Treatment deleted successfully." };
@@ -234,7 +237,7 @@ async function ensureFullCatalog() {
 export const importSurgeryCatalogFn = createServerFn({ method: "POST" }).handler(async () => {
   try {
     const user = await getSessionUser();
-    if (!user || user.role !== "admin") {
+    if (!isAdmin(user)) {
       return { success: false as const, error: "Unauthorized: Admin access required." };
     }
 

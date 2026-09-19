@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/db";
+import { requireAdminUser } from "@/lib/auth";
 import { Hospital } from "@/models/Hospital";
 import { DoctorSchedule } from "@/models/DoctorSchedule";
 import { Review } from "@/models/Review";
@@ -243,6 +244,7 @@ export const createHospitalFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as CreateHospitalInput)
   .handler(async ({ data }) => {
     try {
+      await requireAdminUser();
       await connectToDatabase();
       const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
 
@@ -266,6 +268,7 @@ export const updateHospitalFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as UpdateHospitalInput)
   .handler(async ({ data }) => {
     try {
+      await requireAdminUser();
       await connectToDatabase();
       const { id, ...updates } = data;
       const updated = await Hospital.findByIdAndUpdate(id, updates, { new: true });
@@ -282,6 +285,7 @@ export const deleteHospitalFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => data as { id: string })
   .handler(async ({ data }) => {
     try {
+      await requireAdminUser();
       await connectToDatabase();
       await Hospital.findByIdAndDelete(data.id);
       return { success: true as const, message: "Hospital deleted successfully." };

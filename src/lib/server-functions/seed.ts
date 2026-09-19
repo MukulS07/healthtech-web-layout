@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
+import { requireAdminUser } from "@/lib/auth";
 import { Doctor } from "@/models/Doctor";
 import { Hospital } from "@/models/Hospital";
 import { Treatment } from "@/models/Treatment";
@@ -232,7 +233,7 @@ const initialTreatments = [
  * set above — not every sample doctor has a matching sample hospital/treatment, which is fine
  * for seed/demo data).
  */
-export const seedDatabaseFn = createServerFn({ method: "POST" }).handler(async () => {
+export async function runSeed() {
   try {
     await connectToDatabase();
 
@@ -306,4 +307,10 @@ export const seedDatabaseFn = createServerFn({ method: "POST" }).handler(async (
       message: "Failed to seed database.",
     };
   }
+}
+
+/** Admin-only manual trigger. Internal callers use runSeed() directly. */
+export const seedDatabaseFn = createServerFn({ method: "POST" }).handler(async () => {
+  await requireAdminUser();
+  return runSeed();
 });

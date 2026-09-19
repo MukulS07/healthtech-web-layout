@@ -57,6 +57,7 @@ export const Route = createFileRoute("/admin/")({
     meta: [
       { title: "Admin Portal | Go Surgery" },
       { name: "description", content: "Go Surgery Admin Management Dashboard" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: AdminRoute,
@@ -493,10 +494,7 @@ export function AdminRoute() {
             <AdminLogin />
           </div>
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Need to register a new administrator account?{" "}
-            <Link to="/admin/signup" className="font-semibold text-primary underline">
-              Create Admin with 2FA
-            </Link>
+            Administrator accounts are invite-only. Ask an existing admin to add you.
           </p>
         </Container>
       </main>
@@ -533,10 +531,16 @@ export function AdminRoute() {
               <h1 className="text-2xl font-extrabold text-navy">Admin Control Panel</h1>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              Logged in as <strong className="text-navy">{user.name}</strong> ({user.email}) • MongoDB database: <code className="rounded bg-muted px-1 py-0.5 text-xs">test</code>
+              Logged in as <strong className="text-navy">{user.name}</strong> ({user.email})
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              to="/admin/signup"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-2 text-xs font-semibold text-navy hover:bg-muted transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" /> Invite Admin
+            </Link>
             <OutlineButton onClick={loadAllData} disabled={isFetching} className="py-2 text-xs">
               <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} /> Refresh All Data
             </OutlineButton>

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, isAdmin } from "@/lib/auth";
 import { Consultation, type IConsultation } from "@/models/Consultation";
 import { Treatment } from "@/models/Treatment";
 import { Doctor } from "@/models/Doctor";
@@ -151,7 +151,7 @@ export const getMyConsultationsFn = createServerFn({ method: "GET" }).handler(as
 export const getAllConsultationsFn = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const user = await getSessionUser();
-    if (!user || user.role !== "admin") {
+    if (!isAdmin(user)) {
       return { success: false as const, error: "Unauthorized: Admin access required." };
     }
 
@@ -213,7 +213,7 @@ export const updateConsultationStatusFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const user = await getSessionUser();
-      if (!user || user.role !== "admin") {
+      if (!isAdmin(user)) {
         return { success: false as const, error: "Unauthorized: Admin access required." };
       }
 
@@ -252,7 +252,7 @@ export const assignConsultationFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const user = await getSessionUser();
-      if (!user || user.role !== "admin") {
+      if (!isAdmin(user)) {
         return { success: false as const, error: "Unauthorized: Admin access required." };
       }
 
@@ -296,7 +296,7 @@ export const deleteConsultationFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const user = await getSessionUser();
-      if (!user || user.role !== "admin") {
+      if (!isAdmin(user)) {
         return { success: false as const, error: "Unauthorized: Admin access required." };
       }
 
@@ -325,7 +325,7 @@ export const claimConsultationFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const user = await getSessionUser();
-      if (!user || user.role !== "admin") {
+      if (!isAdmin(user)) {
         return { success: false as const, error: "Unauthorized: Admin access required." };
       }
 
@@ -367,7 +367,7 @@ export const releaseConsultationFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const user = await getSessionUser();
-      if (!user || user.role !== "admin") {
+      if (!isAdmin(user)) {
         return { success: false as const, error: "Unauthorized: Admin access required." };
       }
 
