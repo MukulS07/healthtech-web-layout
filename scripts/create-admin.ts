@@ -4,7 +4,9 @@
  *
  *   MONGODB_URI="mongodb+srv://..." npx tsx scripts/create-admin.ts "Full Name" admin@example.com
  *
- * Prompts for nothing: generates a strong random password and a TOTP secret, prints both once,
+ * Prompts for nothing: generates a strong random password (or uses ADMIN_PASSWORD from the
+ * environment, min. 12 characters — env rather than an argument so it stays out of shell history)
+ * and a TOTP secret, prints both once,
  * plus an otpauth:// URL to paste into an authenticator app (or turn into a QR code). Also works
  * to re-secure an EXISTING account with that email (e.g. a legacy admin with no 2FA): it resets
  * its password + TOTP and signs it out everywhere.
@@ -26,7 +28,12 @@ async function main() {
   const email = rawEmail.trim().toLowerCase();
   await mongoose.connect(uri);
 
-  const password = randomBytes(12).toString("base64url");
+  const chosen = process.env["ADMIN_PASSWORD"];
+  if (chosen !== undefined && chosen.length < 12) {
+    console.error("ADMIN_PASSWORD must be at least 12 characters.");
+    process.exit(1);
+  }
+  const password = chosen || randomBytes(12).toString("base64url");
   const { secret, otpauthUrl } = generateTotpSecret(email);
   const passwordHash = await hashPassword(password);
 
@@ -46,7 +53,7 @@ async function main() {
   }
 
   console.log(`\nAdmin ready: ${email}`);
-  console.log(`Password (shown once — store it in a password manager): ${password}`);
+  console.log(chosen ? "Password: the one you set in ADMIN_PASSWORD" : `Password (shown once — store it in a password manager): ${password}`);
   console.log(`Authenticator setup URL: ${otpauthUrl}`);
   console.log(`Manual TOTP key: ${secret}\n`);
   await mongoose.disconnect();
