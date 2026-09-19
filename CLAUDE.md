@@ -583,6 +583,67 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
       so testing locally without restarting the server is not sufficient verification for anything
       using `populate()`.
 
+- [x] **2026-09-19 — security: admin backdoors closed (commit `dcadc0e`, pushed).** `loginFn` and the
+      (unused) `adminLoginFn` auto-created/promoted an admin for hardcoded credentials
+      (`mukul@test.com` / `1234567890`) and "admin keys" (`admin123`, `healthtech_admin`) — anyone
+      could read every patient booking. Removed. An account now only counts as admin when
+      `role: "admin"` **and** `totpEnabled` (`isAdmin()` in `src/lib/auth.ts`) — this also revokes any
+      backdoor-created admin and its live sessions without a DB migration. Every create/update/delete
+      server function for doctors/hospitals/treatments, the seed trigger and `getAdminAccountsFn` had
+      **no auth check** — all now `requireAdminUser()`. Admin signup is invite-only (existing admin
+      required); the first admin is bootstrapped with `scripts/create-admin.ts` (also re-secures an
+      existing email). Patient login refuses admin accounts; 5 failed logins → 15-min lockout on both
+      logins. Forgot/reset password added (`/forgot-password`, `/reset-password`, 1-hour hashed token,
+      signs out all sessions) — **email delivery needs `RESEND_API_KEY` + `EMAIL_FROM` env vars**;
+      without them the link is only logged server-side.
+      **Still to do on the real databases (can't be done from code):** delete or re-secure the
+      `mukul@test.com` user and any other `role: "admin"` user without 2FA, then create real admins
+      with `scripts/create-admin.ts`.
+
+- [x] **2026-09-19 — improvement plan implemented (commit `61a022e`, NOT yet pushed at time of
+      writing — pending a local smoke test).** Source: user's `improvement.md` audit +
+      `gosurgery implementation.docx`. This entry supersedes the per-route "STATIC placeholder" notes
+      in the Sitemap section above for `/specialities/*`, `/treatments/*`, `/blog/*`, `/locations/*`.
+      - **Curated catalog** (`src/data/catalog/`): 21 surgical specialities, 64 conditions, 123
+        treatments — original general-education content, **no prices/success rates/patient counts**.
+        Each speciality has a `doctorMatch` regex against `Doctor.specialization`; the union
+        (`SURGICAL_DOCTOR_MATCH`) is the **surgical whitelist** applied to every public doctor listing
+        (drops dentists, vets, physicians, dietitians; `NON_PERSON_NAME_PATTERN` drops clinic/hospital
+        rows). Note `Doctor.isSurgeon` is unreliable (10k dentists flagged true) — don't use it.
+      - **Routes:** `/specialities` (index), `/specialities/$slug` (rich page), new city×speciality
+        `/specialities/$slug/$city` (file `$slug_.$city.tsx`, noindexed when a city has no doctors
+        and no hospitals), `/treatments` + `/treatments/$slug`, new `/conditions` +
+        `/conditions/$slug`, `/reviews/write`, `/editorial-policy`, `/sitemap.xml` (+ pages/doctors/
+        hospitals children) and dynamic `/robots.txt` (`public/robots.txt` deleted). Unknown slugs →
+        real 404 (`notFound()`); legacy slugs (`piles-surgery`, `orthopedics`...) → 301.
+      - **Lead capture:** `ConsultForm` no longer requires login (name, +91 mobile, catalog
+        interest `t:/c:/s:<slug>`, city, consent). `Consultation.treatmentId` is now optional; new
+        fields `interest`, `preferredDate`, `doctorName`, `sourcePage`, `consentAt`. `/contact` was
+        broken for everyone before this (sent no `treatmentId`, server always rejected it).
+      - **Honesty:** copied stats (2M+/800+/45+/400+/4.8), the invented company timeline and
+        unverified ops claims removed; replaced by real directory counts (`getSiteStatsFn`) labelled
+        "in our directory". Operational promises live in `SERVICE_PROMISES` in `src/lib/site.ts` —
+        free cab / free follow-up / 24×7 / no hidden charges are **`enabled: false` until the user
+        confirms they're delivered**. Contact numbers are centralised in `SITE` — **still the
+        placeholders (1800 000 1234, +91 98765 43210)**. Registered-office street address removed
+        from legal pages; the entity name "Go Surgery Health Pvt. Ltd." is still shown — unconfirmed.
+      - **Data display:** `src/lib/doctor-format.ts` normalises names/qualifications/experience at
+        read time; ratings hidden unless real; initials avatars replace rotating stock photos;
+        `/doctors` + `/hospitals` have URL-based filters with real counts (cached facets) and
+        crawlable `?page=`. Reviews: `<40`-char comments hidden on public walls; submitted reviews
+        are `status: "pending"` until approved in the new admin "Review moderation" tab.
+      - **City pages** no longer read the `City` collection (that's why `/locations/delhi-ncr` 404'd
+        in production) and no longer call the seeder (which could write sample data into prod).
+      - **Blog:** 12 original articles in `src/data/blog.ts`, byline "Go Surgery Editorial Team"
+        (fake doctor bylines removed), "pending medical review" shown until a real clinician is named.
+      - **SEO:** `seo()` helper (`src/lib/seo.ts`) — unique title/description, canonical, OG/Twitter
+        with `public/og-default.png`, JSON-LD per page type. Set `VITE_SITE_URL` when the real domain
+        exists (canonical/sitemap default to the vercel.app URL). Security headers in `vercel.json`.
+      - **Not done (need the user or a bigger decision):** real phone/WhatsApp numbers; which
+        service promises to enable; OTP verification (needs an SMS provider); per-city cost tables
+        (no real price data); Hindi/hreflang; videos; doctor comparison view; clinic-level pages;
+        moving off `*.vercel.app`; migrating the `reviews` collection to any Atlas DB that lacks it.
+
 ---
 
 ## Superseded original plan (historical record only — do not follow)
