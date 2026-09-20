@@ -7,6 +7,7 @@ import { Treatment } from "@/models/Treatment";
 import { Doctor } from "@/models/Doctor";
 import { getCondition, getSpeciality, getTreatment } from "@/data/catalog";
 import { CALLBACK_PHRASE, CALLER, cap } from "@/lib/site";
+import { formatDoctorName } from "@/lib/doctor-format";
 
 /**
  * Enforces the claim lock: once a booking is claimed, only that admin may act on it
@@ -48,6 +49,15 @@ export interface SubmitConsultationInput {
 function normaliseIndianMobile(raw: string): string | null {
   const digits = String(raw || "").replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
   return /^[6-9]\d{9}$/.test(digits) ? digits : null;
+}
+
+/** Doctor fields populated onto a consultation (real schema: firstName/lastName/...). */
+interface PopulatedDoctor {
+  _id: unknown;
+  firstName?: string;
+  lastName?: string;
+  specialization?: string;
+  location?: string;
 }
 
 /** Resolves a catalog reference to the display name + category snapshot stored on the lead. */
@@ -159,16 +169,14 @@ export const getMyConsultationsFn = createServerFn({ method: "GET" }).handler(as
 
     const docs = await Consultation.find({ userId: user._id })
       .sort({ createdAt: -1 })
-      .populate("assignedDoctorId", "name specialty")
+      .populate("assignedDoctorId", "firstName lastName specialization location")
       .lean();
 
     return {
       success: true as const,
       authenticated: true,
       consultations: docs.map((doc) => {
-        const assignedDoctor = doc.assignedDoctorId as unknown as
-          | { name: string; specialty: string }
-          | undefined;
+        const assignedDoctor = doc.assignedDoctorId as unknown as PopulatedDoctor | undefined;
         return {
           id: String(doc._id),
           treatment: doc.treatment,
@@ -176,7 +184,7 @@ export const getMyConsultationsFn = createServerFn({ method: "GET" }).handler(as
           city: doc.city,
           message: doc.message || "",
           status: doc.status,
-          assignedDoctorName: assignedDoctor?.name || null,
+          assignedDoctorName: assignedDoctor ? formatDoctorName(assignedDoctor.firstName, assignedDoctor.lastName) : null,
           scheduledDate: doc.scheduledDate || null,
           scheduledTime: doc.scheduledTime || null,
           createdAt: new Date(doc.createdAt).toISOString(),
@@ -208,7 +216,7 @@ export const getAllConsultationsFn = createServerFn({ method: "GET" }).handler(a
     await connectToDatabase();
     const docs = await Consultation.find()
       .sort({ createdAt: -1 })
-      .populate("assignedDoctorId", "name specialty city")
+      .populate("assignedDoctorId", "firstName lastName specialization location")
       .populate("claimedByAdminId", "name email")
       .lean();
 
@@ -216,9 +224,7 @@ export const getAllConsultationsFn = createServerFn({ method: "GET" }).handler(a
       success: true as const,
       currentAdminId: String(user._id),
       consultations: docs.map((doc) => {
-        const assignedDoctor = doc.assignedDoctorId as unknown as
-          | { _id: unknown; name: string; specialty: string; city: string }
-          | undefined;
+        const assignedDoctor = doc.assignedDoctorId as unknown as PopulatedDoctor | undefined;
         const claimedBy = doc.claimedByAdminId as unknown as
           | { _id: unknown; name: string; email: string }
           | undefined;
@@ -229,11 +235,14 @@ export const getAllConsultationsFn = createServerFn({ method: "GET" }).handler(a
           email: doc.email || "",
           treatment: doc.treatment,
           category: doc.category,
+          // Catalog reference ("t:"/"c:"/"s:<slug>") — lets the assign panel look up surgeons in
+          // the right speciality instead of listing whichever doctors happened to load first.
+          interest: doc.interest || "",
           city: doc.city,
           message: doc.message || "",
           status: doc.status,
           assignedDoctorId: assignedDoctor ? String(assignedDoctor._id) : null,
-          assignedDoctorName: assignedDoctor?.name || null,
+          assignedDoctorName: assignedDoctor ? formatDoctorName(assignedDoctor.firstName, assignedDoctor.lastName) : null,
           scheduledDate: doc.scheduledDate || null,
           scheduledTime: doc.scheduledTime || null,
           claimedByAdminId: claimedBy ? String(claimedBy._id) : null,

@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { Container, OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { AdminLogin } from "@/components/auth/AdminLogin";
 import { ReviewModeration } from "@/components/admin/ReviewModeration";
+import { SPECIALITIES, getCondition, getSpeciality, getTreatment } from "@/data/catalog";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { logoutFn, getRegisteredUsersFn } from "@/lib/server-functions/auth";
 import {
@@ -38,6 +39,7 @@ import {
   createDoctorFn,
   updateDoctorFn,
   deleteDoctorFn,
+  type GetDoctorsParams,
 } from "@/lib/server-functions/doctors";
 import {
   getHospitalsFn,
@@ -117,9 +119,24 @@ export function AdminRoute() {
 
   // Treatment form fields
   const [treatName, setTreatName] = useState("");
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [candidatesLoading, setCandidatesLoading] = useState(false);
+  const [candidateSearch, setCandidateSearch] = useState("");
+  const [candidateScope, setCandidateScope] = useState("");
   const [treatCategory, setTreatCategory] = useState("General Surgery");
   const [treatDesc, setTreatDesc] = useState("");
   const [treatRecovery, setTreatRecovery] = useState("1-2 Days");
+
+  /** Speciality slug for a booking: from its catalog reference, else from the category name. */
+  const specialityForBooking = (item: { interest?: string; category?: string }) => {
+    const ref = item.interest || "";
+    if (ref.startsWith("s:")) return getSpeciality(ref.slice(2))?.slug;
+    if (ref.startsWith("t:")) return getTreatment(ref.slice(2))?.speciality;
+    if (ref.startsWith("c:")) return getCondition(ref.slice(2))?.speciality;
+    const category = (item.category || "").toLowerCase();
+    return SPECIALITIES.find((sp) => sp.name.toLowerCase() === category)?.slug
+      ?? SPECIALITIES.find((sp) => category.includes(sp.name.toLowerCase()))?.slug;
+  };
 
   const loadAllData = async () => {
     setIsFetching(true);
@@ -220,13 +237,54 @@ export function AdminRoute() {
     }
   };
 
-  // Open/close the assign-doctor panel for a booking, sorting doctors so ones whose
-  // specialty roughly matches the booking's surgery category show up first.
+  /**
+   * Candidates for the assign-doctor dropdown. It used to list the first 24 doctors the dashboard
+   * happened to load (out of 227k — hence dentists and physiotherapists in Pune for a liver
+   * transplant in Jaipur). Now it asks the database for surgeons in the booking's speciality and
+   * city, widening the search only when that finds nobody.
+   */
+  const loadAssignCandidates = async (item: any, search = "") => {
+    setCandidateSearch(search);
+    setCandidatesLoading(true);
+    const specialitySlug = specialityForBooking(item);
+    const base: GetDoctorsParams = {
+      ...(specialitySlug ? { specialty: specialitySlug } : {}),
+      ...(search.trim() ? { query: search.trim() } : {}),
+      limit: 50,
+      sort: "Rating: High to Low",
+    };
+    try {
+      const attempts: { params: GetDoctorsParams; scope: string }[] = [
+        { params: { ...base, city: item.city }, scope: `${specialitySlug ? "speciality" : "all specialities"} · ${item.city}` },
+        { params: base, scope: specialitySlug ? "speciality · all cities" : "all cities" },
+        { params: { ...(search.trim() ? { query: search.trim() } : {}), city: item.city, limit: 50 }, scope: `all specialities · ${item.city}` },
+      ];
+      for (const attempt of attempts) {
+        const res = await getDoctorsFn({ data: attempt.params });
+        if (res.success && res.doctors.length) {
+          setCandidates(res.doctors);
+          setCandidateScope(`${res.total.toLocaleString("en-IN")} found — ${attempt.scope}`);
+          return;
+        }
+      }
+      setCandidates([]);
+      setCandidateScope("No surgeons matched — try searching by name");
+    } catch {
+      setCandidates([]);
+      setCandidateScope("Could not load doctors");
+    } finally {
+      setCandidatesLoading(false);
+    }
+  };
+
   const openAssignPanel = (item: any) => {
     setAssigningId(item.id);
     setAssignDoctorId(item.assignedDoctorId || "");
     setAssignDate(item.scheduledDate || "");
     setAssignTime(item.scheduledTime || "");
+    setCandidates([]);
+    setCandidateScope("");
+    void loadAssignCandidates(item);
   };
 
   const closeAssignPanel = () => {
@@ -234,19 +292,9 @@ export function AdminRoute() {
     setAssignDoctorId("");
     setAssignDate("");
     setAssignTime("");
-  };
-
-  const doctorsForAssignment = (category: string) => {
-    const categoryWords = category.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-    const matches = (specialty: string) => {
-      const s = specialty.toLowerCase();
-      return categoryWords.some((w) => w.length > 3 && (s.includes(w) || w.includes(s)));
-    };
-    return [...doctors].sort((a, b) => {
-      const aMatch = matches(a.specialty) ? 0 : 1;
-      const bMatch = matches(b.specialty) ? 0 : 1;
-      return aMatch - bMatch || a.name.localeCompare(b.name);
-    });
+    setCandidates([]);
+    setCandidateSearch("");
+    setCandidateScope("");
   };
 
   const handleConfirmAssign = async () => {
@@ -261,7 +309,7 @@ export function AdminRoute() {
       });
       if (res.success) {
         toast.success(res.message || "Booking scheduled!");
-        const doctor = doctors.find((d) => d.id === assignDoctorId);
+        const doctor = candidates.find((d) => d.id === assignDoctorId);
         setConsultations((prev) =>
           prev.map((item) =>
             item.id === assigningId
@@ -847,22 +895,42 @@ export function AdminRoute() {
                             <div className="flex flex-wrap items-end gap-3">
                               <div>
                                 <label className="mb-1 block text-[11px] font-semibold text-navy">
-                                  Doctor ({item.category})
+                                  Doctor — {item.treatment} in {item.city}
                                 </label>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <input
+                                    type="search"
+                                    value={candidateSearch}
+                                    placeholder="Search by name..."
+                                    onChange={(e) => setCandidateSearch(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && loadAssignCandidates(item, candidateSearch)}
+                                    className="rounded-md border border-border bg-white px-3 py-1.5 text-xs outline-none focus:border-primary"
+                                  />
+                                  <OutlineButton
+                                    type="button"
+                                    onClick={() => loadAssignCandidates(item, candidateSearch)}
+                                    className="py-1.5 px-3 text-xs"
+                                  >
+                                    Search
+                                  </OutlineButton>
+                                </div>
                                 <select
                                   value={assignDoctorId}
                                   onChange={(e) => setAssignDoctorId(e.target.value)}
-                                  className="rounded-md border border-border bg-white px-3 py-1.5 text-xs outline-none focus:border-primary min-w-[220px]"
+                                  disabled={candidatesLoading}
+                                  className="mt-2 rounded-md border border-border bg-white px-3 py-1.5 text-xs outline-none focus:border-primary min-w-[260px]"
                                 >
                                   <option value="" disabled>
-                                    Select doctor
+                                    {candidatesLoading ? "Loading doctors..." : "Select doctor"}
                                   </option>
-                                  {doctorsForAssignment(item.category).map((d) => (
+                                  {candidates.map((d) => (
                                     <option key={d.id} value={d.id}>
-                                      {d.name} — {d.specialty} ({d.city})
+                                      {d.name} — {d.specialty}
+                                      {d.exp ? `, ${d.exp} yrs` : ""} ({d.city})
                                     </option>
                                   ))}
                                 </select>
+                                <p className="mt-1 text-[11px] text-muted-foreground">{candidateScope}</p>
                               </div>
                               <div>
                                 <label className="mb-1 block text-[11px] font-semibold text-navy">
