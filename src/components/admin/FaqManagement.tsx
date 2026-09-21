@@ -3,7 +3,7 @@ import { Eye, EyeOff, Pencil, Plus, Save, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { getAdminFaqsFn, saveFaqFn, setFaqStatusFn, type AdminFaqFilters } from "@/lib/server-functions/faqs";
-import { FAQ_PAGE_TYPES, type FaqPageType } from "@/models/Faq";
+import { FAQ_PAGE_TYPES, FAQ_PAGE_LABELS, type FaqPageType } from "@/lib/admin-constants";
 import { CONDITIONS, SPECIALITIES, TREATMENTS } from "@/data/catalog";
 import { CITIES } from "@/lib/site";
 import { AdminEmpty, AdminError, AdminLoading, AdminPanel, Pill, StatCard, inputClass, selectClass } from "@/components/admin/ui";
@@ -11,17 +11,6 @@ import { cn } from "@/lib/utils";
 
 type FaqList = Extract<Awaited<ReturnType<typeof getAdminFaqsFn>>, { success: true }>;
 type FaqRow = FaqList["faqs"][number];
-
-const PAGE_TYPE_LABELS: Record<FaqPageType, string> = {
-  general: "All FAQs page",
-  speciality: "Speciality page",
-  condition: "Condition page",
-  treatment: "Treatment page",
-  cost: "Cost page",
-  city: "City page",
-  doctor: "Doctor profile",
-  hospital: "Hospital profile",
-};
 
 const blank = {
   id: "",
@@ -146,7 +135,7 @@ export function FaqManagement() {
               >
                 {FAQ_PAGE_TYPES.map((t) => (
                   <option key={t} value={t}>
-                    {PAGE_TYPE_LABELS[t]}
+                    {FAQ_PAGE_LABELS[t]}
                   </option>
                 ))}
               </select>
@@ -161,7 +150,7 @@ export function FaqManagement() {
                     value={editing.pageSlug}
                     onChange={(e) => setEditing({ ...editing, pageSlug: e.target.value })}
                   >
-                    <option value="">Every {PAGE_TYPE_LABELS[editing.pageType].toLowerCase()}</option>
+                    <option value="">Every {FAQ_PAGE_LABELS[editing.pageType].toLowerCase()}</option>
                     {options.map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
@@ -249,7 +238,7 @@ export function FaqManagement() {
           <option value="">All page types</option>
           {FAQ_PAGE_TYPES.map((t) => (
             <option key={t} value={t}>
-              {PAGE_TYPE_LABELS[t]}
+              {FAQ_PAGE_LABELS[t]}
             </option>
           ))}
         </select>
@@ -281,7 +270,7 @@ export function FaqManagement() {
                   <p className="text-sm font-bold text-navy">{f.question}</p>
                   <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-ink/75">{f.answer}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    <Pill tone="info">{PAGE_TYPE_LABELS[f.pageType as FaqPageType]}</Pill>
+                    <Pill tone="info">{FAQ_PAGE_LABELS[f.pageType as FaqPageType]}</Pill>
                     {f.pageSlug ? <Pill>{f.pageSlug}</Pill> : <Pill>every page</Pill>}
                     <Pill tone={f.status === "published" ? "good" : "warning"}>{f.status}</Pill>
                   </div>

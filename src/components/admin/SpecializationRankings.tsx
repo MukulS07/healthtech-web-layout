@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, Pin, Plus, Save, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { getRankedCombinationsFn, getRankingFn, saveRankingFn } from "@/lib/server-functions/rankings";
-import { MAX_PINNED_DOCTORS } from "@/models/DoctorRanking";
+import { MAX_PINNED_DOCTORS } from "@/lib/admin-constants";
 import { SPECIALITIES } from "@/data/catalog";
 import { CITIES } from "@/lib/site";
 import { AdminEmpty, AdminLoading, AdminPanel, Pill, inputClass } from "@/components/admin/ui";

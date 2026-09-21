@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import { FAQ_PAGE_TYPES, type FaqPageType } from "@/lib/admin-constants";
 
 /**
  * Admin-managed FAQs, shown on top of the hand-written ones already in the curated catalog
@@ -13,26 +14,9 @@ import mongoose, { Schema, Document, Model, Types } from "mongoose";
  *
  * With no pageSlug, an entry applies to every page of that type.
  */
-export type FaqPageType =
-  | "general"
-  | "speciality"
-  | "condition"
-  | "treatment"
-  | "cost"
-  | "city"
-  | "doctor"
-  | "hospital";
-
-export const FAQ_PAGE_TYPES: FaqPageType[] = [
-  "general",
-  "speciality",
-  "condition",
-  "treatment",
-  "cost",
-  "city",
-  "doctor",
-  "hospital",
-];
+// Defined in lib/admin-constants (which imports nothing) so the admin screens can read them
+// without importing this file and dragging Mongoose into the browser bundle.
+export { FAQ_PAGE_TYPES, type FaqPageType } from "@/lib/admin-constants";
 
 export interface IFaq extends Document {
   question: string;

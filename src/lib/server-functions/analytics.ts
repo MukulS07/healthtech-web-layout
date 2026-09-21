@@ -1,11 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/db";
 import { ClickEvent, type ClickType } from "@/models/ClickEvent";
 import { Consultation } from "@/models/Consultation";
 import { Doctor } from "@/models/Doctor";
 import { getSessionUser, requireAdminUser } from "@/lib/auth";
 import { serverError } from "@/lib/server-error";
+import { isObjectIdLike } from "@/lib/admin-constants";
 
 const CLICK_TYPES: ClickType[] = ["call", "whatsapp", "profile_click", "directions", "enquiry"];
 const TARGET_TYPES = ["doctor", "hospital", "site"] as const;
@@ -16,9 +16,16 @@ function clean(value: unknown, max = 160): string | undefined {
   return text || undefined;
 }
 
-function objectIdOrUndefined(value: unknown): mongoose.Types.ObjectId | undefined {
-  const raw = String(value ?? "");
-  return mongoose.Types.ObjectId.isValid(raw) ? new mongoose.Types.ObjectId(raw) : undefined;
+/**
+ * Aggregation pipelines don't cast types the way queries do, so `$match` on an ObjectId field
+ * needs a real ObjectId. Mongoose is imported here rather than at the top of the file: this module
+ * is reachable from client components (via lib/track), and a top-level driver import ends up in
+ * the browser bundle. Inside a handler it is stripped out with the rest of the server code.
+ */
+async function toObjectId(value: unknown) {
+  if (!isObjectIdLike(value)) return undefined;
+  const { Types } = await import("mongoose");
+  return new Types.ObjectId(value);
 }
 
 export type TrackClickInput = {
@@ -57,15 +64,16 @@ export const trackClickFn = createServerFn({ method: "POST" })
       await connectToDatabase();
 
       // Only ever taken from the session cookie — never from the request body.
-      let userId: mongoose.Types.ObjectId | undefined;
+      let userId: unknown;
       try {
         const user = await getSessionUser();
-        if (user) userId = user._id as mongoose.Types.ObjectId;
+        if (user) userId = user._id;
       } catch {
         /* guests are the normal case */
       }
 
-      const targetId = objectIdOrUndefined(data?.targetId);
+      // Mongoose casts a 24-hex string to an ObjectId when saving a document.
+      const targetId = isObjectIdLike(data?.targetId) ? data.targetId : undefined;
       // Built as a plain object and cast once: with exactOptionalPropertyTypes, Mongoose's create()
       // overloads reject conditionally-spread optional fields even though they're never undefined.
       const event: Record<string, unknown> = { type, targetType };
@@ -116,7 +124,7 @@ function dayRange(from?: string, to?: string): { $gte?: Date; $lte?: Date } | nu
   return range.$gte || range.$lte ? range : null;
 }
 
-function buildMatch(f: ClickFilters): Record<string, unknown> {
+function buildMatch(f: ClickFilters, targetId?: unknown): Record<string, unknown> {
   const match: Record<string, unknown> = {};
   const range = dayRange(f.from, f.to);
   if (range) match["createdAt"] = range;
@@ -125,7 +133,6 @@ function buildMatch(f: ClickFilters): Record<string, unknown> {
   if (f.targetType && (TARGET_TYPES as readonly string[]).includes(f.targetType)) {
     match["targetType"] = f.targetType;
   }
-  const targetId = objectIdOrUndefined(f.targetId);
   if (targetId) match["targetId"] = targetId;
   return match;
 }
@@ -142,7 +149,7 @@ export const getClickAnalyticsFn = createServerFn({ method: "GET" })
       await requireAdminUser();
       await connectToDatabase();
 
-      const match = buildMatch(data);
+      const match = buildMatch(data, await toObjectId(data?.targetId));
       const rowLimit = Math.min(Math.max(Number(data?.limit) || 100, 10), 500);
       const trendStart = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
       trendStart.setHours(0, 0, 0, 0);
@@ -263,7 +270,7 @@ export const exportClicksCsvFn = createServerFn({ method: "GET" })
       await requireAdminUser();
       await connectToDatabase();
 
-      const docs = await ClickEvent.find(buildMatch(data))
+      const docs = await ClickEvent.find(buildMatch(data, await toObjectId(data?.targetId)))
         .sort({ createdAt: -1 })
         .limit(10000)
         .lean();
@@ -327,7 +334,7 @@ export const getDoctorAnalyticsFn = createServerFn({ method: "GET" })
       await requireAdminUser();
       await connectToDatabase();
 
-      const doctorId = objectIdOrUndefined(data?.doctorId);
+      const doctorId = await toObjectId(data?.doctorId);
       if (!doctorId) return { success: false as const, error: "Unknown doctor." };
 
       const days = Math.min(Math.max(Number(data?.days) || 30, 1), 365);

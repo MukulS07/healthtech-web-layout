@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth";
 import { serverError } from "@/lib/server-error";
 import { Doctor } from "@/models/Doctor";
-import { DoctorRanking, MAX_PINNED_DOCTORS } from "@/models/DoctorRanking";
+import { DoctorRanking } from "@/models/DoctorRanking";
+import { MAX_PINNED_DOCTORS, isObjectIdLike } from "@/lib/admin-constants";
 import { clearRankingCache } from "@/lib/rankings";
 import { locationValuesFor } from "@/lib/city-aliases";
 import { getSpeciality } from "@/data/catalog";
@@ -89,11 +89,11 @@ export const getRankingFn = createServerFn({ method: "GET" })
 
       const [pinnedDocs, candidateDocs, total] = await Promise.all([
         pinnedIds.length
-          ? Doctor.find({ _id: { $in: pinnedIds.map((id) => new mongoose.Types.ObjectId(id)) } })
+          ? Doctor.find({ _id: { $in: pinnedIds } })
               .select(SELECT)
               .lean()
           : Promise.resolve([]),
-        Doctor.find({ ...filter, _id: { $nin: pinnedIds.map((id) => new mongoose.Types.ObjectId(id)) } })
+        Doctor.find({ ...filter, _id: { $nin: pinnedIds } })
           .sort({ "rating.count": -1, experience: -1 })
           .limit(40)
           .select(SELECT)
@@ -138,9 +138,8 @@ export const saveRankingFn = createServerFn({ method: "POST" })
       if (!spec || !city) return { success: false as const, error: "Choose a speciality and a city." };
 
       const ids = Array.from(new Set((data?.doctorIds ?? []).map(String)))
-        .filter((id) => mongoose.Types.ObjectId.isValid(id))
-        .slice(0, MAX_PINNED_DOCTORS)
-        .map((id) => new mongoose.Types.ObjectId(id));
+        .filter(isObjectIdLike)
+        .slice(0, MAX_PINNED_DOCTORS);
 
       await DoctorRanking.findOneAndUpdate(
         { speciality: spec.slug, city },

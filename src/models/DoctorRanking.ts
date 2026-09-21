@@ -1,7 +1,8 @@
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
-/** How many doctors may be pinned to one speciality + city combination. */
-export const MAX_PINNED_DOCTORS = 20;
+// Defined in lib/admin-constants (which imports nothing) so the admin screen can read the limit
+// without importing this file and dragging Mongoose into the browser bundle.
+export { MAX_PINNED_DOCTORS } from "@/lib/admin-constants";
 
 /**
  * Editorially pinned doctors for a speciality in a city: they appear, in this order, ahead of the
