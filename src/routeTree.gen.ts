@@ -39,6 +39,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as ConditionsIndexRouteImport } from './routes/conditions/index'
 import { Route as ConditionsSlugRouteImport } from './routes/conditions/$slug'
+import { Route as CostSlugRouteImport } from './routes/cost_.$slug'
 import { Route as DoctorsIndexRouteImport } from './routes/doctors/index'
 import { Route as DoctorsSlugRouteImport } from './routes/doctors/$slug'
 import { Route as HospitalsIndexRouteImport } from './routes/hospitals/index'
@@ -203,6 +204,11 @@ const ConditionsSlugRoute = ConditionsSlugRouteImport.update({
   path: '/conditions/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CostSlugRoute = CostSlugRouteImport.update({
+  id: '/cost_/$slug',
+  path: '/cost/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DoctorsIndexRoute = DoctorsIndexRouteImport.update({
   id: '/doctors/',
   path: '/doctors/',
@@ -292,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/conditions/$slug': typeof ConditionsSlugRoute
+  '/cost/$slug': typeof CostSlugRoute
   '/doctors/$slug': typeof DoctorsSlugRoute
   '/hospitals/$slug': typeof HospitalsSlugRoute
   '/locations/$city': typeof LocationsCityRoute
@@ -336,6 +343,7 @@ export interface FileRoutesByTo {
   '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/conditions/$slug': typeof ConditionsSlugRoute
+  '/cost/$slug': typeof CostSlugRoute
   '/doctors/$slug': typeof DoctorsSlugRoute
   '/hospitals/$slug': typeof HospitalsSlugRoute
   '/locations/$city': typeof LocationsCityRoute
@@ -381,6 +389,7 @@ export interface FileRoutesById {
   '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/conditions/$slug': typeof ConditionsSlugRoute
+  '/cost_/$slug': typeof CostSlugRoute
   '/doctors/$slug': typeof DoctorsSlugRoute
   '/hospitals/$slug': typeof HospitalsSlugRoute
   '/locations/$city': typeof LocationsCityRoute
@@ -427,6 +436,7 @@ export interface FileRouteTypes {
     | '/admin/signup'
     | '/blog/$slug'
     | '/conditions/$slug'
+    | '/cost/$slug'
     | '/doctors/$slug'
     | '/hospitals/$slug'
     | '/locations/$city'
@@ -471,6 +481,7 @@ export interface FileRouteTypes {
     | '/admin/signup'
     | '/blog/$slug'
     | '/conditions/$slug'
+    | '/cost/$slug'
     | '/doctors/$slug'
     | '/hospitals/$slug'
     | '/locations/$city'
@@ -515,6 +526,7 @@ export interface FileRouteTypes {
     | '/admin/signup'
     | '/blog/$slug'
     | '/conditions/$slug'
+    | '/cost_/$slug'
     | '/doctors/$slug'
     | '/hospitals/$slug'
     | '/locations/$city'
@@ -560,6 +572,7 @@ export interface RootRouteChildren {
   AdminSignupRoute: typeof AdminSignupRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ConditionsSlugRoute: typeof ConditionsSlugRoute
+  CostSlugRoute: typeof CostSlugRoute
   DoctorsSlugRoute: typeof DoctorsSlugRoute
   HospitalsSlugRoute: typeof HospitalsSlugRoute
   LocationsCityRoute: typeof LocationsCityRoute
@@ -789,6 +802,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConditionsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cost_/$slug': {
+      id: '/cost_/$slug'
+      path: '/cost/$slug'
+      fullPath: '/cost/$slug'
+      preLoaderRoute: typeof CostSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/doctors/': {
       id: '/doctors/'
       path: '/doctors'
@@ -904,6 +924,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSignupRoute: AdminSignupRoute,
   BlogSlugRoute: BlogSlugRoute,
   ConditionsSlugRoute: ConditionsSlugRoute,
+  CostSlugRoute: CostSlugRoute,
   DoctorsSlugRoute: DoctorsSlugRoute,
   HospitalsSlugRoute: HospitalsSlugRoute,
   LocationsCityRoute: LocationsCityRoute,

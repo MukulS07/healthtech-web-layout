@@ -68,6 +68,7 @@ export function pageUrls(): Url[] {
     ...SPECIALITIES.flatMap((s) => CITIES.map((c) => ({ loc: `${SITE.url}/specialities/${s.slug}/${c.slug}`, lastmod: d, priority: 0.8 }))),
     ...TREATMENTS.map((t) => ({ loc: `${SITE.url}/treatments/${t.slug}`, lastmod: d, priority: 0.8 })),
     ...CONDITIONS.map((c) => ({ loc: `${SITE.url}/conditions/${c.slug}`, lastmod: d, priority: 0.8 })),
+    ...TREATMENTS.map((t) => ({ loc: `${SITE.url}/cost/${t.slug}`, lastmod: d, priority: 0.6 })),
     ...BLOG_POSTS.map((p) => ({ loc: `${SITE.url}/blog/${p.slug}`, lastmod: p.updated ?? p.published, priority: 0.6 })),
     ...CITIES.map((c) => ({ loc: `${SITE.url}/locations/${c.slug}`, lastmod: d, priority: 0.7 })),
   ];

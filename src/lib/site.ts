@@ -63,6 +63,16 @@ export const SERVICE_PROMISES = [
 
 export const ENABLED_PROMISES = SERVICE_PROMISES.filter((p) => p.enabled);
 
+/**
+ * Master switch for showing treatment cost bands on /cost and /cost/$slug.
+ *
+ * false until src/data/cost.ts holds real, sourced figures (its numbers are placeholders written
+ * to lay the pages out). While false, cost pages explain what drives the price and invite an
+ * estimate request instead of printing a number. Individual entries also carry their own
+ * `verified` flag, so turning this on still only reveals the entries that have been checked.
+ */
+export const COSTS_PUBLISHED = false;
+
 type PromiseKey = (typeof SERVICE_PROMISES)[number]["key"];
 export const promiseEnabled = (key: PromiseKey) => SERVICE_PROMISES.some((p) => p.key === key && p.enabled);
 

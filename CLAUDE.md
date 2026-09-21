@@ -675,6 +675,19 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
       - Local DB: 227,415 doctors vs 227,574 recorded at import — 159-doctor gap still unexplained
         (no recent doctor inserts; nothing in this codebase deletes doctors).
 
+- [x] **2026-09-21 — cost pages built as structure, numbers deliberately absent.** User asked to copy
+      pristyncare.com's price ranges in as dummy data; declined publishing anyone else's prices
+      (they'd be false for our hospitals and it's their compiled data in a public repo). Built the
+      structure instead: `/cost` index (search + all 123 procedures grouped by speciality) and
+      `/cost/$slug` per-procedure pages (file `cost_.$slug.tsx`; folder routes produced a dangling
+      `CostRoute` parent in routeTree.gen.ts, so use the flat `_` form). Cost data lives in
+      `src/data/cost.ts`: placeholder bands per speciality, each entry carrying `source`
+      ("placeholder" | "quoted" | "cghs"), `updatedAt` and `verified`. A number renders only when
+      `verified` AND `COSTS_PUBLISHED` (src/lib/site.ts, currently false) — until then pages say we
+      don't publish a price and invite an estimate request. Cost pages are in sitemap-pages.xml.
+      **Next:** fill TREATMENT_COSTS with real figures (hospital quotes, or published CGHS/PM-JAY
+      rates), set verified + source + date per entry, then flip COSTS_PUBLISHED.
+
 ---
 
 ## Superseded original plan (historical record only — do not follow)

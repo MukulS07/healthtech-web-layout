@@ -1,13 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Search, IndianRupee } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { ArrowRight, IndianRupee } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
+import { Breadcrumbs, FaqList, MedicalDisclaimer } from "@/components/care/Blocks";
 import { SPECIALITIES, TREATMENTS } from "@/data/catalog";
+import { costIndex } from "@/data/cost";
 import { seo } from "@/lib/seo";
-import { BOOK_LABEL } from "@/lib/site";
+import { BOOK_LABEL, COSTS_PUBLISHED } from "@/lib/site";
 
-const specialities = SPECIALITIES.map((s) => ({ label: s.name, slug: s.slug }));
 const POPULAR = [
   "laser-piles-surgery",
   "laparoscopic-cholecystectomy",
@@ -22,12 +24,6 @@ const POPULAR = [
   "evla",
   "gynecomastia-surgery",
 ];
-const treatments = POPULAR.map((slug) => TREATMENTS.find((t) => t.slug === slug)!).filter(Boolean).map((t) => ({
-  id: t.slug,
-  slug: t.slug,
-  name: t.name,
-  category: SPECIALITIES.find((s) => s.slug === t.speciality)?.name ?? "",
-}));
 
 const costFactors = [
   "Which hospital and city you choose",
@@ -37,21 +33,56 @@ const costFactors = [
   "Any pre-existing conditions that affect anaesthesia or hospital stay length",
 ];
 
+const INDEX_FAQS = [
+  {
+    q: "Why don't you publish a price list?",
+    a: "Because the number would not be yours. The same operation costs different amounts at different hospitals, in different cities, in different room categories — and your insurance may cover much of it. We help you get a written estimate from the hospital you choose instead.",
+  },
+  {
+    q: "How do I find out what my surgery will cost?",
+    a: "Open the cost page for your procedure and send us your details. Our team will help you request a written estimate from suitable hospitals and check what your policy covers.",
+  },
+  {
+    q: "Does insurance cover surgery?",
+    a: "Many planned procedures are covered when medically necessary, subject to your policy's waiting periods and limits. Cashless treatment also needs the hospital to be in your insurer's network.",
+  },
+];
+
 export const Route = createFileRoute("/cost")({
   head: () =>
     seo({
       title: "Surgery Cost Guide",
-      description: "Understand what affects the cost of surgery in India — hospital, city, room category, technique and insurance — and get a written quote for your case.",
+      description:
+        "What affects the cost of surgery in India — hospital, city, room category, technique and insurance — with a cost page for every procedure we cover.",
       path: "/cost",
     }),
   component: CostIndexPage,
 });
 
 function CostIndexPage() {
+  const [q, setQ] = useState("");
+  const term = q.trim().toLowerCase();
+  const groups = useMemo(() => {
+    const all = costIndex();
+    if (!term) return all;
+    return all
+      .map((g) => ({
+        ...g,
+        treatments: g.treatments.filter((t) =>
+          `${t.name} ${(t.aka ?? []).join(" ")} ${g.speciality.name}`.toLowerCase().includes(term),
+        ),
+      }))
+      .filter((g) => g.treatments.length > 0);
+  }, [term]);
+
+  const popular = POPULAR.map((slug) => TREATMENTS.find((t) => t.slug === slug)!).filter(Boolean);
+
   return (
     <div className="bg-background">
       <Header />
       <main>
+        <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Surgery cost" }]} />
+
         <section className="bg-navy py-14">
           <Container>
             <Eyebrow tone="light">Cost guide</Eyebrow>
@@ -59,63 +90,83 @@ function CostIndexPage() {
               What does your surgery cost?
             </h1>
             <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-              Costs vary by hospital, city, and individual case — find your procedure below and a
-              Care Partner will confirm an exact, written quote for you at no charge.
+              Costs depend on the hospital, your city, the room category and the technique used. Find
+              your procedure below to see what drives its price — and ask us to help you get a written
+              estimate for your own case.
             </p>
             <a href="/contact" className="mt-6 inline-block">
-              <OrangeButton>Get My Exact Quote</OrangeButton>
+              <OrangeButton>Ask for an estimate</OrangeButton>
             </a>
           </Container>
         </section>
 
-        <section className="py-14">
+        <section className="py-12">
           <Container>
-            <SectionHead eyebrow="Browse by speciality" title="Find your procedure" />
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {specialities.map((s) => (
-                <Link
-                  key={s.slug}
-                  to="/specialities/$slug"
-                  params={{ slug: s.slug }}
-                  className="rounded-xl border border-border bg-background p-4 text-center text-sm font-semibold text-navy transition-colors hover:border-navy/30 hover:bg-cream"
+            <SectionHead eyebrow="Popular procedures" title="Most-asked-about costs" />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {popular.map((t) => (
+                <a
+                  key={t.slug}
+                  href={`/cost/${t.slug}`}
+                  className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-border bg-background p-4 transition-colors hover:border-navy/30"
                 >
-                  {s.label}
-                </Link>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-bold text-navy">{t.name} cost</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {SPECIALITIES.find((s) => s.slug === t.speciality)?.name}
+                    </span>
+                  </span>
+                  <IndianRupee className="h-4 w-4 shrink-0 text-brand-orange" />
+                </a>
               ))}
             </div>
           </Container>
         </section>
 
-        {treatments.length > 0 && (
-          <section className="bg-cream py-14">
-            <Container>
-              <SectionHead eyebrow="Popular procedures" title="Explore treatment details" />
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {treatments.slice(0, 12).map((t) => (
-                  <Link
-                    key={t.id}
-                    to="/treatments/$slug"
-                    params={{ slug: t.slug }}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-4 transition-colors hover:border-navy/30"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-navy">{t.name}</p>
-                      <p className="text-xs text-muted-foreground">{t.category}</p>
+        <section className="bg-cream py-12">
+          <Container>
+            <SectionHead eyebrow="All procedures" title={`Cost pages for ${TREATMENTS.length} procedures`} />
+            <label className="mx-auto mb-8 flex max-w-xl items-center gap-2 rounded-xl border border-border bg-background px-4 py-3">
+              <IndianRupee className="h-4 w-4 shrink-0 text-brand-orange" />
+              <span className="sr-only">Search procedures</span>
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search a procedure — e.g. piles, hernia, cataract"
+                className="w-full min-w-0 bg-transparent text-sm text-ink outline-none placeholder:text-muted-foreground"
+              />
+            </label>
+
+            {groups.length ? (
+              <div className="space-y-8">
+                {groups.map(({ speciality, treatments }) => (
+                  <div key={speciality.slug}>
+                    <h2 className="text-base font-bold text-navy">
+                      <a href={`/specialities/${speciality.slug}`} className="hover:underline">{speciality.name}</a>
+                    </h2>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {treatments.map((t) => (
+                        <a
+                          key={t.slug}
+                          href={`/cost/${t.slug}`}
+                          className="group flex min-w-0 items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3"
+                        >
+                          <span className="truncate text-sm font-medium text-navy">{t.name}</span>
+                          <ArrowRight className="h-4 w-4 shrink-0 text-brand-orange transition-transform group-hover:translate-x-0.5" />
+                        </a>
+                      ))}
                     </div>
-                    <IndianRupee className="h-4 w-4 shrink-0 text-brand-orange" />
-                  </Link>
+                  </div>
                 ))}
               </div>
-              <div className="mt-6 text-center">
-                <Link to="/treatments" className="inline-flex">
-                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-brand-orange hover:underline">
-                    <Search className="h-4 w-4" /> See all treatments
-                  </span>
-                </Link>
-              </div>
-            </Container>
-          </section>
-        )}
+            ) : (
+              <p className="rounded-xl border border-border bg-background p-6 text-center text-sm text-muted-foreground">
+                No procedure matches “{q}”. Try a different word, or{" "}
+                <a href="/contact" className="font-semibold text-primary hover:underline">ask our team</a>.
+              </p>
+            )}
+          </Container>
+        </section>
 
         <section className="py-14">
           <Container className="max-w-3xl">
@@ -127,20 +178,25 @@ function CostIndexPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-5 text-sm text-muted-foreground">
-              Because of this, we don't publish a fixed price list — every quote is confirmed in
-              writing with you before you commit to a hospital or date, so you know what to expect
-              before admission.
-            </p>
+            {!COSTS_PUBLISHED ? (
+              <p className="mt-5 text-sm text-muted-foreground">
+                Because of this, we don't publish price ranges we can't stand behind. Tell us your
+                procedure and city and we'll help you get a written estimate from the hospital.
+              </p>
+            ) : null}
+            <div className="mt-8">
+              <FaqList faqs={INDEX_FAQS} />
+            </div>
+            <div className="mt-8">
+              <MedicalDisclaimer />
+            </div>
           </Container>
         </section>
 
         <section className="bg-navy py-14 text-center text-navy-foreground">
           <Container>
-            <Eyebrow tone="light">Want an exact number?</Eyebrow>
-            <h2 className="mt-2 text-2xl font-bold sm:text-3xl">
-              Ask about costs for your case
-            </h2>
+            <Eyebrow tone="light">Want a number for your case?</Eyebrow>
+            <h2 className="mt-2 text-2xl font-bold sm:text-3xl">Ask about costs for your case</h2>
             <p className="mt-3 text-sm text-navy-foreground/75">
               Tell us your treatment and city — no obligation to book.
             </p>
