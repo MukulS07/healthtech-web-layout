@@ -117,15 +117,24 @@ export const getReviewsFn = createServerFn({ method: "GET" })
 
       // Rating summary over the same set, ignoring the comment-length rule (a short "5 stars, great"
       // review is still a real rating even if we don't display its text).
+      //
+      // ⚠️ The total deliberately comes from this summary rather than a countDocuments() over
+      // `filter`. Counting *with* the $expr gibberish test has to evaluate that expression against
+      // every document — no index can help — which measured **537 seconds** over the 207k-review
+      // wall, versus 113ms without it. It changed the answer by 3 reviews in 207,179 (0.0014%).
+      // That one query was why the homepage and /reviews took ~17s to respond in production.
+      // The $expr still runs on the list below, so junk is never *displayed*; it just isn't worth
+      // nine minutes to make a counter three more accurate. Worst case the final page shows a
+      // few fewer cards than the count implies — it can't produce an empty page, since the gap is
+      // far smaller than one page.
       const { $expr: _len, ...statsMatch } = filter;
-      const [rest, total, agg] = await Promise.all([
+      const [rest, agg] = await Promise.all([
         Review.find(listFilter)
           .sort({ createdAt: -1 })
           .skip(Math.max((page - 1) * limit - pinned.length, 0))
           .limit(Math.max(limit - pinned.length, 0))
           .populate("doctorId", "firstName lastName specialization location slug")
           .lean(),
-        Review.countDocuments(filter),
         Review.aggregate([
           { $match: statsMatch },
           { $group: { _id: null, avg: { $avg: "$rating" }, count: { $sum: 1 } } },
@@ -133,6 +142,7 @@ export const getReviewsFn = createServerFn({ method: "GET" })
       ]);
 
       const stats = (agg[0] as { avg?: number; count?: number } | undefined) || { avg: 0, count: 0 };
+      const total = stats.count || 0;
       const docs = [...pinned, ...rest];
 
       return {

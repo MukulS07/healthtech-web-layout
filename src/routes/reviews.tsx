@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, isNotFound, notFound } from "@tanstack/react-router";
 import { useState } from "react";
 import { Star } from "lucide-react";
 import { Header } from "@/components/home/Header";
@@ -130,8 +130,16 @@ export const Route = createFileRoute("/reviews")({
   loaderDeps: ({ search }) => search,
   loader: async ({ deps }) => {
     try {
-      return await getReviewsFn({ data: { page: deps.page ?? 1, minRating: deps.rating } });
-    } catch {
+      const result = await getReviewsFn({ data: { page: deps.page ?? 1, minRating: deps.rating } });
+      // A page past the end is a real 404, not an empty 200 — otherwise any made-up ?page= mints
+      // another indexable, contentless URL. /doctors and /hospitals already did this; this page
+      // was missed when they were fixed.
+      if (deps.page && result.success && result.total > 0 && deps.page > result.totalPages) {
+        throw notFound();
+      }
+      return result;
+    } catch (error) {
+      if (isNotFound(error)) throw error;
       return {
         success: false,
         reviews: [],

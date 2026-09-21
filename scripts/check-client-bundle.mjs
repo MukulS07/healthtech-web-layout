@@ -11,10 +11,20 @@
  *
  * Runs after `vite build`, so it also guards deploys.
  */
-import { readdirSync, readFileSync, existsSync } from "node:fs";
+import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-const ASSET_DIR = join(".output", "public", "assets");
+/**
+ * Where the client assets land depends on the Nitro preset, and getting this wrong is how a
+ * check like this quietly becomes useless: the first version only looked in .output/public/assets,
+ * which is the node-server layout. On Vercel — the preset that actually ships — the files go to
+ * .vercel/output/static, so it found nothing and passed every time.
+ */
+const CANDIDATE_DIRS = [
+  join(".vercel", "output", "static", "assets"),
+  join(".output", "public", "assets"),
+  join("dist", "assets"),
+];
 
 // Substrings that should never appear in code sent to a browser. Kept deliberately narrow so a
 // legitimate string (an error message mentioning "database") can't fail a deploy.
@@ -22,21 +32,39 @@ const FORBIDDEN = [
   { pattern: "mongoose#", why: "Mongoose internals — a model or server-only module is imported by client code" },
   { pattern: "MongoClient", why: "the MongoDB driver is in the client bundle" },
   { pattern: "mongodb://", why: "a database connection string is in the client bundle" },
+  { pattern: "mongodb+srv://", why: "a database connection string is in the client bundle" },
 ];
 
-if (!existsSync(ASSET_DIR)) {
-  console.log(`check-client-bundle: no ${ASSET_DIR}, nothing to check.`);
-  process.exit(0);
+const dirs = CANDIDATE_DIRS.filter((d) => existsSync(d) && statSync(d).isDirectory());
+
+// "I couldn't find anything to check" must never read as "everything is fine" — that is exactly
+// how the first version of this script let a broken bundle through.
+if (dirs.length === 0) {
+  console.error(
+    `\n✖ check-client-bundle: no client assets found in any of:\n` +
+      CANDIDATE_DIRS.map((d) => `    ${d}`).join("\n") +
+      `\n\nEither the build produced nothing, or the output moved. Add the new location to\n` +
+      `CANDIDATE_DIRS in scripts/check-client-bundle.mjs — do not leave this check blind.\n`,
+  );
+  process.exit(1);
 }
 
-const files = readdirSync(ASSET_DIR).filter((f) => f.endsWith(".js"));
 const failures = [];
+let checked = 0;
 
-for (const file of files) {
-  const source = readFileSync(join(ASSET_DIR, file), "utf8");
-  for (const { pattern, why } of FORBIDDEN) {
-    if (source.includes(pattern)) failures.push({ file, pattern, why });
+for (const dir of dirs) {
+  for (const file of readdirSync(dir).filter((f) => f.endsWith(".js"))) {
+    const source = readFileSync(join(dir, file), "utf8");
+    checked++;
+    for (const { pattern, why } of FORBIDDEN) {
+      if (source.includes(pattern)) failures.push({ file: join(dir, file), pattern, why });
+    }
   }
+}
+
+if (checked === 0) {
+  console.error(`\n✖ check-client-bundle: ${dirs.join(", ")} contains no .js files — nothing was verified.\n`);
+  process.exit(1);
 }
 
 if (failures.length) {
@@ -51,4 +79,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`check-client-bundle: ${files.length} client asset(s) clean.`);
+console.log(`check-client-bundle: ${checked} client asset(s) clean in ${dirs.join(", ")}.`);
