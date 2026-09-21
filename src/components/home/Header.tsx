@@ -18,7 +18,8 @@ import { BOOK_LABEL, CITIES, SITE, telHref } from "@/lib/site";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { CityPicker } from "@/components/common/CityPicker";
 import { LanguagePicker } from "@/components/common/LanguagePicker";
-import { useT } from "@/lib/i18n/context";
+import { useLocale, useT } from "@/lib/i18n/context";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { cn } from "@/lib/utils";
 import { A } from "@/components/common/A";
 
@@ -235,9 +236,10 @@ function Dropdown({ label, items }: { label: string; items: readonly { label: st
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
-        className="flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-navy"
+        className="flex min-w-0 items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-navy"
       >
-        {label} <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
+        <span className="truncate">{label}</span>
+        <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 transition-transform", open && "rotate-180")} />
       </button>
       {open ? (
         <div className="absolute right-0 top-full z-50 pt-2">
@@ -258,6 +260,16 @@ function Dropdown({ label, items }: { label: string; items: readonly { label: st
 
 export function Header() {
   const t = useT();
+  const locale = useLocale();
+  // Indian-script nav labels run roughly twice the width of the English ones ("For Patients" vs
+  // "രോഗികൾക്കായി", and "My Appointments" becomes എന്റെ അപ്പോയിന്റ്മെന്റുകൾ). Measured at 1536 the
+  // inline nav still overlapped the city picker by 135px and crushed the search to 30px, so
+  // deferring a breakpoint is not enough — translated locales use the compact header and menu at
+  // every width. Nothing is lost: the menu holds the same search, city picker and nav links.
+  // English keeps the inline desktop header exactly as before.
+  const bp = locale === DEFAULT_LOCALE
+    ? { nav: "xl:flex", show: "xl:block", hide: "xl:hidden" }
+    : { nav: "hidden", show: "hidden", hide: "" };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [city, setCity] = useCity();
   const q = city ? `?city=${encodeURIComponent(city)}` : "";
@@ -273,16 +285,16 @@ export function Header() {
               </span>
               <span className="truncate text-lg font-bold tracking-tight">{SITE.name}</span>
             </A>
-            <CityPicker city={city} onChange={setCity} className="hidden w-44 shrink-0 lg:block" />
-            <LanguagePicker className="hidden shrink-0 xl:block" />
-            <GlobalSearch className="hidden min-w-0 max-w-md flex-1 lg:block" />
+            <CityPicker city={city} onChange={setCity} className={cn("hidden w-36 shrink-0", bp.show)} />
+            <GlobalSearch className={cn("hidden min-w-0 max-w-md flex-1", bp.show)} />
           </div>
 
-          <div className="flex shrink-0 items-center gap-3 lg:gap-4">
-            <nav aria-label="Main" className="hidden items-center gap-4 xl:flex">
+          <div className="flex min-w-0 shrink items-center gap-3 lg:gap-4">
+            <nav aria-label="Main" className={cn("hidden min-w-0 items-center gap-4", bp.nav)}>
               <Dropdown label={t("nav.forPatients")} items={MENUS["For Patients"]} />
               <Dropdown label={t("nav.ourCompany")} items={MENUS["Our Company"]} />
             </nav>
+            <LanguagePicker className="hidden shrink-0 lg:block" />
             <A href="/account" className="hidden items-center gap-1.5 text-sm font-semibold text-navy transition-colors hover:text-brand-orange sm:flex">
               <UserRound className="h-4 w-4 text-brand-orange" /> {t("nav.myAppointments")}
             </A>
@@ -290,14 +302,14 @@ export function Header() {
               <Phone className="h-4 w-4 text-brand-orange" /> {SITE.phone.display}
             </A>
             <A href="/contact" className="hidden md:inline-flex">
-              <OrangeButton className="px-4 py-2.5">{BOOK_LABEL}</OrangeButton>
+              <OrangeButton className="px-4 py-2.5">{t("action.book")}</OrangeButton>
             </A>
             <button
               type="button"
               aria-label={mobileMenuOpen ? t("action.closeMenu") : t("action.openMenu")}
               aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="grid h-10 w-10 place-items-center rounded-lg border border-border/80 bg-background text-navy transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary xl:hidden"
+              className={cn("grid h-10 w-10 place-items-center rounded-lg border border-border/80 bg-background text-navy transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary", bp.hide)}
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -337,11 +349,11 @@ export function Header() {
           an overlap whenever the header's height changed — as it just did when the browse strip
           grew to 44px tap targets. */}
       {mobileMenuOpen ? (
-        <div className="absolute inset-x-0 top-full z-40 h-[calc(100vh-100%)] overflow-y-auto border-b border-border bg-background p-5 shadow-2xl xl:hidden">
+        <div className={cn("absolute inset-x-0 top-full z-40 h-[calc(100vh-100%)] overflow-y-auto border-b border-border bg-background p-5 shadow-2xl", bp.hide)}>
           <div className="space-y-5">
-            <GlobalSearch className="lg:hidden" onNavigate={() => setMobileMenuOpen(false)} />
-            <CityPicker city={city} onChange={setCity} className="w-full lg:hidden" />
-            <LanguagePicker className="w-full xl:hidden" align="start" />
+            <GlobalSearch onNavigate={() => setMobileMenuOpen(false)} />
+            <CityPicker city={city} onChange={setCity} className={cn("w-full", bp.hide)} />
+            <LanguagePicker className="w-full lg:hidden" align="start" />
             <div className="grid grid-cols-2 gap-2 text-sm font-semibold text-navy">
               <A href={`/doctors${q}`} className="flex items-center gap-2 rounded-lg bg-cream p-3">
                 <Stethoscope className="h-4 w-4 text-emerald-600" /> {t("nav.doctors")}
@@ -374,7 +386,7 @@ export function Header() {
             ))}
             <div className="flex flex-col gap-2.5 border-t border-border pt-4">
               <A href="/contact">
-                <OrangeButton className="w-full justify-center">{BOOK_LABEL}</OrangeButton>
+                <OrangeButton className="w-full justify-center">{t("action.book")}</OrangeButton>
               </A>
               <A href={telHref} className="flex items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-semibold text-navy">
                 <Phone className="h-4 w-4 text-brand-orange" /> Call {SITE.phone.display}

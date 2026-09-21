@@ -4,6 +4,7 @@ import { OrangeButton } from "./primitives";
 import { cn } from "@/lib/utils";
 import { submitConsultationFn } from "@/lib/server-functions/consultations";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useT } from "@/lib/i18n/context";
 import { CONDITIONS, SPECIALITIES, TREATMENTS } from "@/data/catalog";
 import { BOOK_LABEL, CALLBACK_PHRASE, CALLER, cap, CITIES, promiseEnabled, SITE, whatsappHref } from "@/lib/site";
 import { A } from "@/components/common/A";
@@ -50,6 +51,7 @@ export function ConsultForm({
   hideAccountBar?: boolean;
 }) {
   const groups = useInterestGroups();
+  const t = useT();
   const { user } = useCurrentUser();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -173,14 +175,14 @@ export function ConsultForm({
         <form className="space-y-3 p-5" onSubmit={handleSubmit} noValidate>
           <label className="block">
             <span className="sr-only">Full name</span>
-            <input className={inputClass} placeholder="Full name *" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} required />
+            <input className={inputClass} placeholder={`${t("form.fullName")} *`} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} required />
           </label>
           <label className="flex overflow-hidden rounded-md border border-border focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
             <span className="grid place-items-center border-r border-border bg-cream px-3 text-sm font-semibold text-navy">+91</span>
             <span className="sr-only">Mobile number</span>
             <input
               className="w-full bg-background px-4 py-3 text-sm text-ink outline-none placeholder:text-muted-foreground"
-              placeholder="Mobile number *"
+              placeholder={`${t("form.mobile")} *`}
               inputMode="numeric"
               autoComplete="tel-national"
               maxLength={14}
@@ -193,7 +195,7 @@ export function ConsultForm({
             <span className="sr-only">Treatment or condition</span>
             <select className={inputClass} value={interest} onChange={(e) => setInterest(e.target.value)} required>
               <option value="" disabled>
-                Select treatment or condition *
+                {t("form.selectTreatment")} *
               </option>
               {groups.map((g) => (
                 <optgroup key={g.label} label={g.label}>
@@ -210,7 +212,7 @@ export function ConsultForm({
             <span className="sr-only">City</span>
             <select className={inputClass} value={city} onChange={(e) => setCity(e.target.value)} required>
               <option value="" disabled>
-                Select city *
+                {t("form.selectCity")} *
               </option>
               {CITIES.map((c) => (
                 <option key={c.slug} value={c.name}>
@@ -223,7 +225,7 @@ export function ConsultForm({
 
           {showDetails ? (
             <>
-              <input className={inputClass} type="email" placeholder="Email (optional)" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input className={inputClass} type="email" placeholder={t("form.emailOptional")} autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               <label className="block text-xs font-medium text-muted-foreground">
                 Preferred consultation date (optional)
                 <input
@@ -236,7 +238,7 @@ export function ConsultForm({
               </label>
               <textarea
                 className={cn(inputClass, "min-h-[88px] resize-y")}
-                placeholder="Describe your concern (optional)"
+                placeholder={t("form.describeConcern")}
                 maxLength={2000}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -263,7 +265,7 @@ export function ConsultForm({
                 <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
               </span>
             ) : (
-              BOOK_LABEL
+              t("form.submit")
             )}
           </OrangeButton>
           <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
