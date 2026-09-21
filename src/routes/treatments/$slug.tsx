@@ -14,8 +14,9 @@ import {
   treatmentsForSpeciality,
 } from "@/data/catalog";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
-import { BOOK_LABEL, CITIES, CONSULT_PHRASE } from "@/lib/site";
+import { BOOK_LABEL, TOP_CITIES, CONSULT_PHRASE } from "@/lib/site";
 import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/treatments/$slug")({
   loader: async ({ params }) => {
@@ -27,11 +28,11 @@ export const Route = createFileRoute("/treatments/$slug")({
     const doctors = await getDoctorsFn({ data: { specialty: t.speciality, limit: 3, sort: "Rating: High to Low" } }).catch(() => null);
     return { slug: t.slug, doctors: doctors?.success ? doctors.doctors : [] };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     const t = loaderData ? getTreatment(loaderData.slug) : undefined;
     if (!t) return {};
     const spec = getSpeciality(t.speciality);
-    return seo({
+    return seo({ locale: match.context.locale,
       title: `${t.name} — Procedure, Recovery & Best Surgeons`,
       description: `${t.summary.split(". ")[0]}. Learn who needs it, how it's done, recovery time and insurance cover, and book ${CONSULT_PHRASE}.`,
       path: `/treatments/${t.slug}`,
@@ -93,8 +94,8 @@ function TreatmentPage() {
             <p className="mt-3 max-w-3xl text-sm text-navy-foreground/80 sm:text-base">{t.summary}</p>
             <ContentReviewNote reviewedBy={t.reviewedBy} />
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
-              <a href={`/doctors?specialty=${spec.slug}`}><OutlineButton tone="light">Find a surgeon</OutlineButton></a>
+              <A href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></A>
+              <A href={`/doctors?specialty=${spec.slug}`}><OutlineButton tone="light">Find a surgeon</OutlineButton></A>
             </div>
           </Container>
         </section>
@@ -127,7 +128,7 @@ function TreatmentPage() {
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="text-xs font-semibold text-muted-foreground">Conditions treated:</span>
                     {conditions.map((c) => (
-                      <a key={c.slug} href={`/conditions/${c.slug}`} className="rounded-full border border-border bg-cream px-3 py-1 text-xs font-semibold text-navy hover:border-primary/40">{c.name}</a>
+                      <A key={c.slug} href={`/conditions/${c.slug}`} className="rounded-full border border-border bg-cream px-3 py-1 text-xs font-semibold text-navy hover:border-primary/40">{c.name}</A>
                     ))}
                   </div>
                 ) : null}
@@ -170,7 +171,7 @@ function TreatmentPage() {
                 <Section
                   eyebrow="Specialists"
                   title={`${spec.name} surgeons`}
-                  action={<a href={`/doctors?specialty=${spec.slug}`}><OutlineButton className="px-3 py-2 text-xs">View all</OutlineButton></a>}
+                  action={<A href={`/doctors?specialty=${spec.slug}`}><OutlineButton className="px-3 py-2 text-xs">View all</OutlineButton></A>}
                 >
                   <p className="-mt-2 mb-4 text-xs text-muted-foreground">
                     Surgeons listed under {spec.name} in our directory — not every surgeon shown performs {t.name}.
@@ -194,10 +195,10 @@ function TreatmentPage() {
                 <Section eyebrow="Related" title={`Other ${spec.name} treatments`}>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {related.map((r) => (
-                      <a key={r.slug} href={`/treatments/${r.slug}`} className="group flex items-center justify-between rounded-lg border border-border bg-cream px-4 py-3">
+                      <A key={r.slug} href={`/treatments/${r.slug}`} className="group flex items-center justify-between rounded-lg border border-border bg-cream px-4 py-3">
                         <span className="text-sm font-semibold text-navy">{r.name}</span>
                         <ArrowRight className="h-4 w-4 text-brand-orange" />
-                      </a>
+                      </A>
                     ))}
                   </div>
                 </Section>
@@ -205,10 +206,10 @@ function TreatmentPage() {
 
               <Section eyebrow="Near you" title={`${t.name} in top cities`}>
                 <div className="flex flex-wrap gap-2">
-                  {CITIES.map((c) => (
-                    <a key={c.slug} href={`/specialities/${spec.slug}/${c.slug}`} className="rounded-full border border-border bg-cream px-3 py-1.5 text-xs font-semibold text-navy hover:border-primary/40">
+                  {TOP_CITIES.map((c) => (
+                    <A key={c.slug} href={`/specialities/${spec.slug}/${c.slug}`} className="rounded-full border border-border bg-cream px-3 py-1.5 text-xs font-semibold text-navy hover:border-primary/40">
                       {spec.name} in {c.name}
-                    </a>
+                    </A>
                   ))}
                 </div>
               </Section>

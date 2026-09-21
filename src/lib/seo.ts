@@ -1,10 +1,11 @@
 import { SITE } from "@/lib/site";
+import { DEFAULT_LOCALE, LOCALES, localeInfo, localePath, type Locale } from "@/lib/i18n/locales";
 
 /**
  * Per-route <head> builder: unique title/description, self-referencing canonical, Open Graph +
  * Twitter tags (with a default share image), optional noindex and JSON-LD blocks.
  *
- *   head: () => seo({ title: "...", description: "...", path: "/treatments/x", jsonLd: [...] })
+ *   head: ({ match }) => seo({ locale: match.context.locale, title: "...", description: "...", path: "/treatments/x", jsonLd: [...] })
  */
 export function seo(opts: {
   title: string;
@@ -15,9 +16,15 @@ export function seo(opts: {
   noindex?: boolean;
   type?: "website" | "article" | "profile";
   jsonLd?: Record<string, unknown>[];
+  /** Language this render is in. Routes pass `match.context.locale`; defaults to English. */
+  locale?: Locale;
 }) {
+  const locale = opts.locale ?? DEFAULT_LOCALE;
   const fullTitle = opts.title.includes(SITE.name) ? opts.title : `${opts.title} | ${SITE.name}`;
-  const url = `${SITE.url}${opts.path === "/" ? "" : opts.path}`;
+  // The canonical must point at THIS language's URL. Pointing every translation at the English
+  // one would tell search engines the translations are duplicates and get them dropped.
+  const [barePath = "/", query = ""] = splitQuery(opts.path);
+  const url = `${SITE.url}${absolutePath(localePath(barePath, locale))}${query}`;
   const image = opts.image?.startsWith("http") ? opts.image : `${SITE.url}${opts.image ?? "/og-default.png"}`;
   const description = opts.description.length > 300 ? `${opts.description.slice(0, 297)}…` : opts.description;
 
@@ -34,18 +41,42 @@ export function seo(opts: {
       { property: "og:image", content: image },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:locale", content: "en_IN" },
+      { property: "og:locale", content: localeInfo(locale).htmlLang.replace("-", "_") },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: fullTitle },
       { name: "twitter:description", content: description },
       { name: "twitter:image", content: image },
     ],
-    links: [{ rel: "canonical", href: url }],
+    links: [
+      { rel: "canonical", href: url },
+      // Every language version of this page, so search engines can serve the right one and don't
+      // treat them as competing duplicates. x-default points at English.
+      ...LOCALES.map((l) => ({
+        rel: "alternate",
+        hrefLang: l.code,
+        href: `${SITE.url}${absolutePath(localePath(barePath, l.code))}${query}`,
+      })),
+      {
+        rel: "alternate",
+        hrefLang: "x-default",
+        href: `${SITE.url}${absolutePath(localePath(barePath, DEFAULT_LOCALE))}${query}`,
+      },
+    ],
     scripts: (opts.jsonLd ?? []).map((data) => ({
       type: "application/ld+json",
       children: JSON.stringify({ "@context": "https://schema.org", ...data }),
     })),
   };
+}
+
+/** "" for the home page so we emit https://site rather than https://site/. */
+function absolutePath(path: string) {
+  return path === "/" ? "" : path;
+}
+
+function splitQuery(path: string): [string, string] {
+  const i = path.search(/[?#]/);
+  return i === -1 ? [path, ""] : [path.slice(0, i), path.slice(i)];
 }
 
 export function breadcrumbLd(items: { name: string; path: string }[]) {

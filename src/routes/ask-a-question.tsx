@@ -6,6 +6,7 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
 import { submitQuestionFn, getAnsweredQuestionsFn } from "@/lib/server-functions/questions";
+import { seo } from "@/lib/seo";
 
 const conditionOptions = [
   "Proctology (Piles, Fistula, Fissure)",
@@ -27,16 +28,13 @@ export const Route = createFileRoute("/ask-a-question")({
       return { success: false, questions: [] };
     }
   },
-  head: () => ({
-    meta: [
-      { title: "Ask a Question | Go Surgery" },
-      {
-        name: "description",
-        content:
-          "Ask our care team a question about your symptoms or a planned procedure and get a real answer.",
-      },
-    ],
-  }),
+  head: ({ match }) =>
+    seo({
+      locale: match.context.locale,
+      title: "Ask a Question",
+      description: "Ask our care team a question about your symptoms or a planned procedure and get a real answer.",
+      path: "/ask-a-question",
+    }),
   component: AskAQuestionPage,
 });
 

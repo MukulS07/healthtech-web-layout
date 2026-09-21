@@ -6,6 +6,7 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
 import { SITE, telHref, whatsappHref } from "@/lib/site";
+import { seo } from "@/lib/seo";
 
 const partnerBenefits = [
   {
@@ -73,16 +74,13 @@ const doctorFaqs = [
 ];
 
 export const Route = createFileRoute("/doctor-onboarding")({
-  head: () => ({
-    meta: [
-      { title: "Doctor Onboarding | Go Surgery" },
-      {
-        name: "description",
-        content:
-          "Partner with Go Surgery — bring your practice a steady, qualified patient pipeline without taking on the admin, insurance chasing, or marketing yourself.",
-      },
-    ],
-  }),
+  head: ({ match }) =>
+    seo({
+      locale: match.context.locale,
+      title: "Doctor Onboarding",
+      description: "Partner with Go Surgery — bring your practice a steady, qualified patient pipeline without taking on the admin, insurance chasing, or marketing yourself.",
+      path: "/doctor-onboarding",
+    }),
   component: DoctorOnboardingPage,
 });
 

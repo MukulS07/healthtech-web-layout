@@ -1,8 +1,9 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { A } from "@/components/common/A";
 
 /**
- * Crawlable pagination: real <a href="?page=N"> links (not JS-only buttons), so search engines
+ * Crawlable pagination: real <A href="?page=N"> links (not JS-only buttons), so search engines
  * can reach every page of a directory.
  */
 export function Pagination({
@@ -26,26 +27,26 @@ export function Pagination({
   return (
     <nav aria-label="Pagination" className={cn("mt-10 flex flex-wrap items-center justify-center gap-1.5", className)}>
       {page > 1 ? (
-        <a href={hrefFor(page - 1)} rel="prev" className={cn(base, "border-border text-navy hover:bg-cream")} aria-label="Previous page">
+        <A href={hrefFor(page - 1)} rel="prev" className={cn(base, "border-border text-navy hover:bg-cream")} aria-label="Previous page">
           <ChevronLeft className="h-4 w-4" />
-        </a>
+        </A>
       ) : null}
       {list.map((p, i) => (
         <span key={p} className="flex items-center gap-1.5">
           {i > 0 && p - list[i - 1]! > 1 ? <span className="px-1 text-muted-foreground">…</span> : null}
-          <a
+          <A
             href={hrefFor(p)}
             aria-current={p === page ? "page" : undefined}
             className={cn(base, p === page ? "border-navy bg-navy text-white" : "border-border text-navy hover:bg-cream")}
           >
             {p}
-          </a>
+          </A>
         </span>
       ))}
       {page < totalPages ? (
-        <a href={hrefFor(page + 1)} rel="next" className={cn(base, "border-border text-navy hover:bg-cream")} aria-label="Next page">
+        <A href={hrefFor(page + 1)} rel="next" className={cn(base, "border-border text-navy hover:bg-cream")} aria-label="Next page">
           <ChevronRight className="h-4 w-4" />
-        </a>
+        </A>
       ) : null}
     </nav>
   );

@@ -8,6 +8,23 @@
  */
 export const CITY_LOCATION_ALIASES: Record<string, string[]> = {
   "Delhi NCR": ["Delhi", "New Delhi", "Gurugram", "Gurgaon", "Noida", "Ghaziabad", "Faridabad"],
+  // Cities the imported data spells differently from the name we show. Without these the filter
+  // matches nothing: the data uses "Haora" for Howrah, and both old and new names appear for the
+  // cities renamed in the 2010s. Listing both spellings also picks up documents recorded either way.
+  Howrah: ["Howrah", "Haora"],
+  Bangalore: ["Bangalore", "Bengaluru"],
+  Mysore: ["Mysore", "Mysuru"],
+  Mangalore: ["Mangalore", "Mangaluru"],
+  Kochi: ["Kochi", "Cochin", "Ernakulam"],
+  Thiruvananthapuram: ["Thiruvananthapuram", "Trivandrum"],
+  Kozhikode: ["Kozhikode", "Calicut"],
+  Thrissur: ["Thrissur", "Trichur"],
+  Prayagraj: ["Prayagraj", "Allahabad"],
+  Vadodara: ["Vadodara", "Baroda"],
+  Tiruchirappalli: ["Tiruchirappalli", "Trichy", "Tiruchchirappalli"],
+  Puducherry: ["Puducherry", "Pondicherry"],
+  Hubli: ["Hubli", "Hubballi", "Hubli-Dharwad"],
+  Aurangabad: ["Aurangabad", "Chhatrapati Sambhajinagar"],
 };
 
 export function locationValuesFor(cityName: string): string[] {

@@ -8,6 +8,7 @@ import { BLOG_AUTHOR, BLOG_POSTS, getBlogPost } from "@/data/blog";
 import { getCondition, getTreatment } from "@/data/catalog";
 import { seo, breadcrumbLd } from "@/lib/seo";
 import { SITE } from "@/lib/site";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
@@ -15,10 +16,10 @@ export const Route = createFileRoute("/blog/$slug")({
     if (!post) throw notFound();
     return { post };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     const post = loaderData?.post;
-    if (!post) return seo({ title: "Article not found", description: "", path: "/blog", noindex: true });
-    return seo({
+    if (!post) return seo({ locale: match.context.locale, title: "Article not found", description: "", path: "/blog", noindex: true });
+    return seo({ locale: match.context.locale,
       title: post.title,
       description: post.excerpt,
       path: `/blog/${post.slug}`,
@@ -63,8 +64,8 @@ function BlogPostPage() {
       <main>
         <nav aria-label="Breadcrumb" className="border-b border-border bg-cream py-3 text-xs text-muted-foreground">
           <Container className="flex flex-wrap items-center gap-2">
-            <a href="/" className="hover:text-brand-orange">Home</a>/
-            <a href="/blog" className="hover:text-brand-orange">Healthfeed</a>/
+            <A href="/" className="hover:text-brand-orange">Home</A>/
+            <A href="/blog" className="hover:text-brand-orange">Healthfeed</A>/
             <span className="font-medium text-ink">{post.category}</span>
           </Container>
         </nav>
@@ -84,7 +85,7 @@ function BlogPostPage() {
                 {post.reviewedBy
                   ? `Medically reviewed by ${post.reviewedBy.name}, ${post.reviewedBy.credentials}.`
                   : "General health information, pending review by a named clinician. It isn't medical advice — please consult a doctor about your own situation."}{" "}
-                <a href="/editorial-policy" className="underline">Editorial policy</a>
+                <A href="/editorial-policy" className="underline">Editorial policy</A>
               </p>
 
               <div className="mt-8 space-y-8">
@@ -113,10 +114,10 @@ function BlogPostPage() {
                   <p className="text-sm font-bold text-navy">Related on Go Surgery</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {conditions.map((c) => (
-                      <a key={c.slug} href={`/conditions/${c.slug}`} className="rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-navy hover:border-primary/40">{c.name}</a>
+                      <A key={c.slug} href={`/conditions/${c.slug}`} className="rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-navy hover:border-primary/40">{c.name}</A>
                     ))}
                     {treatments.map((t) => (
-                      <a key={t.slug} href={`/treatments/${t.slug}`} className="rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-primary hover:border-primary/40">{t.name}</a>
+                      <A key={t.slug} href={`/treatments/${t.slug}`} className="rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-primary hover:border-primary/40">{t.name}</A>
                     ))}
                   </div>
                 </div>
@@ -126,11 +127,11 @@ function BlogPostPage() {
                 <p className="text-sm font-bold text-navy">More articles</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-3">
                   {more.map((p) => (
-                    <a key={p.slug} href={`/blog/${p.slug}`} className="group rounded-lg border border-border p-4 hover:shadow-sm">
+                    <A key={p.slug} href={`/blog/${p.slug}`} className="group rounded-lg border border-border p-4 hover:shadow-sm">
                       <span className="text-[11px] font-semibold text-brand-orange-dark">{p.category}</span>
                       <p className="mt-1 text-sm font-semibold leading-snug text-navy group-hover:text-primary">{p.title}</p>
                       <ArrowRight className="mt-2 h-4 w-4 text-brand-orange" />
-                    </a>
+                    </A>
                   ))}
                 </div>
               </div>

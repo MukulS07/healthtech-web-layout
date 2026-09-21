@@ -43,6 +43,7 @@ import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { subscribeFn } from "@/lib/server-functions/subscribers";
 import type { SiteStats } from "@/lib/server-functions/site-stats";
 import { cn } from "@/lib/utils";
+import { A } from "@/components/common/A";
 
 /* ---------------- Find care ---------------- */
 
@@ -163,7 +164,7 @@ export function FindCare() {
             {featuredTiles.map((tile) => {
               const spec = SPECIALITIES.find((s) => s.slug === tile.slug)!;
               return (
-                <a
+                <A
                   href={`/specialities/${tile.slug}`}
                   key={tile.slug}
                   className="group relative overflow-hidden rounded-xl border border-border/80 shadow-sm transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -184,7 +185,7 @@ export function FindCare() {
                     </div>
                     <p className="mt-1 text-sm font-bold text-navy">{tile.title}</p>
                   </div>
-                </a>
+                </A>
               );
             })}
           </div>
@@ -192,7 +193,7 @@ export function FindCare() {
 
         <div className="mt-6 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((it) => (
-            <a
+            <A
               key={it.key}
               href={it.href}
               // min-w-0: the label inside uses `truncate` (white-space: nowrap), whose min-content
@@ -204,25 +205,25 @@ export function FindCare() {
                 {it.sub ? <span className="block truncate text-xs text-muted-foreground">{it.sub}</span> : null}
               </span>
               <ArrowRight className="h-4 w-4 shrink-0 text-brand-orange opacity-60 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
-            </a>
+            </A>
           ))}
           {items.length === 0 ? (
             <p className="col-span-full py-6 text-center text-sm text-muted-foreground">
               Nothing matches “{searchTerm}”. Try another word, or{" "}
-              <a href="/contact" className="font-semibold text-primary underline">
+              <A href="/contact" className="font-semibold text-primary underline">
                 ask our care team
-              </a>
+              </A>
               .
             </p>
           ) : null}
         </div>
 
         <div className="mt-8 flex justify-center">
-          <a href={viewAll.href}>
+          <A href={viewAll.href}>
             <OutlineButton className="inline-flex items-center gap-2 text-sm font-semibold">
               {viewAll.label} <ArrowRight className="h-4 w-4 text-brand-orange" />
             </OutlineButton>
-          </a>
+          </A>
         </div>
       </Container>
     </section>
@@ -262,13 +263,13 @@ export function SpecialisedCentres() {
                 {c.slugs.map((slug) => {
                   const s = SPECIALITIES.find((x) => x.slug === slug);
                   return s ? (
-                    <a
+                    <A
                       key={slug}
                       href={`/specialities/${slug}`}
                       className="rounded-full border border-border bg-cream px-3 py-1 text-xs font-semibold text-navy hover:border-primary/40"
                     >
                       {s.name}
-                    </a>
+                    </A>
                   ) : null;
                 })}
               </div>
@@ -374,9 +375,9 @@ export function Hospitals({ hospitals }: { hospitals: HomeHospital[] }) {
           title="Hospitals in Our Directory"
           subtitle="Browse hospitals and see which surgeons practise there. Ask our care team which options suit your treatment and insurance."
           action={
-            <a href="/hospitals">
+            <A href="/hospitals">
               <OutlineButton tone="light">Explore All Hospitals</OutlineButton>
-            </a>
+            </A>
           }
         />
         <Carousel>
@@ -385,7 +386,7 @@ export function Hospitals({ hospitals }: { hospitals: HomeHospital[] }) {
               key={h.id || i}
               className="flex w-[280px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-xl bg-background text-ink shadow-md sm:w-[320px]"
             >
-              <a href={h.slug ? `/hospitals/${h.slug}` : "/hospitals"} className="block">
+              <A href={h.slug ? `/hospitals/${h.slug}` : "/hospitals"} className="block">
                 <div className="relative">
                   <img
                     src={h.img || hospitalImages[i % hospitalImages.length]}
@@ -407,15 +408,15 @@ export function Hospitals({ hospitals }: { hospitals: HomeHospital[] }) {
                     <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-orange" /> {h.city}
                   </p>
                 </div>
-              </a>
+              </A>
               <div className="p-4 pt-0">
                 <div className="flex gap-2">
-                  <a href={h.slug ? `/hospitals/${h.slug}` : "/hospitals"} className="flex-1">
+                  <A href={h.slug ? `/hospitals/${h.slug}` : "/hospitals"} className="flex-1">
                     <OutlineButton className="w-full justify-center px-3 py-2 text-xs">View details</OutlineButton>
-                  </a>
-                  <a href={`/contact?city=${encodeURIComponent(h.city)}`} className="flex-1">
+                  </A>
+                  <A href={`/contact?city=${encodeURIComponent(h.city)}`} className="flex-1">
                     <OrangeButton className="w-full justify-center px-3 py-2 text-xs">Request consult</OrangeButton>
-                  </a>
+                  </A>
                 </div>
               </div>
             </article>
@@ -478,9 +479,9 @@ export function Doctors({ doctors }: { doctors: DoctorCardData[] }) {
           }
           subtitle="Surgeons from our directory with the most patient reviews. See qualifications, experience and where they practise."
           action={
-            <a href="/doctors">
+            <A href="/doctors">
               <OutlineButton>View All Doctors</OutlineButton>
-            </a>
+            </A>
           }
         />
         <Carousel>
@@ -569,14 +570,14 @@ export function Insurance() {
             walk you through EMI options.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="/insurance-eligibility">
+            <A href="/insurance-eligibility">
               <OrangeButton>Check Eligibility</OrangeButton>
-            </a>
-            <a href="/no-cost-emi">
+            </A>
+            <A href="/no-cost-emi">
               <OutlineButton className="gap-2">
                 <Wallet className="h-4 w-4 shrink-0 text-brand-orange" /> EMI options
               </OutlineButton>
-            </a>
+            </A>
           </div>
         </div>
         <div>
@@ -669,14 +670,14 @@ export function Testimonials({
             ) : null}
           </div>
           <div className="flex gap-2">
-            <a href="/reviews/write">
+            <A href="/reviews/write">
               <OrangeButton className="gap-2">
                 <PenLine className="h-4 w-4" /> Write a Review
               </OrangeButton>
-            </a>
-            <a href="/reviews">
+            </A>
+            <A href="/reviews">
               <OutlineButton>View All</OutlineButton>
-            </a>
+            </A>
           </div>
         </div>
 
@@ -727,9 +728,9 @@ export function Testimonials({
                       <p className="truncate text-muted-foreground">
                         Treated by{" "}
                         {t.doctorSlug ? (
-                          <a href={`/doctors/${t.doctorSlug}`} className="font-semibold text-primary hover:underline">
+                          <A href={`/doctors/${t.doctorSlug}`} className="font-semibold text-primary hover:underline">
                             {t.doctorName}
-                          </a>
+                          </A>
                         ) : (
                           t.doctorName
                         )}
@@ -775,9 +776,9 @@ export function About() {
                 </li>
               ))}
             </ul>
-            <a href="/about" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+            <A href="/about" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
               More about us <ArrowRight className="h-4 w-4" />
-            </a>
+            </A>
           </div>
         </div>
         <div className="lg:sticky lg:top-36 lg:self-start">
@@ -800,14 +801,14 @@ export function Healthfeed() {
           title="Read, Learn & Decide Better"
           subtitle="Plain-language guides on treatments, recovery and insurance."
           action={
-            <a href="/blog">
+            <A href="/blog">
               <OutlineButton>View All Articles</OutlineButton>
-            </a>
+            </A>
           }
         />
         <Carousel>
           {BLOG_POSTS.slice(0, 8).map((p) => (
-            <a
+            <A
               key={p.slug}
               href={`/blog/${p.slug}`}
               className="group flex w-[260px] shrink-0 snap-start flex-col justify-between rounded-xl border border-border/80 bg-background p-5 shadow-sm transition-shadow hover:shadow-md sm:w-[300px]"
@@ -820,7 +821,7 @@ export function Healthfeed() {
               <p className="mt-6 flex items-center justify-between text-xs text-muted-foreground">
                 {p.readMinutes} min read <ArrowRight className="h-4 w-4 text-brand-orange" />
               </p>
-            </a>
+            </A>
           ))}
         </Carousel>
       </Container>
@@ -942,16 +943,16 @@ export function JoinCommunity() {
               <OrangeButton type="submit" disabled={state === "sending"} className="w-full">
                 {state === "sending" ? "Joining..." : "Join the community"}
               </OrangeButton>
-              <a
+              <A
                 href={whatsappHref("Hi, I'd like to join the Go Surgery community updates on WhatsApp.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 rounded-md border border-emerald-600/30 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
               >
                 <MessageCircle className="h-4 w-4" /> Or message us on WhatsApp
-              </a>
+              </A>
               <p className="text-center text-[11px] text-muted-foreground">
-                By subscribing you agree to our <a href="/privacy" className="underline">privacy policy</a>.
+                By subscribing you agree to our <A href="/privacy" className="underline">privacy policy</A>.
               </p>
             </form>
           )}

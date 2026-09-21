@@ -11,6 +11,7 @@ import { getHospitalFacetsFn, getHospitalsFn } from "@/lib/server-functions/hosp
 import { getSpeciality } from "@/data/catalog";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { A } from "@/components/common/A";
 
 const hospitalImages = [hospital1, hospital2];
 const PAGE_SIZE = 24;
@@ -54,7 +55,7 @@ export const Route = createFileRoute("/hospitals/")({
     if (s.page) params.set("page", String(s.page));
     const qs = params.toString();
     const title = `${spec ? `${spec} Hospitals` : "Hospitals"}${s.city ? ` in ${s.city}` : ""}`;
-    return seo({
+    return seo({ locale: match.context.locale,
       title: `${title}${s.page ? ` — Page ${s.page}` : ""}`,
       description: `Browse ${spec ? `${spec.toLowerCase()} ` : ""}hospitals${s.city ? ` in ${s.city}` : ""} in the Go Surgery directory — departments, surgeons who practise there and patient ratings.`,
       path: `/hospitals${qs ? `?${qs}` : ""}`,
@@ -175,7 +176,7 @@ function HospitalsPage() {
                   const extra = h.specialties.length - MAX_CHIPS;
                   return (
                     <article key={h.id} className="flex flex-col overflow-hidden rounded-xl border border-border bg-background shadow-sm transition-shadow hover:shadow-md">
-                      <a href={href} className="block">
+                      <A href={href} className="block">
                         <div className="relative">
                           <img
                             src={h.img || hospitalImages[index % hospitalImages.length]}
@@ -212,14 +213,14 @@ function HospitalsPage() {
                             </div>
                           ) : null}
                         </div>
-                      </a>
+                      </A>
                       <div className="mt-auto flex gap-2 p-4">
-                        <a href={href} className="flex-1">
+                        <A href={href} className="flex-1">
                           <OutlineButton className="w-full justify-center px-2 py-2 text-xs">View details</OutlineButton>
-                        </a>
-                        <a href={`/contact?city=${encodeURIComponent(h.city)}`} className="flex-1">
+                        </A>
+                        <A href={`/contact?city=${encodeURIComponent(h.city)}`} className="flex-1">
                           <OrangeButton className="w-full justify-center px-2 py-2 text-xs">Request consult</OrangeButton>
-                        </a>
+                        </A>
                       </div>
                     </article>
                   );

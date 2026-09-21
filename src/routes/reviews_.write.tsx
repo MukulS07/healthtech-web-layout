@@ -9,13 +9,14 @@ import { submitReviewFn } from "@/lib/server-functions/reviews";
 import { CITIES } from "@/lib/site";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/reviews_/write")({
   validateSearch: (s: Record<string, unknown>) => ({
     doctor: typeof s["doctor"] === "string" ? (s["doctor"] as string) : undefined,
   }),
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: "Write a Review",
       description: "Share your experience with a Go Surgery doctor to help other patients choose with confidence.",
       path: "/reviews/write",
@@ -94,7 +95,7 @@ function WriteReviewPage() {
                 <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
                 <p className="mt-3 text-lg font-bold text-navy">Thank you for your review!</p>
                 <p className="mt-1 text-sm text-muted-foreground">It will appear once our team has checked it.</p>
-                <a href="/reviews" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">Read other reviews</a>
+                <A href="/reviews" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">Read other reviews</A>
               </div>
             ) : (
               <form onSubmit={submit} className="space-y-4">
@@ -171,7 +172,7 @@ function WriteReviewPage() {
                   {state === "sending" ? "Submitting..." : "Submit review"}
                 </OrangeButton>
                 <p className="text-center text-[11px] text-muted-foreground">
-                  By submitting you confirm this is your genuine experience. See our <a href="/privacy" className="underline">privacy policy</a>.
+                  By submitting you confirm this is your genuine experience. See our <A href="/privacy" className="underline">privacy policy</A>.
                 </p>
               </form>
             )}

@@ -28,20 +28,105 @@ export function whatsappHref(message = "Hi, I'd like to know more about a surger
 }
 
 /** Cities we have city pages for (slug matches /locations/$city). */
+/**
+ * Cities we offer as a filter. `lat`/`lng` are the city centre, used only to turn a browser
+ * geolocation reading into the nearest city on the device — nothing is sent to a geocoding
+ * service, so a patient's coordinates never leave their browser.
+ *
+ * Names must match the real `Doctor.location` / `Hospital.city` values, or have an entry in
+ * CITY_LOCATION_ALIASES (src/lib/city-aliases.ts) — several cities are spelled differently in the
+ * imported data ("Haora" for Howrah, "Bengaluru" for Bangalore), and a name that matches neither
+ * silently returns zero results.
+ */
 export const CITIES = [
-  { name: "Delhi NCR", slug: "delhi-ncr" },
-  { name: "Mumbai", slug: "mumbai" },
-  { name: "Bangalore", slug: "bangalore" },
-  { name: "Hyderabad", slug: "hyderabad" },
-  { name: "Chennai", slug: "chennai" },
-  { name: "Pune", slug: "pune" },
-  { name: "Kolkata", slug: "kolkata" },
-  { name: "Ahmedabad", slug: "ahmedabad" },
-  { name: "Jaipur", slug: "jaipur" },
-  { name: "Lucknow", slug: "lucknow" },
-  { name: "Kochi", slug: "kochi" },
-  { name: "Indore", slug: "indore" },
+  { name: "Delhi NCR", slug: "delhi-ncr", lat: 28.6139, lng: 77.209 },
+  { name: "Mumbai", slug: "mumbai", lat: 19.076, lng: 72.8777 },
+  { name: "Bangalore", slug: "bangalore", lat: 12.9716, lng: 77.5946 },
+  { name: "Hyderabad", slug: "hyderabad", lat: 17.385, lng: 78.4867 },
+  { name: "Chennai", slug: "chennai", lat: 13.0827, lng: 80.2707 },
+  { name: "Pune", slug: "pune", lat: 18.5204, lng: 73.8567 },
+  { name: "Kolkata", slug: "kolkata", lat: 22.5726, lng: 88.3639 },
+  { name: "Ahmedabad", slug: "ahmedabad", lat: 23.0225, lng: 72.5714 },
+  { name: "Jaipur", slug: "jaipur", lat: 26.9124, lng: 75.7873 },
+  { name: "Lucknow", slug: "lucknow", lat: 26.8467, lng: 80.9462 },
+  { name: "Kochi", slug: "kochi", lat: 9.9312, lng: 76.2673 },
+  { name: "Indore", slug: "indore", lat: 22.7196, lng: 75.8577 },
+  { name: "Thane", slug: "thane", lat: 19.2183, lng: 72.9781 },
+  { name: "Navi Mumbai", slug: "navi-mumbai", lat: 19.033, lng: 73.0297 },
+  { name: "Nagpur", slug: "nagpur", lat: 21.1458, lng: 79.0882 },
+  { name: "Bhopal", slug: "bhopal", lat: 23.2599, lng: 77.4126 },
+  { name: "Agra", slug: "agra", lat: 27.1767, lng: 78.0081 },
+  { name: "Chandigarh", slug: "chandigarh", lat: 30.7333, lng: 76.7794 },
+  { name: "Patna", slug: "patna", lat: 25.5941, lng: 85.1376 },
+  { name: "Amritsar", slug: "amritsar", lat: 31.634, lng: 74.8723 },
+  { name: "Ludhiana", slug: "ludhiana", lat: 30.901, lng: 75.8573 },
+  { name: "Visakhapatnam", slug: "visakhapatnam", lat: 17.6868, lng: 83.2185 },
+  { name: "Howrah", slug: "howrah", lat: 22.5958, lng: 88.2636 },
+  { name: "Nashik", slug: "nashik", lat: 19.9975, lng: 73.7898 },
+  { name: "Kanpur", slug: "kanpur", lat: 26.4499, lng: 80.3319 },
+  { name: "Ranchi", slug: "ranchi", lat: 23.3441, lng: 85.3096 },
+  { name: "Surat", slug: "surat", lat: 21.1702, lng: 72.8311 },
+  { name: "Vadodara", slug: "vadodara", lat: 22.3072, lng: 73.1812 },
+  { name: "Coimbatore", slug: "coimbatore", lat: 11.0168, lng: 76.9558 },
+  { name: "Madurai", slug: "madurai", lat: 9.9252, lng: 78.1198 },
+  { name: "Tiruchirappalli", slug: "tiruchirappalli", lat: 10.7905, lng: 78.7047 },
+  { name: "Thiruvananthapuram", slug: "thiruvananthapuram", lat: 8.5241, lng: 76.9366 },
+  { name: "Kozhikode", slug: "kozhikode", lat: 11.2588, lng: 75.7804 },
+  { name: "Thrissur", slug: "thrissur", lat: 10.5276, lng: 76.2144 },
+  { name: "Mysore", slug: "mysore", lat: 12.2958, lng: 76.6394 },
+  { name: "Mangalore", slug: "mangalore", lat: 12.9141, lng: 74.856 },
+  { name: "Hubli", slug: "hubli", lat: 15.3647, lng: 75.124 },
+  { name: "Vijayawada", slug: "vijayawada", lat: 16.5062, lng: 80.648 },
+  { name: "Guntur", slug: "guntur", lat: 16.3067, lng: 80.4365 },
+  { name: "Warangal", slug: "warangal", lat: 17.9689, lng: 79.5941 },
+  { name: "Raipur", slug: "raipur", lat: 21.2514, lng: 81.6296 },
+  { name: "Bhubaneswar", slug: "bhubaneswar", lat: 20.2961, lng: 85.8245 },
+  { name: "Guwahati", slug: "guwahati", lat: 26.1445, lng: 91.7362 },
+  { name: "Dehradun", slug: "dehradun", lat: 30.3165, lng: 78.0322 },
+  { name: "Varanasi", slug: "varanasi", lat: 25.3176, lng: 82.9739 },
+  { name: "Prayagraj", slug: "prayagraj", lat: 25.4358, lng: 81.8463 },
+  { name: "Jodhpur", slug: "jodhpur", lat: 26.2389, lng: 73.0243 },
+  { name: "Udaipur", slug: "udaipur", lat: 24.5854, lng: 73.7125 },
+  { name: "Gwalior", slug: "gwalior", lat: 26.2183, lng: 78.1828 },
+  { name: "Jabalpur", slug: "jabalpur", lat: 23.1815, lng: 79.9864 },
+  { name: "Aurangabad", slug: "aurangabad", lat: 19.8762, lng: 75.3433 },
+  { name: "Jamshedpur", slug: "jamshedpur", lat: 22.8046, lng: 86.2029 },
+  { name: "Siliguri", slug: "siliguri", lat: 26.7271, lng: 88.3953 },
+  { name: "Salem", slug: "salem", lat: 11.6643, lng: 78.146 },
 ] as const;
+
+/**
+ * The cities we lead with — the ones with the deepest coverage in the directory. Used for footer
+ * and "also available in" link lists, and for the city × speciality pages in the sitemap, so
+ * widening the picker above doesn't turn every page into a wall of city links or add hundreds of
+ * thin, noindexed URLs to the sitemap. The full CITIES list still drives the picker, the site
+ * search and every city dropdown a patient has to choose their own city from.
+ */
+export const TOP_CITIES = CITIES.slice(0, 12);
+
+/** Great-circle distance in km, for picking the nearest city to a geolocation reading. */
+function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number) {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(bLat - aLat);
+  const dLng = toRad(bLng - aLng);
+  const h =
+    Math.sin(dLat / 2) ** 2 + Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(h));
+}
+
+/**
+ * Nearest supported city to a coordinate, or null if it's further than `maxKm` from all of them
+ * (someone abroad, or in a part of India we don't cover — better to say so than to drop them in a
+ * city 800km away).
+ */
+export function nearestCity(lat: number, lng: number, maxKm = 150) {
+  let best: { city: (typeof CITIES)[number]; km: number } | null = null;
+  for (const city of CITIES) {
+    const km = haversineKm(lat, lng, city.lat, city.lng);
+    if (!best || km < best.km) best = { city, km };
+  }
+  return best && best.km <= maxKm ? best : null;
+}
 
 /**
  * What patients get. ⚠️ Only entries with `enabled: true` are shown anywhere on the site.

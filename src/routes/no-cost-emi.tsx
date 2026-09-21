@@ -5,6 +5,8 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { BOOK_LABEL } from "@/lib/site";
+import { A } from "@/components/common/A";
+import { seo } from "@/lib/seo";
 
 const benefits = [
   {
@@ -88,16 +90,13 @@ function FaqAccordion() {
 }
 
 export const Route = createFileRoute("/no-cost-emi")({
-  head: () => ({
-    meta: [
-      { title: "No-Cost EMI | Go Surgery" },
-      {
-        name: "description",
-        content:
-          "Pay for your treatment in monthly instalments through Go Surgery's no-cost EMI options.",
-      },
-    ],
-  }),
+  head: ({ match }) =>
+    seo({
+      locale: match.context.locale,
+      title: "No-Cost EMI",
+      description: "Pay for your treatment in monthly instalments through Go Surgery's no-cost EMI options.",
+      path: "/no-cost-emi",
+    }),
   component: NoCostEmiPage,
 });
 
@@ -117,8 +116,8 @@ function NoCostEmiPage() {
               monthly instalments. Work out what those instalments would be before you commit.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="/emi-calculator"><OrangeButton>Calculate my EMI</OrangeButton></a>
-              <a href="/contact"><OutlineButton tone="light">Ask about payment options</OutlineButton></a>
+              <A href="/emi-calculator"><OrangeButton>Calculate my EMI</OrangeButton></A>
+              <A href="/contact"><OutlineButton tone="light">Ask about payment options</OutlineButton></A>
             </div>
           </Container>
         </section>
@@ -169,9 +168,9 @@ function NoCostEmiPage() {
             <p className="mt-3 text-sm text-navy-foreground/75">
               We'll confirm your exact eligibility and tenure once your treatment is finalised.
             </p>
-            <a href="/contact" className="mt-6 inline-block">
+            <A href="/contact" className="mt-6 inline-block">
               <OrangeButton>{BOOK_LABEL}</OrangeButton>
-            </a>
+            </A>
           </Container>
         </section>
       </main>

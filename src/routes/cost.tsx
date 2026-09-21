@@ -10,6 +10,7 @@ import { SPECIALITIES, TREATMENTS } from "@/data/catalog";
 import { costIndex } from "@/data/cost";
 import { seo } from "@/lib/seo";
 import { BOOK_LABEL, COSTS_PUBLISHED } from "@/lib/site";
+import { A } from "@/components/common/A";
 
 const POPULAR = [
   "laser-piles-surgery",
@@ -50,8 +51,8 @@ const INDEX_FAQS = [
 ];
 
 export const Route = createFileRoute("/cost")({
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: "Surgery Cost Guide",
       description:
         "What affects the cost of surgery in India — hospital, city, room category, technique and insurance — with a cost page for every procedure we cover.",
@@ -95,9 +96,9 @@ function CostIndexPage() {
               your procedure below to see what drives its price — and ask us to help you get a written
               estimate for your own case.
             </p>
-            <a href="/contact" className="mt-6 inline-block">
+            <A href="/contact" className="mt-6 inline-block">
               <OrangeButton>Ask for an estimate</OrangeButton>
-            </a>
+            </A>
           </Container>
         </section>
 
@@ -113,7 +114,7 @@ function CostIndexPage() {
             <SectionHead eyebrow="Popular procedures" title="Most-asked-about costs" />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {popular.map((t) => (
-                <a
+                <A
                   key={t.slug}
                   href={`/cost/${t.slug}`}
                   className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-border bg-background p-4 transition-colors hover:border-navy/30"
@@ -125,7 +126,7 @@ function CostIndexPage() {
                     </span>
                   </span>
                   <IndianRupee className="h-4 w-4 shrink-0 text-brand-orange" />
-                </a>
+                </A>
               ))}
             </div>
           </Container>
@@ -150,18 +151,18 @@ function CostIndexPage() {
                 {groups.map(({ speciality, treatments }) => (
                   <div key={speciality.slug}>
                     <h2 className="text-base font-bold text-navy">
-                      <a href={`/specialities/${speciality.slug}`} className="hover:underline">{speciality.name}</a>
+                      <A href={`/specialities/${speciality.slug}`} className="hover:underline">{speciality.name}</A>
                     </h2>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                       {treatments.map((t) => (
-                        <a
+                        <A
                           key={t.slug}
                           href={`/cost/${t.slug}`}
                           className="group flex min-w-0 items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3"
                         >
                           <span className="truncate text-sm font-medium text-navy">{t.name}</span>
                           <ArrowRight className="h-4 w-4 shrink-0 text-brand-orange transition-transform group-hover:translate-x-0.5" />
-                        </a>
+                        </A>
                       ))}
                     </div>
                   </div>
@@ -170,7 +171,7 @@ function CostIndexPage() {
             ) : (
               <p className="rounded-xl border border-border bg-background p-6 text-center text-sm text-muted-foreground">
                 No procedure matches “{q}”. Try a different word, or{" "}
-                <a href="/contact" className="font-semibold text-primary hover:underline">ask our team</a>.
+                <A href="/contact" className="font-semibold text-primary hover:underline">ask our team</A>.
               </p>
             )}
           </Container>
@@ -208,9 +209,9 @@ function CostIndexPage() {
             <p className="mt-3 text-sm text-navy-foreground/75">
               Tell us your treatment and city — no obligation to book.
             </p>
-            <a href="/contact" className="mt-6 inline-block">
+            <A href="/contact" className="mt-6 inline-block">
               <OrangeButton>{BOOK_LABEL}</OrangeButton>
-            </a>
+            </A>
           </Container>
         </section>
       </main>

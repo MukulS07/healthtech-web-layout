@@ -6,6 +6,8 @@ import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
 import { ConsultForm } from "@/components/home/ConsultForm";
 import { SITE, promiseEnabled, telHref, whatsappHref } from "@/lib/site";
+import { A } from "@/components/common/A";
+import { seo } from "@/lib/seo";
 
 type Faq = { q: string; a: string };
 
@@ -111,16 +113,13 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
 ];
 
 export const Route = createFileRoute("/faqs")({
-  head: () => ({
-    meta: [
-      { title: "Frequently Asked Questions | Go Surgery" },
-      {
-        name: "description",
-        content:
-          "Answers to your most common questions about surgery, insurance, recovery and Go Surgery's services.",
-      },
-    ],
-  }),
+  head: ({ match }) =>
+    seo({
+      locale: match.context.locale,
+      title: "Frequently Asked Questions",
+      description: "Answers to your most common questions about surgery, insurance, recovery and Go Surgery's services.",
+      path: "/faqs",
+    }),
   component: FaqsPage,
 });
 
@@ -201,7 +200,7 @@ function FaqsPage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   Talk to our care team directly. We're available 7 days a week.
                 </p>
-                <a href={telHref}><OrangeButton className="mt-4 w-full">Call {SITE.phone.display}</OrangeButton></a>
+                <A href={telHref}><OrangeButton className="mt-4 w-full">Call {SITE.phone.display}</OrangeButton></A>
               </div>
             </aside>
           </Container>

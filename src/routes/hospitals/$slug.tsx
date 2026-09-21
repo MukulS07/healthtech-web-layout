@@ -16,6 +16,7 @@ import hospitalFallbackImg from "@/assets/hospital-1.jpg";
 import { DoctorAvatar } from "@/components/doctors/DoctorCard";
 import { SITE, CONSULT_PHRASE } from "@/lib/site";
 import { breadcrumbLd, seo } from "@/lib/seo";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/hospitals/$slug")({
   loader: async ({ params }) => {
@@ -23,9 +24,9 @@ export const Route = createFileRoute("/hospitals/$slug")({
     if (!res.success) throw notFound();
     return res.hospital;
   },
-  head: ({ loaderData: h }) => {
+  head: ({ loaderData: h, match }) => {
     if (!h) return {};
-    return seo({
+    return seo({ locale: match.context.locale,
       title: `${h.name}${h.city ? `, ${h.city}` : ""} — Doctors, Departments & Reviews`,
       description: `${h.name}${h.locality ? `, ${h.locality}` : ""}${h.city ? `, ${h.city}` : ""}: departments${h.doctors.length ? `, ${h.doctors.length} doctors listed` : ""}, location and patient ratings. Request ${CONSULT_PHRASE} via Go Surgery.`,
       path: `/hospitals/${h.slug}`,
@@ -69,13 +70,13 @@ function HospitalDetail() {
       <main>
         <nav className="border-b border-border bg-cream py-3 text-xs text-muted-foreground">
           <Container className="flex items-center gap-2">
-            <a href="/" className="hover:text-brand-orange">
+            <A href="/" className="hover:text-brand-orange">
               Home
-            </a>
+            </A>
             <span>/</span>
-            <a href="/hospitals" className="hover:text-brand-orange">
+            <A href="/hospitals" className="hover:text-brand-orange">
               Hospitals
-            </a>
+            </A>
             <span>/</span>
             <span className="font-medium text-ink">{data.name}</span>
           </Container>
@@ -127,17 +128,17 @@ function HospitalDetail() {
             </div>
             <div className="flex gap-2">
               {data.address && (
-                <a
+                <A
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${data.name} ${data.address}`)}`}
                   target="_blank"
                   rel="noreferrer"
                 >
                   <OutlineButton className="px-3 py-2 text-xs">Get Directions</OutlineButton>
-                </a>
+                </A>
               )}
-              <a href={`/contact?city=${encodeURIComponent(data.city)}`}>
+              <A href={`/contact?city=${encodeURIComponent(data.city)}`}>
                 <OrangeButton className="px-3 py-2 text-xs">Request consultation</OrangeButton>
-              </a>
+              </A>
             </div>
           </Container>
         </div>
@@ -170,7 +171,7 @@ function HospitalDetail() {
                     </div>
                   )}
                   {data.website && (
-                    <a
+                    <A
                       href={data.website}
                       target="_blank"
                       rel="noreferrer"
@@ -178,7 +179,7 @@ function HospitalDetail() {
                     >
                       <Globe className="h-5 w-5 shrink-0 text-brand-orange" />
                       <span className="text-sm font-medium text-ink">Visit Website</span>
-                    </a>
+                    </A>
                   )}
                 </div>
               </section>
@@ -222,9 +223,9 @@ function HospitalDetail() {
                   eyebrow="Meet the team"
                   title="Doctors at This Hospital"
                   action={
-                    <a href={`/doctors?city=${encodeURIComponent(data.city)}`}>
+                    <A href={`/doctors?city=${encodeURIComponent(data.city)}`}>
                       <OutlineButton>View All</OutlineButton>
-                    </a>
+                    </A>
                   }
                 />
                 <Carousel>
@@ -250,9 +251,9 @@ function HospitalDetail() {
                               </OrangeButton>
                             </Link>
                           ) : (
-                            <a href="/contact" className="flex-1">
+                            <A href="/contact" className="flex-1">
                               <OrangeButton className="w-full px-2 py-1.5 text-xs">Book</OrangeButton>
-                            </a>
+                            </A>
                           )}
                         </div>
                       </div>
@@ -289,20 +290,20 @@ function HospitalDetail() {
               <div className="rounded-lg border border-border bg-cream p-4 text-xs text-muted-foreground">
                 <Eyebrow>Contact</Eyebrow>
                 {data.emergencyContact && (
-                  <a
+                  <A
                     href={`tel:${data.emergencyContact}`}
                     className="mt-2 flex items-center gap-2 text-sm font-bold text-brand-orange"
                   >
                     <Phone className="h-4 w-4" /> {data.emergencyContact} (Emergency)
-                  </a>
+                  </A>
                 )}
                 {data.phone && (
-                  <a
+                  <A
                     href={`tel:${data.phone}`}
                     className="mt-1 flex items-center gap-2 text-sm font-semibold text-navy"
                   >
                     <Phone className="h-4 w-4" /> {data.phone}
-                  </a>
+                  </A>
                 )}
               </div>
             )}

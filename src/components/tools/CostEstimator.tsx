@@ -5,6 +5,7 @@ import { SPECIALITIES, TREATMENTS } from "@/data/catalog";
 import { COST_SOURCE_LABELS, costFor, costForCity, formatRupees } from "@/data/cost";
 import { CITIES, COSTS_PUBLISHED } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { A } from "@/components/common/A";
 
 /**
  * Looks up the cost band we hold for a procedure (optionally for one city) — it does no arithmetic
@@ -139,15 +140,15 @@ export function CostEstimator({ className, defaultTreatment }: { className?: str
           )}
 
           <div className="mt-5 flex flex-wrap gap-2">
-            <a href={treatment ? `/contact?interest=${encodeURIComponent(`t:${treatment.slug}`)}${citySlug && cityName ? `&city=${encodeURIComponent(cityName)}` : ""}` : "/contact"}>
+            <A href={treatment ? `/contact?interest=${encodeURIComponent(`t:${treatment.slug}`)}${citySlug && cityName ? `&city=${encodeURIComponent(cityName)}` : ""}` : "/contact"}>
               <OrangeButton className="px-4 py-2 text-sm">Ask for an estimate</OrangeButton>
-            </a>
+            </A>
             {treatment ? (
-              <a href={`/cost/${treatment.slug}`}>
+              <A href={`/cost/${treatment.slug}`}>
                 <OutlineButton tone="light" className="px-4 py-2 text-sm">
                   Cost details <ArrowRight className="h-3.5 w-3.5" />
                 </OutlineButton>
-              </a>
+              </A>
             ) : null}
           </div>
         </div>

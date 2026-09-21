@@ -6,10 +6,11 @@ import { Container, Eyebrow } from "@/components/home/primitives";
 import { Breadcrumbs } from "@/components/care/Blocks";
 import { SPECIALITIES, conditionsForSpeciality, treatmentsForSpeciality } from "@/data/catalog";
 import { breadcrumbLd, seo } from "@/lib/seo";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/specialities/")({
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: `All ${SPECIALITIES.length} Surgical Specialities`,
       description: `Browse all ${SPECIALITIES.length} surgical specialities at Go Surgery — from proctology and laparoscopy to orthopaedics, urology, ENT and eye care. Find conditions, treatments and specialists.`,
       path: "/specialities",
@@ -40,7 +41,7 @@ function SpecialitiesIndex() {
               const nC = conditionsForSpeciality(s.slug).length;
               const nT = treatmentsForSpeciality(s.slug).length;
               return (
-                <a key={s.slug} href={`/specialities/${s.slug}`} className="group flex flex-col justify-between rounded-xl border border-border bg-background p-5 shadow-sm transition-shadow hover:shadow-md">
+                <A key={s.slug} href={`/specialities/${s.slug}`} className="group flex flex-col justify-between rounded-xl border border-border bg-background p-5 shadow-sm transition-shadow hover:shadow-md">
                   <div>
                     <h2 className="flex items-center justify-between text-lg font-bold text-navy group-hover:text-primary">
                       {s.name} <ArrowRight className="h-4 w-4 text-brand-orange" />
@@ -50,7 +51,7 @@ function SpecialitiesIndex() {
                   <p className="mt-4 text-xs font-semibold text-primary">
                     {nT} treatments{nC ? ` · ${nC} conditions` : ""}
                   </p>
-                </a>
+                </A>
               );
             })}
           </Container>

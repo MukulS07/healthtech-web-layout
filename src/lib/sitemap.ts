@@ -3,7 +3,7 @@ import { Doctor } from "@/models/Doctor";
 import { Hospital } from "@/models/Hospital";
 import { CONDITIONS, SPECIALITIES, SURGICAL_DOCTOR_MATCH, TREATMENTS } from "@/data/catalog";
 import { BLOG_POSTS } from "@/data/blog";
-import { CITIES, SITE } from "@/lib/site";
+import { TOP_CITIES, SITE } from "@/lib/site";
 
 type Url = { loc: string; lastmod?: string; priority?: number };
 
@@ -67,12 +67,12 @@ export function pageUrls(): Url[] {
   return [
     ...STATIC_PATHS.map(([p, priority]) => ({ loc: `${SITE.url}${p === "/" ? "" : p}`, lastmod: d, priority })),
     ...SPECIALITIES.map((s) => ({ loc: `${SITE.url}/specialities/${s.slug}`, lastmod: d, priority: 0.9 })),
-    ...SPECIALITIES.flatMap((s) => CITIES.map((c) => ({ loc: `${SITE.url}/specialities/${s.slug}/${c.slug}`, lastmod: d, priority: 0.8 }))),
+    ...SPECIALITIES.flatMap((s) => TOP_CITIES.map((c) => ({ loc: `${SITE.url}/specialities/${s.slug}/${c.slug}`, lastmod: d, priority: 0.8 }))),
     ...TREATMENTS.map((t) => ({ loc: `${SITE.url}/treatments/${t.slug}`, lastmod: d, priority: 0.8 })),
     ...CONDITIONS.map((c) => ({ loc: `${SITE.url}/conditions/${c.slug}`, lastmod: d, priority: 0.8 })),
     ...TREATMENTS.map((t) => ({ loc: `${SITE.url}/cost/${t.slug}`, lastmod: d, priority: 0.6 })),
     ...BLOG_POSTS.map((p) => ({ loc: `${SITE.url}/blog/${p.slug}`, lastmod: p.updated ?? p.published, priority: 0.6 })),
-    ...CITIES.map((c) => ({ loc: `${SITE.url}/locations/${c.slug}`, lastmod: d, priority: 0.7 })),
+    ...TOP_CITIES.map((c) => ({ loc: `${SITE.url}/locations/${c.slug}`, lastmod: d, priority: 0.7 })),
   ];
 }
 

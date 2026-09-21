@@ -15,6 +15,7 @@ import {
 } from "@/components/animate-ui/components/animate/tabs";
 
 import { PasswordInput } from "@/components/auth/PasswordInput";
+import { A } from "@/components/common/A";
 
 type Mode = "login" | "signup";
 
@@ -116,12 +117,12 @@ export function AuthPanel({
 
               {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
               <div className="flex justify-end">
-                <a
+                <A
                   href={`/forgot-password${email ? `?email=${encodeURIComponent(email)}` : ""}`}
                   className="text-xs font-semibold text-primary hover:underline"
                 >
                   Forgot password?
-                </a>
+                </A>
               </div>
 
               <OrangeButton type="submit" disabled={isSubmitting} className="w-full">

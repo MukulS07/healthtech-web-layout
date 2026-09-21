@@ -6,6 +6,7 @@ import { Breadcrumbs, FaqList, MedicalDisclaimer, Section } from "@/components/c
 import { EmiCalculator } from "@/components/tools/EmiCalculator";
 import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
 import { BOOK_LABEL } from "@/lib/site";
+import { A } from "@/components/common/A";
 
 const FAQS = [
   {
@@ -31,8 +32,8 @@ const FAQS = [
 ];
 
 export const Route = createFileRoute("/emi-calculator")({
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: "EMI Calculator for Surgery Costs",
       description:
         "Work out the monthly instalment on a treatment amount: enter the amount, repayment period and interest rate to see your EMI, the interest payable and the total you repay.",
@@ -108,9 +109,9 @@ function EmiCalculatorPage() {
             <p className="mt-3 text-sm text-navy-foreground/75">
               Tell us your procedure and city and we'll help you get a written estimate.
             </p>
-            <a href="/contact" className="mt-6 inline-block">
+            <A href="/contact" className="mt-6 inline-block">
               <OrangeButton>{BOOK_LABEL}</OrangeButton>
-            </a>
+            </A>
           </Container>
         </section>
       </main>

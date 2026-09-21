@@ -5,8 +5,9 @@ import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, OutlineButton, Eyebrow } from "@/components/home/primitives";
 import heroDoctor from "@/assets/hero-doctor.png";
 import { SPECIALITIES } from "@/data/catalog";
-import { BOOK_LABEL, CALLBACK_PHRASE, CALLER, cap, CITIES, promiseEnabled, SITE } from "@/lib/site";
+import { BOOK_LABEL, CALLBACK_PHRASE, CALLER, cap, TOP_CITIES, promiseEnabled, SITE } from "@/lib/site";
 import { seo } from "@/lib/seo";
+import { A } from "@/components/common/A";
 
 const values = [
   {
@@ -28,8 +29,8 @@ const values = [
 ];
 
 export const Route = createFileRoute("/about")({
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: `About ${SITE.name}`,
       description: `${SITE.name} helps patients in India find experienced surgeons, understand their treatment options, and get support with insurance, admission and recovery.`,
       path: "/about",
@@ -53,8 +54,8 @@ function AboutPage() {
                 recovery — with one team on their side.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <a href="/contact"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
-                <a href="/doctors"><OutlineButton tone="light">Find a Surgeon</OutlineButton></a>
+                <A href="/contact"><OrangeButton>{BOOK_LABEL}</OrangeButton></A>
+                <A href="/doctors"><OutlineButton tone="light">Find a Surgeon</OutlineButton></A>
               </div>
             </div>
             <img src={heroDoctor} alt="Care team" loading="lazy" width={1000} height={900} className="w-full max-w-md justify-self-center object-contain" />
@@ -98,7 +99,7 @@ function AboutPage() {
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
                 We connect well-informed patients with qualified surgeons and help with scheduling,
                 insurance documentation and patient communication.{" "}
-                <a href="/doctor-onboarding" className="font-semibold text-primary hover:underline">Partner with us</a>.
+                <A href="/doctor-onboarding" className="font-semibold text-primary hover:underline">Partner with us</A>.
               </p>
             </div>
           </Container>
@@ -133,10 +134,10 @@ function AboutPage() {
             <SectionHead align="center" eyebrow="What we treat" title={`${SPECIALITIES.length} specialities we cover`} />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {SPECIALITIES.map((s) => (
-                <a key={s.slug} href={`/specialities/${s.slug}`} className="rounded-xl border border-border bg-background p-4 transition-shadow hover:shadow-md">
+                <A key={s.slug} href={`/specialities/${s.slug}`} className="rounded-xl border border-border bg-background p-4 transition-shadow hover:shadow-md">
                   <h3 className="text-sm font-bold text-navy">{s.name}</h3>
                   <p className="mt-1 text-xs text-muted-foreground">{s.tagline}</p>
-                </a>
+                </A>
               ))}
             </div>
           </Container>
@@ -161,10 +162,10 @@ function AboutPage() {
           <Container>
             <SectionHead eyebrow="Coverage" title="Where we help patients" />
             <div className="flex flex-wrap gap-2">
-              {CITIES.map((c) => (
-                <a key={c.slug} href={`/locations/${c.slug}`} className="rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-navy hover:border-primary/40">
+              {TOP_CITIES.map((c) => (
+                <A key={c.slug} href={`/locations/${c.slug}`} className="rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-navy hover:border-primary/40">
                   {c.name}
-                </a>
+                </A>
               ))}
             </div>
           </Container>
@@ -177,8 +178,8 @@ function AboutPage() {
               {promiseEnabled("free-consult") ? "Your first consultation is free. " : ""}{cap(CALLER)} will call you back {CALLBACK_PHRASE}.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <a href="/contact"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
-              <a href="/treatments"><OutlineButton tone="light">Browse Treatments</OutlineButton></a>
+              <A href="/contact"><OrangeButton>{BOOK_LABEL}</OrangeButton></A>
+              <A href="/treatments"><OutlineButton tone="light">Browse Treatments</OutlineButton></A>
             </div>
           </Container>
         </section>

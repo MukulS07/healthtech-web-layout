@@ -47,8 +47,8 @@ const sections = [
 ];
 
 export const Route = createFileRoute("/editorial-policy")({
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: "Editorial Policy",
       description: `How ${SITE.name} writes, reviews and updates its health content, reviews and statistics.`,
       path: "/editorial-policy",

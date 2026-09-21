@@ -3,6 +3,7 @@ import { Loader2, ShieldAlert } from "lucide-react";
 import { Container } from "@/components/home/primitives";
 import { AdminSignup } from "@/components/auth/AdminSignup";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/admin/signup")({
   head: () => ({
@@ -39,9 +40,9 @@ function AdminSignupRoute() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Sign in to the admin portal first; only an existing administrator can add another.
               </p>
-              <a href="/admin" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
+              <A href="/admin" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
                 Go to admin sign-in
-              </a>
+              </A>
             </div>
           )}
         </div>

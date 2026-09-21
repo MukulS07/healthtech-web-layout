@@ -1,7 +1,8 @@
 import { CalendarCheck, HeartPulse, Mail, MessageCircle, Phone } from "lucide-react";
 import { Container } from "./primitives";
-import { BOOK_LABEL, CITIES, promiseEnabled, SITE, telHref, whatsappHref } from "@/lib/site";
+import { BOOK_LABEL, TOP_CITIES, promiseEnabled, SITE, telHref, whatsappHref } from "@/lib/site";
 import { SPECIALITIES } from "@/data/catalog";
+import { A } from "@/components/common/A";
 
 const columns = [
   {
@@ -77,15 +78,15 @@ export function Footer() {
                 from first consultation to recovery.
               </p>
               <div className="mt-4 space-y-2 text-sm font-semibold">
-                <a href={telHref} className="flex items-center gap-2 hover:text-brand-orange">
+                <A href={telHref} className="flex items-center gap-2 hover:text-brand-orange">
                   <Phone className="h-4 w-4 shrink-0 text-brand-orange" /> {SITE.phone.display}
-                </a>
-                <a href={whatsappHref()} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-brand-orange">
+                </A>
+                <A href={whatsappHref()} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-brand-orange">
                   <MessageCircle className="h-4 w-4 shrink-0 text-brand-orange" /> WhatsApp us
-                </a>
-                <a href={`mailto:${SITE.email}`} className="flex items-center gap-2 hover:text-brand-orange">
+                </A>
+                <A href={`mailto:${SITE.email}`} className="flex items-center gap-2 hover:text-brand-orange">
                   <Mail className="h-4 w-4 shrink-0 text-brand-orange" /> {SITE.email}
-                </a>
+                </A>
               </div>
             </div>
             {columns.map((col) => (
@@ -94,9 +95,9 @@ export function Footer() {
                 <ul className="mt-3.5 space-y-2">
                   {col.links.map((l) => (
                     <li key={l.href + l.label}>
-                      <a href={l.href} className="rounded text-sm text-navy-foreground/70 transition-colors hover:text-brand-orange">
+                      <A href={l.href} className="rounded text-sm text-navy-foreground/70 transition-colors hover:text-brand-orange">
                         {l.label}
-                      </a>
+                      </A>
                     </li>
                   ))}
                 </ul>
@@ -107,21 +108,21 @@ export function Footer() {
           <div className="mt-12 border-t border-navy-foreground/15 pt-6">
             <p className="text-xs font-bold uppercase tracking-wider text-navy-foreground/80">We are available in</p>
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
-              {CITIES.map((c) => (
-                <a key={c.slug} href={`/locations/${c.slug}`} className="text-xs font-medium text-navy-foreground/70 hover:text-brand-orange">
+              {TOP_CITIES.map((c) => (
+                <A key={c.slug} href={`/locations/${c.slug}`} className="text-xs font-medium text-navy-foreground/70 hover:text-brand-orange">
                   {c.name}
-                </a>
+                </A>
               ))}
             </div>
             <p className="mt-6 text-xs font-bold uppercase tracking-wider text-navy-foreground/80">Popular searches</p>
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
               {["proctology", "laparoscopy", "urology", "orthopaedics"].flatMap((spec) =>
-                CITIES.slice(0, 4).map((c) => {
+                TOP_CITIES.slice(0, 4).map((c) => {
                   const s = SPECIALITIES.find((x) => x.slug === spec)!;
                   return (
-                    <a key={spec + c.slug} href={`/specialities/${spec}/${c.slug}`} className="text-xs text-navy-foreground/60 hover:text-brand-orange">
+                    <A key={spec + c.slug} href={`/specialities/${spec}/${c.slug}`} className="text-xs text-navy-foreground/60 hover:text-brand-orange">
                       {s.name} in {c.name}
-                    </a>
+                    </A>
                   );
                 }),
               )}
@@ -140,9 +141,9 @@ export function Footer() {
         <Container className="flex flex-col items-center justify-between gap-2 sm:flex-row">
           <p>© {new Date().getFullYear()} {SITE.name}. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <a href="/privacy" className="hover:text-brand-orange">Privacy Policy</a>
+            <A href="/privacy" className="hover:text-brand-orange">Privacy Policy</A>
             <span>·</span>
-            <a href="/terms" className="hover:text-brand-orange">Terms of Use</a>
+            <A href="/terms" className="hover:text-brand-orange">Terms of Use</A>
           </div>
         </Container>
       </div>
@@ -152,24 +153,24 @@ export function Footer() {
 
       {/* Sticky mobile CTA bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 gap-2 border-t border-border bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg backdrop-blur lg:hidden">
-        <a href={telHref} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-navy/25 bg-background py-2.5 text-sm font-semibold text-navy">
+        <A href={telHref} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-navy/25 bg-background py-2.5 text-sm font-semibold text-navy">
           <Phone className="h-4 w-4 text-brand-orange" /> Call
-        </a>
-        <a
+        </A>
+        <A
           href={whatsappHref()}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white"
         >
           <MessageCircle className="h-4 w-4" /> WhatsApp
-        </a>
-        <a href="/contact" className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white shadow-md">
+        </A>
+        <A href="/contact" className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white shadow-md">
           <CalendarCheck className="h-4 w-4" /> {promiseEnabled("free-consult") ? "Book Free" : "Book"}
-        </a>
+        </A>
       </div>
 
       {/* Floating WhatsApp button (desktop) */}
-      <a
+      <A
         href={whatsappHref()}
         target="_blank"
         rel="noopener noreferrer"
@@ -177,7 +178,7 @@ export function Footer() {
         className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 place-items-center rounded-full bg-emerald-600 text-white shadow-xl transition-transform hover:scale-105 lg:grid"
       >
         <MessageCircle className="h-7 w-7" />
-      </a>
+      </A>
     </>
   );
 }

@@ -12,9 +12,9 @@ export const Route = createFileRoute("/specialities/$slug")({
     }
     return { slug: spec.slug, data: await loadSpecialityData(spec) };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     const spec = loaderData ? getSpeciality(loaderData.slug) : undefined;
-    return spec ? specialityHead(spec, undefined, loaderData?.data) : {};
+    return spec ? specialityHead(spec, undefined, loaderData?.data, match.context.locale) : {};
   },
   component: SpecialityRoute,
 });

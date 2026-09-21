@@ -6,6 +6,8 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
 import { SITE, telHref, whatsappHref } from "@/lib/site";
+import { A } from "@/components/common/A";
+import { seo } from "@/lib/seo";
 
 const talkToUs = [
   { icon: Phone, label: "Helpline", value: SITE.phone.display, href: telHref },
@@ -68,16 +70,13 @@ const patientRights = [
 ];
 
 export const Route = createFileRoute("/patient-help")({
-  head: () => ({
-    meta: [
-      { title: "Patient Help | Go Surgery" },
-      {
-        name: "description",
-        content:
-          "Reach your Care Partner, check on an upcoming procedure, or find answers to common patient questions.",
-      },
-    ],
-  }),
+  head: ({ match }) =>
+    seo({
+      locale: match.context.locale,
+      title: "Patient Help",
+      description: "Reach your Care Partner, check on an upcoming procedure, or find answers to common patient questions.",
+      path: "/patient-help",
+    }),
   component: PatientHelpPage,
 });
 
@@ -218,7 +217,7 @@ function PatientHelpPage() {
             <SectionHead eyebrow="Talk to someone now" title="Get in touch directly" />
             <div className="grid gap-4 sm:grid-cols-3">
               {talkToUs.map((t) => (
-                <a
+                <A
                   key={t.label}
                   href={t.href}
                   className="rounded-xl border border-border bg-background p-5 transition-colors hover:border-navy/20"
@@ -228,7 +227,7 @@ function PatientHelpPage() {
                   </div>
                   <h3 className="mt-3 text-sm font-bold text-navy">{t.label}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">{t.value}</p>
-                </a>
+                </A>
               ))}
             </div>
             <div className="mt-5 flex items-start gap-3 rounded-xl border border-border bg-cream p-4">

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, Eyebrow } from "@/components/home/primitives";
+import { seo } from "@/lib/seo";
 
 const sections = [
   {
@@ -94,15 +95,13 @@ Grievance Officer: contact grievance@gosurgery.in — we acknowledge complaints 
 ];
 
 export const Route = createFileRoute("/privacy")({
-  head: () => ({
-    meta: [
-      { title: "Privacy Policy | Go Surgery" },
-      {
-        name: "description",
-        content: "How Go Surgery collects, uses and protects your personal and health information.",
-      },
-    ],
-  }),
+  head: ({ match }) =>
+    seo({
+      locale: match.context.locale,
+      title: "Privacy Policy",
+      description: "How Go Surgery collects, uses and protects your personal and health information.",
+      path: "/privacy",
+    }),
   component: PrivacyPage,
 });
 

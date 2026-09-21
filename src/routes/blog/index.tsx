@@ -7,10 +7,11 @@ import { Container, Eyebrow } from "@/components/home/primitives";
 import { BLOG_AUTHOR, BLOG_POSTS } from "@/data/blog";
 import { seo, breadcrumbLd } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/blog/")({
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: "Healthfeed — Surgery & Health Guides",
       description:
         "Plain-language guides on common conditions, surgical treatments, recovery and health insurance from the Go Surgery editorial team.",
@@ -65,7 +66,7 @@ function BlogIndex() {
             </div>
 
             {featured ? (
-              <a href={`/blog/${featured.slug}`} className="group mb-8 block rounded-xl border border-border bg-cream p-6 transition-shadow hover:shadow-md sm:p-8">
+              <A href={`/blog/${featured.slug}`} className="group mb-8 block rounded-xl border border-border bg-cream p-6 transition-shadow hover:shadow-md sm:p-8">
                 <span className="rounded-full bg-brand-orange-soft px-3 py-1 text-[11px] font-semibold text-brand-orange-dark">{featured.category}</span>
                 <h2 className="mt-4 text-2xl font-bold text-navy group-hover:text-primary sm:text-3xl">{featured.title}</h2>
                 <p className="mt-3 max-w-3xl text-sm text-muted-foreground sm:text-base">{featured.excerpt}</p>
@@ -73,12 +74,12 @@ function BlogIndex() {
                   <span>{BLOG_AUTHOR}</span>·<span>{formatDate(featured.published)}</span>·
                   <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {featured.readMinutes} min read</span>
                 </p>
-              </a>
+              </A>
             ) : null}
 
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {rest.map((p) => (
-                <a key={p.slug} href={`/blog/${p.slug}`} className="group flex flex-col justify-between rounded-xl border border-border bg-background p-5 shadow-sm transition-shadow hover:shadow-md">
+                <A key={p.slug} href={`/blog/${p.slug}`} className="group flex flex-col justify-between rounded-xl border border-border bg-background p-5 shadow-sm transition-shadow hover:shadow-md">
                   <div>
                     <span className="rounded-full bg-brand-orange-soft px-3 py-1 text-[11px] font-semibold text-brand-orange-dark">{p.category}</span>
                     <h3 className="mt-4 text-base font-bold leading-snug text-navy group-hover:text-primary">{p.title}</h3>
@@ -88,7 +89,7 @@ function BlogIndex() {
                     <span>{formatDate(p.published)} · {p.readMinutes} min read</span>
                     <ArrowRight className="h-4 w-4 text-brand-orange" />
                   </p>
-                </a>
+                </A>
               ))}
             </div>
           </Container>

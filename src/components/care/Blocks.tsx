@@ -5,6 +5,7 @@ import { CALLER, cap, ENABLED_PROMISES } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import type { Faq } from "@/data/catalog";
 import type { ClinicalReview } from "@/data/catalog/types";
+import { A } from "@/components/common/A";
 
 export function Breadcrumbs({ items }: { items: { name: string; href?: string }[] }) {
   return (
@@ -14,7 +15,7 @@ export function Breadcrumbs({ items }: { items: { name: string; href?: string }[
           <span key={it.name} className="flex items-center gap-2">
             {i > 0 ? <span aria-hidden>/</span> : null}
             {it.href ? (
-              <a href={it.href} className="hover:text-brand-orange">{it.name}</a>
+              <A href={it.href} className="hover:text-brand-orange">{it.name}</A>
             ) : (
               <span className="font-medium text-ink" aria-current="page">{it.name}</span>
             )}
@@ -121,9 +122,9 @@ export function InsuranceEmiBlock() {
           Share your policy details and our team will check whether your treatment could be covered
           cashless, and what you may need to pay yourself.
         </p>
-        <a href="/insurance-eligibility" className="mt-4 inline-block">
+        <A href="/insurance-eligibility" className="mt-4 inline-block">
           <OrangeButton className="px-4 py-2 text-sm">Check eligibility</OrangeButton>
-        </a>
+        </A>
       </div>
       <div className="rounded-xl border border-border bg-cream p-5">
         <Wallet className="h-6 w-6 text-primary" />
@@ -132,9 +133,9 @@ export function InsuranceEmiBlock() {
           If insurance doesn't cover your treatment, ask us about EMI options. Where plans are
           available, eligibility and terms are set by the lender.
         </p>
-        <a href="/emi-calculator" className="mt-4 inline-block">
+        <A href="/emi-calculator" className="mt-4 inline-block">
           <OutlineButton className="px-4 py-2 text-sm">Calculate EMI</OutlineButton>
-        </a>
+        </A>
       </div>
     </div>
   );
@@ -155,7 +156,7 @@ export function ContentReviewNote({ reviewedBy, tone = "dark" }: { reviewedBy?: 
         <span>
           Medically reviewed by{" "}
           {reviewedBy.profileSlug ? (
-            <a href={`/doctors/${reviewedBy.profileSlug}`} className="font-semibold underline">{reviewedBy.name}</a>
+            <A href={`/doctors/${reviewedBy.profileSlug}`} className="font-semibold underline">{reviewedBy.name}</A>
           ) : (
             <span className="font-semibold">{reviewedBy.name}</span>
           )}
@@ -164,7 +165,7 @@ export function ContentReviewNote({ reviewedBy, tone = "dark" }: { reviewedBy?: 
       ) : (
         <span className="font-semibold">Pending medical review</span>
       )}
-      <a href="/editorial-policy" className="underline">How we write our content</a>
+      <A href="/editorial-policy" className="underline">How we write our content</A>
     </p>
   );
 }
@@ -176,7 +177,7 @@ export function MedicalDisclaimer() {
       <span>
         This page is general health information to help you understand your options. It isn't medical
         advice and doesn't replace a consultation with a qualified doctor who can examine you.{" "}
-        <a href="/editorial-policy" className="underline">How we write our content</a>.
+        <A href="/editorial-policy" className="underline">How we write our content</A>.
       </span>
     </p>
   );

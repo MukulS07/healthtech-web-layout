@@ -3,6 +3,8 @@ import { Sparkles, Users, Stethoscope, CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, OrangeButton, Eyebrow } from "@/components/home/primitives";
+import { A } from "@/components/common/A";
+import { seo } from "@/lib/seo";
 
 const whyWorkHere = [
   {
@@ -123,16 +125,13 @@ const hiringSteps = [
 ];
 
 export const Route = createFileRoute("/careers")({
-  head: () => ({
-    meta: [
-      { title: "Careers | Go Surgery" },
-      {
-        name: "description",
-        content:
-          "Join the team building Go Surgery — open roles across clinical operations, patient care, technology and growth.",
-      },
-    ],
-  }),
+  head: ({ match }) =>
+    seo({
+      locale: match.context.locale,
+      title: "Careers",
+      description: "Join the team building Go Surgery — open roles across clinical operations, patient care, technology and growth.",
+      path: "/careers",
+    }),
   component: CareersPage,
 });
 
@@ -183,9 +182,9 @@ function CareersPage() {
                       <h3 className="text-base font-bold text-navy">{role.title}</h3>
                       <p className="mt-1 text-xs font-medium text-muted-foreground">{role.meta}</p>
                     </div>
-                    <a href={`mailto:careers@gosurgery.in?subject=Application: ${role.title}`}>
+                    <A href={`mailto:careers@gosurgery.in?subject=Application: ${role.title}`}>
                       <OrangeButton className="px-4 py-2 text-xs">Apply</OrangeButton>
-                    </a>
+                    </A>
                   </div>
                   <p className="mt-3 text-sm text-muted-foreground">{role.desc}</p>
                   <ul className="mt-3 space-y-1.5">
@@ -267,9 +266,9 @@ function CareersPage() {
               Send your resume to careers@gosurgery.in with the role or area you're interested in.
               We aim to acknowledge every application within 5 working days.
             </p>
-            <a href="mailto:careers@gosurgery.in" className="mt-6 inline-block">
+            <A href="mailto:careers@gosurgery.in" className="mt-6 inline-block">
               <OrangeButton>Email Your Resume</OrangeButton>
-            </a>
+            </A>
           </Container>
         </section>
       </main>

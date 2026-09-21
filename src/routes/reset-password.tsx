@@ -6,6 +6,7 @@ import { Footer } from "@/components/home/Footer";
 import { Container, OrangeButton } from "@/components/home/primitives";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { resetPasswordFn } from "@/lib/server-functions/password-reset";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/reset-password")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -57,9 +58,9 @@ function ResetPasswordPage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   This link is incomplete. Please request a new one.
                 </p>
-                <a href="/forgot-password" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
+                <A href="/forgot-password" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
                   Request a new link
-                </a>
+                </A>
               </div>
             ) : status === "done" ? (
               <div className="text-center">
@@ -69,9 +70,9 @@ function ResetPasswordPage() {
                   You can now log in with your new password. For your security, you've been signed
                   out on all other devices.
                 </p>
-                <a href="/account" className="mt-5 inline-block">
+                <A href="/account" className="mt-5 inline-block">
                   <OrangeButton>Log in</OrangeButton>
-                </a>
+                </A>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -97,9 +98,9 @@ function ResetPasswordPage() {
                   <p className="text-xs font-medium text-destructive">
                     {error}{" "}
                     {error.includes("expired") ? (
-                      <a href="/forgot-password" className="underline">
+                      <A href="/forgot-password" className="underline">
                         Request a new link
-                      </a>
+                      </A>
                     ) : null}
                   </p>
                 ) : null}

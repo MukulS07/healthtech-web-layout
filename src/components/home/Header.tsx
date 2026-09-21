@@ -16,7 +16,11 @@ import { Container, OrangeButton } from "./primitives";
 import { CONDITIONS, SPECIALITIES, TREATMENTS } from "@/data/catalog";
 import { BOOK_LABEL, CITIES, SITE, telHref } from "@/lib/site";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
+import { CityPicker } from "@/components/common/CityPicker";
+import { LanguagePicker } from "@/components/common/LanguagePicker";
+import { useT } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
+import { A } from "@/components/common/A";
 
 const CITY_KEY = "gs-city";
 
@@ -67,6 +71,7 @@ function catalogSuggestions(term: string): Suggestion[] {
 }
 
 function GlobalSearch({ className, onNavigate }: { className?: string; onNavigate?: () => void }) {
+  const gt = useT();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [doctors, setDoctors] = useState<Suggestion[]>([]);
@@ -133,12 +138,12 @@ function GlobalSearch({ className, onNavigate }: { className?: string; onNavigat
       >
         <Search className="h-4 w-4 shrink-0 text-primary" />
         <input
-          aria-label="Search doctors, treatments, conditions and cities"
+          aria-label={gt("search.label")}
           role="combobox"
           aria-expanded={open && results.length > 0}
           autoComplete="off"
           className="w-full min-w-0 truncate bg-transparent text-sm text-ink outline-none placeholder:text-muted-foreground/80"
-          placeholder="Search doctors, treatments, conditions"
+          placeholder={gt("search.placeholder")}
           value={q}
           onChange={(e) => {
             setQ(e.target.value);
@@ -213,23 +218,6 @@ function useCity() {
   return [city, update] as const;
 }
 
-function CityPicker({ city, onChange, className }: { city: string; onChange: (v: string) => void; className?: string }) {
-  return (
-    <label className={cn("flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-2 text-sm font-semibold text-navy", className)}>
-      <MapPin className="h-4 w-4 shrink-0 text-brand-orange" />
-      <span className="sr-only">Select your city</span>
-      <select value={city} onChange={(e) => onChange(e.target.value)} className="max-w-[9rem] bg-transparent outline-none">
-        <option value="">Select city</option>
-        {CITIES.map((c) => (
-          <option key={c.slug} value={c.name}>
-            {c.name}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
 function Dropdown({ label, items }: { label: string; items: readonly { label: string; href: string }[] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -256,9 +244,9 @@ function Dropdown({ label, items }: { label: string; items: readonly { label: st
           <ul className={cn("grid gap-0.5 rounded-xl border border-border bg-background p-2 shadow-xl", items.length > 8 ? "w-[30rem] grid-cols-2" : "w-60")}>
             {items.map((it) => (
               <li key={it.href + it.label}>
-                <a href={it.href} className="block rounded-md px-3 py-2 text-sm text-navy hover:bg-cream">
+                <A href={it.href} className="block rounded-md px-3 py-2 text-sm text-navy hover:bg-cream">
                   {it.label}
-                </a>
+                </A>
               </li>
             ))}
           </ul>
@@ -269,6 +257,7 @@ function Dropdown({ label, items }: { label: string; items: readonly { label: st
 }
 
 export function Header() {
+  const t = useT();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [city, setCity] = useCity();
   const q = city ? `?city=${encodeURIComponent(city)}` : "";
@@ -278,33 +267,34 @@ export function Header() {
       <div className="text-navy">
         <Container className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-3 lg:flex lg:justify-between">
           <div className="flex min-w-0 items-center gap-4 lg:flex-1 lg:gap-5">
-            <a href="/" className="flex shrink-0 items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <A href="/" className="flex shrink-0 items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                 <HeartPulse className="h-5 w-5" />
               </span>
               <span className="truncate text-lg font-bold tracking-tight">{SITE.name}</span>
-            </a>
-            <CityPicker city={city} onChange={setCity} className="hidden lg:flex" />
+            </A>
+            <CityPicker city={city} onChange={setCity} className="hidden w-44 shrink-0 lg:block" />
+            <LanguagePicker className="hidden shrink-0 xl:block" />
             <GlobalSearch className="hidden min-w-0 max-w-md flex-1 lg:block" />
           </div>
 
           <div className="flex shrink-0 items-center gap-3 lg:gap-4">
             <nav aria-label="Main" className="hidden items-center gap-4 xl:flex">
-              <Dropdown label="For Patients" items={MENUS["For Patients"]} />
-              <Dropdown label="Our Company" items={MENUS["Our Company"]} />
+              <Dropdown label={t("nav.forPatients")} items={MENUS["For Patients"]} />
+              <Dropdown label={t("nav.ourCompany")} items={MENUS["Our Company"]} />
             </nav>
-            <a href="/account" className="hidden items-center gap-1.5 text-sm font-semibold text-navy transition-colors hover:text-brand-orange sm:flex">
-              <UserRound className="h-4 w-4 text-brand-orange" /> My Appointments
-            </a>
-            <a href={telHref} className="hidden items-center gap-2 text-sm font-semibold text-navy transition-colors hover:text-primary 2xl:flex">
+            <A href="/account" className="hidden items-center gap-1.5 text-sm font-semibold text-navy transition-colors hover:text-brand-orange sm:flex">
+              <UserRound className="h-4 w-4 text-brand-orange" /> {t("nav.myAppointments")}
+            </A>
+            <A href={telHref} className="hidden items-center gap-2 text-sm font-semibold text-navy transition-colors hover:text-primary 2xl:flex">
               <Phone className="h-4 w-4 text-brand-orange" /> {SITE.phone.display}
-            </a>
-            <a href="/contact" className="hidden md:inline-flex">
+            </A>
+            <A href="/contact" className="hidden md:inline-flex">
               <OrangeButton className="px-4 py-2.5">{BOOK_LABEL}</OrangeButton>
-            </a>
+            </A>
             <button
               type="button"
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={mobileMenuOpen ? t("action.closeMenu") : t("action.openMenu")}
               aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="grid h-10 w-10 place-items-center rounded-lg border border-border/80 bg-background text-navy transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary xl:hidden"
@@ -319,24 +309,24 @@ export function Header() {
         <Container>
           {/* min-h-11 on every entry: these were 20px tall, under the 24px WCAG 2.2 minimum, and
               this strip is the main way people navigate on a phone. */}
-          <nav aria-label="Browse" className="no-scrollbar flex items-center gap-5 overflow-x-auto text-sm font-medium">
-            <a href={`/doctors${q}`} className="flex min-h-11 shrink-0 items-center gap-1.5 font-semibold text-navy hover:text-brand-orange">
-              <Stethoscope className="h-4 w-4 text-emerald-600" /> Doctors{city ? ` in ${city}` : ""}
-            </a>
-            <a href={`/hospitals${q}`} className="flex min-h-11 shrink-0 items-center gap-1.5 font-semibold text-navy hover:text-brand-orange">
-              <Building2 className="h-4 w-4 text-primary" /> Hospitals{city ? ` in ${city}` : ""}
-            </a>
+          <nav aria-label={t("nav.browse")} className="no-scrollbar flex items-center gap-5 overflow-x-auto text-sm font-medium">
+            <A href={`/doctors${q}`} className="flex min-h-11 shrink-0 items-center gap-1.5 font-semibold text-navy hover:text-brand-orange">
+              <Stethoscope className="h-4 w-4 text-emerald-600" /> {t("nav.doctors")}{city ? ` · ${city}` : ""}
+            </A>
+            <A href={`/hospitals${q}`} className="flex min-h-11 shrink-0 items-center gap-1.5 font-semibold text-navy hover:text-brand-orange">
+              <Building2 className="h-4 w-4 text-primary" /> {t("nav.hospitals")}{city ? ` · ${city}` : ""}
+            </A>
             {[
-              ["Specialities", "/specialities"],
-              ["Treatments", "/treatments"],
-              ["Conditions", "/conditions"],
-              ["Surgery Cost", "/cost"],
-              ["Insurance", "/insurance-eligibility"],
-              ["Articles", "/blog"],
-            ].map(([label, href]) => (
-              <a key={href} href={href} className="flex min-h-11 shrink-0 items-center text-navy/80 hover:text-brand-orange">
-                {label}
-              </a>
+              ["nav.specialities", "/specialities"],
+              ["nav.treatments", "/treatments"],
+              ["nav.conditions", "/conditions"],
+              ["nav.surgeryCost", "/cost"],
+              ["nav.insurance", "/insurance-eligibility"],
+              ["nav.articles", "/blog"],
+            ].map(([key, href]) => (
+              <A key={href} href={href!} className="flex min-h-11 shrink-0 items-center text-navy/80 hover:text-brand-orange">
+                {t(key!)}
+              </A>
             ))}
           </nav>
         </Container>
@@ -351,16 +341,17 @@ export function Header() {
           <div className="space-y-5">
             <GlobalSearch className="lg:hidden" onNavigate={() => setMobileMenuOpen(false)} />
             <CityPicker city={city} onChange={setCity} className="w-full lg:hidden" />
+            <LanguagePicker className="w-full xl:hidden" align="start" />
             <div className="grid grid-cols-2 gap-2 text-sm font-semibold text-navy">
-              <a href={`/doctors${q}`} className="flex items-center gap-2 rounded-lg bg-cream p-3">
-                <Stethoscope className="h-4 w-4 text-emerald-600" /> Doctors
-              </a>
-              <a href={`/hospitals${q}`} className="flex items-center gap-2 rounded-lg bg-cream p-3">
-                <Building2 className="h-4 w-4 text-primary" /> Hospitals
-              </a>
-              <a href="/account" className="col-span-2 flex items-center gap-2 rounded-lg bg-cream p-3">
-                <UserRound className="h-4 w-4 text-brand-orange" /> My Appointments
-              </a>
+              <A href={`/doctors${q}`} className="flex items-center gap-2 rounded-lg bg-cream p-3">
+                <Stethoscope className="h-4 w-4 text-emerald-600" /> {t("nav.doctors")}
+              </A>
+              <A href={`/hospitals${q}`} className="flex items-center gap-2 rounded-lg bg-cream p-3">
+                <Building2 className="h-4 w-4 text-primary" /> {t("nav.hospitals")}
+              </A>
+              <A href="/account" className="col-span-2 flex items-center gap-2 rounded-lg bg-cream p-3">
+                <UserRound className="h-4 w-4 text-brand-orange" /> {t("nav.myAppointments")}
+              </A>
             </div>
             {Object.entries(MENUS).map(([title, items]) => (
               <div key={title}>
@@ -370,24 +361,24 @@ export function Header() {
                     <li key={it.href + it.label}>
                       {/* min-h-11 gives these a 44px tap target. They were 20px tall, under even
                           the 24px WCAG 2.2 minimum, which made the mobile menu fiddly to use. */}
-                      <a
+                      <A
                         href={it.href}
                         className="flex min-h-11 items-center text-sm text-navy hover:text-brand-orange"
                       >
                         {it.label}
-                      </a>
+                      </A>
                     </li>
                   ))}
                 </ul>
               </div>
             ))}
             <div className="flex flex-col gap-2.5 border-t border-border pt-4">
-              <a href="/contact">
+              <A href="/contact">
                 <OrangeButton className="w-full justify-center">{BOOK_LABEL}</OrangeButton>
-              </a>
-              <a href={telHref} className="flex items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-semibold text-navy">
+              </A>
+              <A href={telHref} className="flex items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-semibold text-navy">
                 <Phone className="h-4 w-4 text-brand-orange" /> Call {SITE.phone.display}
-              </a>
+              </A>
             </div>
           </div>
         </div>

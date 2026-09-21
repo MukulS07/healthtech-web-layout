@@ -21,8 +21,8 @@ export const Route = createFileRoute("/locations/")({
       return { success: false, cities: [] };
     }
   },
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: "Locations — Cities We Serve",
       description:
         "Find surgeons and hospitals in Delhi NCR, Mumbai, Bangalore, Hyderabad, Chennai, Pune and more cities across India.",

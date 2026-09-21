@@ -7,10 +7,11 @@ import { Container, Eyebrow } from "@/components/home/primitives";
 import { Breadcrumbs } from "@/components/care/Blocks";
 import { CONDITIONS, SPECIALITIES } from "@/data/catalog";
 import { breadcrumbLd, seo } from "@/lib/seo";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/conditions/")({
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: `${CONDITIONS.length} Health Conditions — Symptoms & Treatment`,
       description: `Learn about ${CONDITIONS.length} common conditions treated with surgery — symptoms, causes, diagnosis, treatment options and when to see a doctor.`,
       path: "/conditions",
@@ -65,12 +66,12 @@ function ConditionsIndex() {
                 <h2 className="mb-4 text-xl font-bold text-navy">{g.spec.name}</h2>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {g.items.map((c) => (
-                    <a key={c.slug} href={`/conditions/${c.slug}`} className="group rounded-lg border border-border bg-background p-4 transition-shadow hover:shadow-md">
+                    <A key={c.slug} href={`/conditions/${c.slug}`} className="group rounded-lg border border-border bg-background p-4 transition-shadow hover:shadow-md">
                       <h3 className="flex items-center justify-between gap-2 text-sm font-bold text-navy group-hover:text-primary">
                         {c.name} <ArrowRight className="h-4 w-4 shrink-0 text-brand-orange" />
                       </h3>
                       <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{c.summary}</p>
-                    </a>
+                    </A>
                   ))}
                 </div>
               </section>

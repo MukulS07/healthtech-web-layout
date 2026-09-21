@@ -2,6 +2,7 @@ import { Building2, MapPin, Phone, Star } from "lucide-react";
 import { OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { cn } from "@/lib/utils";
 import { BOOK_LABEL_SHORT, telHref } from "@/lib/site";
+import { A } from "@/components/common/A";
 
 export interface DoctorCardData {
   id: string;
@@ -80,14 +81,14 @@ export function DoctorCard({
 
   const actions = (
     <div className="flex gap-2">
-      <a href={telHref} className="flex-1" aria-label={`Call about ${d.name}`}>
+      <A href={telHref} className="flex-1" aria-label={`Call about ${d.name}`}>
         <OutlineButton className="w-full justify-center px-2 py-2 text-xs">
           <Phone className="h-3 w-3" /> Call
         </OutlineButton>
-      </a>
-      <a href={bookHref} className="flex-1">
+      </A>
+      <A href={bookHref} className="flex-1">
         <OrangeButton className="w-full justify-center px-2 py-2 text-xs">{BOOK_LABEL_SHORT}</OrangeButton>
-      </a>
+      </A>
     </div>
   );
 
@@ -119,7 +120,7 @@ export function DoctorCard({
   if (layout === "row") {
     return (
       <article className={cn("min-w-0 rounded-lg border border-border bg-background p-3 shadow-sm", className)}>
-        <a href={profileHref} className="flex gap-3">
+        <A href={profileHref} className="flex gap-3">
           <DoctorAvatar name={d.name} initials={d.initials} img={d.img} className="h-14 w-14 shrink-0 rounded-full text-base" />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
@@ -127,7 +128,7 @@ export function DoctorCard({
               <RatingChip rating={d.rating} reviewCount={d.reviewCount} />
             </div>
           </div>
-        </a>
+        </A>
         <div className="mt-3">{actions}</div>
       </article>
     );
@@ -140,7 +141,7 @@ export function DoctorCard({
         className,
       )}
     >
-      <a href={profileHref} className="block">
+      <A href={profileHref} className="block">
         <div className="relative">
           <DoctorAvatar name={d.name} initials={d.initials} img={d.img} className="h-44 w-full text-4xl" />
           <span className="absolute right-3 top-3">
@@ -148,11 +149,11 @@ export function DoctorCard({
           </span>
         </div>
         <div className="p-4 pb-0">{details}</div>
-      </a>
+      </A>
       <div className="p-4">
-        <a href={profileHref} className="mb-2 block text-center text-xs font-semibold text-primary hover:underline">
+        <A href={profileHref} className="mb-2 block text-center text-xs font-semibold text-primary hover:underline">
           View profile
-        </a>
+        </A>
         {actions}
       </div>
     </article>

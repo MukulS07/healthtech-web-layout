@@ -3,6 +3,7 @@ import { IndianRupee } from "lucide-react";
 import { OutlineButton } from "@/components/home/primitives";
 import { formatRupees } from "@/data/cost";
 import { cn } from "@/lib/utils";
+import { A } from "@/components/common/A";
 
 /**
  * Plain EMI arithmetic on numbers the patient types in — no price data of ours involved, so
@@ -136,9 +137,9 @@ export function EmiCalculator({ className }: { className?: string }) {
             An illustration using the figures you entered, not an offer. Your actual instalment
             depends on the lender's rate, processing fee and their credit check.
           </p>
-          <a href="/contact" className="mt-4 inline-block">
+          <A href="/contact" className="mt-4 inline-block">
             <OutlineButton tone="light" className="px-4 py-2 text-sm">Ask about payment options</OutlineButton>
-          </a>
+          </A>
         </div>
       </div>
     </div>

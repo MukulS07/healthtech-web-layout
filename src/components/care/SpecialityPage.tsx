@@ -21,12 +21,14 @@ import {
   treatmentsForSpeciality,
   type Speciality,
 } from "@/data/catalog";
-import { BOOK_LABEL, CITIES, CONSULT_PHRASE } from "@/lib/site";
+import { BOOK_LABEL, CITIES, TOP_CITIES, CONSULT_PHRASE } from "@/lib/site";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { getHospitalsFn } from "@/lib/server-functions/hospitals";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
+import type { Locale } from "@/lib/i18n/locales";
 import hospital1 from "@/assets/hospital-1.jpg";
+import { A } from "@/components/common/A";
 
 export type CitySlug = (typeof CITIES)[number]["slug"];
 
@@ -57,12 +59,13 @@ export function specialityHead(
   spec: Speciality,
   city: { name: string; slug: string } | undefined,
   data: SpecialityData | undefined,
+  locale: Locale,
 ) {
   const cityName = city?.name;
   const where = cityName ? ` in ${cityName}` : "";
   const path = `/specialities/${spec.slug}${city ? `/${city.slug}` : ""}`;
   const faqs = [...spec.faqs, ...BOOKING_FAQS];
-  return seo({
+  return seo({ locale,
     title: cityName ? `Best ${spec.name} Doctors & Treatment${where}` : `${spec.name} — Conditions, Treatments & Specialists`,
     description: cityName
       ? `Find ${spec.name.toLowerCase()} surgeons${where}${data?.doctorTotal ? ` (${data.doctorTotal} listed)` : ""}, compare hospitals and read patient reviews. Book ${CONSULT_PHRASE} with Go Surgery.`
@@ -149,8 +152,8 @@ export function SpecialityPage({
             <p className="mt-3 max-w-2xl text-sm text-navy-foreground/80 sm:text-base">{spec.tagline}</p>
             <ContentReviewNote reviewedBy={spec.reviewedBy} />
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
-              <a href="#doctors"><OutlineButton tone="light">Find a {spec.name} doctor</OutlineButton></a>
+              <A href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></A>
+              <A href="#doctors"><OutlineButton tone="light">Find a {spec.name} doctor</OutlineButton></A>
             </div>
             {data.reviewSummary.count > 0 || data.doctorTotal > 0 ? (
               <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold">
@@ -173,7 +176,7 @@ export function SpecialityPage({
         <nav aria-label="On this page" className="sticky top-[73px] z-30 border-b border-border bg-background/95 backdrop-blur">
           <Container className="no-scrollbar flex gap-5 overflow-x-auto py-2.5 text-sm font-semibold">
             {toc.map(([id, label]) => (
-              <a key={id} href={`#${id}`} className="shrink-0 text-muted-foreground hover:text-navy">{label}</a>
+              <A key={id} href={`#${id}`} className="shrink-0 text-muted-foreground hover:text-navy">{label}</A>
             ))}
           </Container>
         </nav>
@@ -189,12 +192,12 @@ export function SpecialityPage({
                 <Section id="conditions" eyebrow="What we treat" title={`Conditions treated in ${spec.name}`}>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {conditions.map((c) => (
-                      <a key={c.slug} href={`/conditions/${c.slug}`} className="group rounded-lg border border-border bg-cream p-4 transition-shadow hover:shadow-md">
+                      <A key={c.slug} href={`/conditions/${c.slug}`} className="group rounded-lg border border-border bg-cream p-4 transition-shadow hover:shadow-md">
                         <h3 className="flex items-center justify-between text-sm font-bold text-navy">
                           {c.name} <ArrowRight className="h-4 w-4 text-brand-orange opacity-60 group-hover:opacity-100" />
                         </h3>
                         <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{c.summary}</p>
-                      </a>
+                      </A>
                     ))}
                   </div>
                 </Section>
@@ -203,13 +206,13 @@ export function SpecialityPage({
               <Section id="treatments" eyebrow="Procedures" title={`${spec.name} treatments`}>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {treatments.map((t) => (
-                    <a key={t.slug} href={`/treatments/${t.slug}`} className="group rounded-lg border border-border bg-background p-4 transition-shadow hover:shadow-md">
+                    <A key={t.slug} href={`/treatments/${t.slug}`} className="group rounded-lg border border-border bg-background p-4 transition-shadow hover:shadow-md">
                       <h3 className="flex items-center justify-between text-sm font-bold text-navy">
                         {t.name} <ArrowRight className="h-4 w-4 text-brand-orange opacity-60 group-hover:opacity-100" />
                       </h3>
                       <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.summary}</p>
                       <p className="mt-2 text-[11px] font-semibold text-primary">Stay: {t.stay}</p>
-                    </a>
+                    </A>
                   ))}
                 </div>
               </Section>
@@ -226,9 +229,9 @@ export function SpecialityPage({
                 eyebrow="Specialists"
                 title={`${spec.name} doctors${where}`}
                 action={
-                  <a href={doctorsHref}>
+                  <A href={doctorsHref}>
                     <OutlineButton className="px-3 py-2 text-xs">View all{data.doctorTotal ? ` ${data.doctorTotal.toLocaleString("en-IN")}` : ""} doctors</OutlineButton>
-                  </a>
+                  </A>
                 }
               >
                 <p className="-mt-2 mb-3 text-xs text-muted-foreground">
@@ -246,7 +249,7 @@ export function SpecialityPage({
                   <div className="mt-4 rounded-xl border border-border bg-cream p-6 text-center">
                     <p className="font-semibold text-navy">We don't have {spec.name.toLowerCase()} doctors listed{where} yet.</p>
                     <p className="mt-1 text-sm text-muted-foreground">Talk to a care specialist — we'll help you find the right surgeon nearby.</p>
-                    <a href="#book" className="mt-3 inline-block"><OrangeButton className="px-4 py-2 text-sm">Talk to a care specialist</OrangeButton></a>
+                    <A href="#book" className="mt-3 inline-block"><OrangeButton className="px-4 py-2 text-sm">Talk to a care specialist</OrangeButton></A>
                   </div>
                 )}
               </Section>
@@ -255,12 +258,12 @@ export function SpecialityPage({
                 id="hospitals"
                 eyebrow="Hospitals"
                 title={`Hospitals for ${spec.name}${where}`}
-                action={data.hospitals.length ? <a href={hospitalsHref}><OutlineButton className="px-3 py-2 text-xs">View all hospitals</OutlineButton></a> : undefined}
+                action={data.hospitals.length ? <A href={hospitalsHref}><OutlineButton className="px-3 py-2 text-xs">View all hospitals</OutlineButton></A> : undefined}
               >
                 {data.hospitals.length ? (
                   <div className="grid gap-4 sm:grid-cols-2">
                     {data.hospitals.map((h) => (
-                      <a key={h.id} href={`/hospitals/${h.slug}`} className="flex gap-3 rounded-lg border border-border bg-background p-3 transition-shadow hover:shadow-md">
+                      <A key={h.id} href={`/hospitals/${h.slug}`} className="flex gap-3 rounded-lg border border-border bg-background p-3 transition-shadow hover:shadow-md">
                         <img src={h.img || hospital1} alt={h.name} loading="lazy" className="h-16 w-20 shrink-0 rounded-md object-cover" />
                         <div className="min-w-0">
                           <h3 className="line-clamp-1 text-sm font-bold text-navy">{h.name}</h3>
@@ -273,7 +276,7 @@ export function SpecialityPage({
                             </p>
                           ) : null}
                         </div>
-                      </a>
+                      </A>
                     ))}
                   </div>
                 ) : (
@@ -289,8 +292,8 @@ export function SpecialityPage({
                 title={`What ${spec.name.toLowerCase()} patients say`}
                 action={
                   <div className="flex gap-2">
-                    <a href={`/reviews/write`}><OrangeButton className="gap-1.5 px-3 py-2 text-xs"><PenLine className="h-3.5 w-3.5" /> Write a Review</OrangeButton></a>
-                    <a href="/reviews"><OutlineButton className="px-3 py-2 text-xs">View all</OutlineButton></a>
+                    <A href={`/reviews/write`}><OrangeButton className="gap-1.5 px-3 py-2 text-xs"><PenLine className="h-3.5 w-3.5" /> Write a Review</OrangeButton></A>
+                    <A href="/reviews"><OutlineButton className="px-3 py-2 text-xs">View all</OutlineButton></A>
                   </div>
                 }
               >
@@ -320,7 +323,7 @@ export function SpecialityPage({
                         {r.doctorName ? (
                           <p className="mt-2 text-xs text-muted-foreground">
                             Treated by{" "}
-                            {r.doctorSlug ? <a href={`/doctors/${r.doctorSlug}`} className="font-semibold text-primary hover:underline">{r.doctorName}</a> : r.doctorName}
+                            {r.doctorSlug ? <A href={`/doctors/${r.doctorSlug}`} className="font-semibold text-primary hover:underline">{r.doctorName}</A> : r.doctorName}
                           </p>
                         ) : null}
                       </article>
@@ -341,14 +344,14 @@ export function SpecialityPage({
 
               <Section eyebrow="Near you" title={`${spec.name} treatment in top cities`}>
                 <div className="flex flex-wrap gap-2">
-                  {CITIES.map((c) => (
-                    <a
+                  {TOP_CITIES.map((c) => (
+                    <A
                       key={c.slug}
                       href={`/specialities/${spec.slug}/${c.slug}`}
                       className="rounded-full border border-border bg-cream px-3 py-1.5 text-xs font-semibold text-navy hover:border-primary/40"
                     >
                       {spec.name} in {c.name}
-                    </a>
+                    </A>
                   ))}
                 </div>
               </Section>
@@ -370,20 +373,20 @@ export function SpecialityPage({
 function CityPicker({ specSlug, active }: { specSlug: string; active?: string | undefined }) {
   return (
     <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
-      <a
+      <A
         href={`/specialities/${specSlug}#doctors`}
         className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${!active ? "border-navy bg-navy text-white" : "border-border bg-background text-navy"}`}
       >
         All cities
-      </a>
-      {CITIES.map((c) => (
-        <a
+      </A>
+      {TOP_CITIES.map((c) => (
+        <A
           key={c.slug}
           href={`/specialities/${specSlug}/${c.slug}#doctors`}
           className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${active === c.slug ? "border-navy bg-navy text-white" : "border-border bg-background text-navy hover:border-navy/30"}`}
         >
           {c.name}
-        </a>
+        </A>
       ))}
     </div>
   );

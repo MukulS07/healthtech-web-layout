@@ -7,8 +7,9 @@ import { ConsultForm } from "@/components/home/ConsultForm";
 import { Breadcrumbs, FaqList, InsuranceEmiBlock, MedicalDisclaimer, Section } from "@/components/care/Blocks";
 import { getSpeciality, getTreatment, treatmentsForSpeciality } from "@/data/catalog";
 import { COST_SOURCE_LABELS, costFor, formatRupees } from "@/data/cost";
-import { CITIES, COSTS_PUBLISHED, BOOK_LABEL } from "@/lib/site";
+import { TOP_CITIES, COSTS_PUBLISHED, BOOK_LABEL } from "@/lib/site";
 import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
+import { A } from "@/components/common/A";
 
 /** Cost pages mirror /treatments/$slug but answer the money question first. */
 export const Route = createFileRoute("/cost_/$slug")({
@@ -21,11 +22,11 @@ export const Route = createFileRoute("/cost_/$slug")({
     }
     return { slug: t.slug };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     const t = loaderData ? getTreatment(loaderData.slug) : undefined;
     if (!t) return {};
     const spec = getSpeciality(t.speciality);
-    return seo({
+    return seo({ locale: match.context.locale,
       title: `${t.name} Cost in India`,
       description: `What affects the cost of ${t.name.toLowerCase()} in India — hospital, city, room category, technique and insurance cover — and how to get an estimate for your own case.`,
       path: `/cost/${t.slug}`,
@@ -127,9 +128,9 @@ function TreatmentCostPage() {
             )}
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#book"><OrangeButton>Ask for an estimate</OrangeButton></a>
-              <a href={`/treatments/${t.slug}`}><OutlineButton tone="light">About the procedure</OutlineButton></a>
-              <a href="/surgery-cost-calculator"><OutlineButton tone="light">Compare another procedure</OutlineButton></a>
+              <A href="#book"><OrangeButton>Ask for an estimate</OrangeButton></A>
+              <A href={`/treatments/${t.slug}`}><OutlineButton tone="light">About the procedure</OutlineButton></A>
+              <A href="/surgery-cost-calculator"><OutlineButton tone="light">Compare another procedure</OutlineButton></A>
             </div>
           </Container>
         </section>
@@ -206,10 +207,10 @@ function TreatmentCostPage() {
                   Prices differ between cities. See the surgeons and hospitals we list in yours:
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {CITIES.map((c) => (
-                    <a key={c.slug} href={`/specialities/${spec.slug}/${c.slug}`} className="rounded-full border border-border bg-cream px-3 py-1.5 text-xs font-semibold text-navy hover:border-primary/40">
+                  {TOP_CITIES.map((c) => (
+                    <A key={c.slug} href={`/specialities/${spec.slug}/${c.slug}`} className="rounded-full border border-border bg-cream px-3 py-1.5 text-xs font-semibold text-navy hover:border-primary/40">
                       {spec.name} in {c.name}
-                    </a>
+                    </A>
                   ))}
                 </div>
               </Section>
@@ -222,10 +223,10 @@ function TreatmentCostPage() {
                 <Section eyebrow="Related" title={`Other ${spec.name} procedures`}>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {related.map((r) => (
-                      <a key={r.slug} href={`/cost/${r.slug}`} className="group flex min-w-0 items-center justify-between gap-3 rounded-lg border border-border bg-cream px-4 py-3">
+                      <A key={r.slug} href={`/cost/${r.slug}`} className="group flex min-w-0 items-center justify-between gap-3 rounded-lg border border-border bg-cream px-4 py-3">
                         <span className="truncate text-sm font-semibold text-navy">{r.name} cost</span>
                         <ArrowRight className="h-4 w-4 shrink-0 text-brand-orange" />
-                      </a>
+                      </A>
                     ))}
                   </div>
                 </Section>

@@ -41,8 +41,8 @@ export const Route = createFileRoute("/")({
       stats: statsRes?.success ? statsRes : null,
     };
   },
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: `${SITE.name} — Find Surgeons, Treatments & Specialists`,
       description:
         `Find experienced surgeons near you, understand your treatment options, and get help with insurance. Book ${CONSULT_PHRASE} with Go Surgery — no account needed.`,

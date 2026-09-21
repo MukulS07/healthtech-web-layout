@@ -8,8 +8,9 @@ import { DoctorCard } from "@/components/doctors/DoctorCard";
 import { Breadcrumbs, ContentReviewNote, FaqList, InsuranceEmiBlock, MedicalDisclaimer, Section } from "@/components/care/Blocks";
 import { conditionFaqs, CONDITIONS, getCondition, getSpeciality, treatmentsForCondition } from "@/data/catalog";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
-import { BOOK_LABEL, CITIES } from "@/lib/site";
+import { BOOK_LABEL, TOP_CITIES } from "@/lib/site";
 import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/conditions/$slug")({
   loader: async ({ params }) => {
@@ -18,11 +19,11 @@ export const Route = createFileRoute("/conditions/$slug")({
     const doctors = await getDoctorsFn({ data: { specialty: c.speciality, limit: 3, sort: "Rating: High to Low" } }).catch(() => null);
     return { slug: c.slug, doctors: doctors?.success ? doctors.doctors : [] };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     const c = loaderData ? getCondition(loaderData.slug) : undefined;
     if (!c) return {};
     const spec = getSpeciality(c.speciality);
-    return seo({
+    return seo({ locale: match.context.locale,
       title: `${c.name} — Symptoms, Causes & Treatment`,
       description: `${c.summary.split(". ")[0]}. Symptoms, causes, diagnosis and treatment options — and when to see a doctor.`,
       path: `/conditions/${c.slug}`,
@@ -85,8 +86,8 @@ function ConditionPage() {
             <p className="mt-3 max-w-3xl text-sm text-navy-foreground/80 sm:text-base">{c.summary}</p>
             <ContentReviewNote reviewedBy={c.reviewedBy} />
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
-              <a href={`/specialities/${spec.slug}`}><OutlineButton tone="light">About {spec.name}</OutlineButton></a>
+              <A href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></A>
+              <A href={`/specialities/${spec.slug}`}><OutlineButton tone="light">About {spec.name}</OutlineButton></A>
             </div>
           </Container>
         </section>
@@ -113,13 +114,13 @@ function ConditionPage() {
                 <Section eyebrow="Treatment" title={`Treatment options for ${c.name}`}>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {treatments.map((t) => (
-                      <a key={t.slug} href={`/treatments/${t.slug}`} className="group rounded-lg border border-border bg-cream p-4 transition-shadow hover:shadow-md">
+                      <A key={t.slug} href={`/treatments/${t.slug}`} className="group rounded-lg border border-border bg-cream p-4 transition-shadow hover:shadow-md">
                         <h3 className="flex items-center justify-between text-sm font-bold text-navy">
                           {t.name} <ArrowRight className="h-4 w-4 text-brand-orange" />
                         </h3>
                         <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.summary}</p>
                         <p className="mt-2 text-[11px] font-semibold text-primary">Stay: {t.stay}</p>
-                      </a>
+                      </A>
                     ))}
                   </div>
                 </Section>
@@ -138,9 +139,9 @@ function ConditionPage() {
                   eyebrow="Specialists"
                   title={`${spec.name} surgeons`}
                   action={
-                    <a href={`/doctors?specialty=${spec.slug}`}>
+                    <A href={`/doctors?specialty=${spec.slug}`}>
                       <OutlineButton className="px-3 py-2 text-xs">View all</OutlineButton>
-                    </a>
+                    </A>
                   }
                 >
                   <p className="-mt-2 mb-4 text-xs text-muted-foreground">
@@ -165,14 +166,14 @@ function ConditionPage() {
 
               <Section eyebrow="Near you" title={`${c.name} treatment in top cities`}>
                 <div className="flex flex-wrap gap-2">
-                  {CITIES.map((city) => (
-                    <a
+                  {TOP_CITIES.map((city) => (
+                    <A
                       key={city.slug}
                       href={`/specialities/${spec.slug}/${city.slug}`}
                       className="rounded-full border border-border bg-cream px-3 py-1.5 text-xs font-semibold text-navy hover:border-primary/40"
                     >
                       {spec.name} in {city.name}
-                    </a>
+                    </A>
                   ))}
                 </div>
               </Section>
@@ -181,13 +182,13 @@ function ConditionPage() {
                 <Section eyebrow="Related" title={`Other ${spec.name} conditions`}>
                   <div className="flex flex-wrap gap-2">
                     {related.map((r) => (
-                      <a
+                      <A
                         key={r.slug}
                         href={`/conditions/${r.slug}`}
                         className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-navy hover:border-primary/40"
                       >
                         <Stethoscope className="h-3 w-3 text-primary" /> {r.name}
-                      </a>
+                      </A>
                     ))}
                   </div>
                 </Section>

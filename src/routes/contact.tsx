@@ -6,6 +6,7 @@ import { Container, SectionHead, Eyebrow } from "@/components/home/primitives";
 import { ConsultForm } from "@/components/home/ConsultForm";
 import { CALLBACK_PHRASE, CALLER, cap, CONSULT_PHRASE, ENABLED_PROMISES, promiseEnabled, SITE, telHref, whatsappHref } from "@/lib/site";
 import { seo } from "@/lib/seo";
+import { A } from "@/components/common/A";
 
 const teamEmails = [
   { label: "Media & press", email: "press@gosurgery.in" },
@@ -30,8 +31,8 @@ export const Route = createFileRoute("/contact")({
     city: typeof s["city"] === "string" ? (s["city"] as string).slice(0, 60) : undefined,
     interest: typeof s["interest"] === "string" ? (s["interest"] as string).slice(0, 80) : undefined,
   }),
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: promiseEnabled("free-consult") ? "Book a Free Consultation" : "Book a Consultation",
       description: `Book ${CONSULT_PHRASE} with a surgeon — no account needed. Share your details and ${CALLER} will call you back ${CALLBACK_PHRASE}.`,
       path: "/contact",
@@ -89,7 +90,7 @@ function ContactPage() {
                 <h2 className="mt-2 text-xl font-bold text-navy">Contact Information</h2>
               </div>
               {infoCards.map((card) => (
-                <a
+                <A
                   key={card.label}
                   href={card.href}
                   {...(card.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
@@ -102,7 +103,7 @@ function ContactPage() {
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{card.label}</p>
                     <p className="mt-0.5 text-sm font-semibold text-navy">{card.value}</p>
                   </div>
-                </a>
+                </A>
               ))}
               <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-ink/80">
                 <p className="font-semibold text-navy">Medical emergency?</p>
@@ -123,9 +124,9 @@ function ContactPage() {
               {teamEmails.map((t) => (
                 <li key={t.label} className="flex items-center justify-between gap-3 border-t border-border py-3.5 text-sm last:border-b">
                   <span className="font-semibold text-navy">{t.label}</span>
-                  <a href={`mailto:${t.email}`} className="text-muted-foreground hover:text-brand-orange">
+                  <A href={`mailto:${t.email}`} className="text-muted-foreground hover:text-brand-orange">
                     {t.email}
-                  </a>
+                  </A>
                 </li>
               ))}
             </ul>

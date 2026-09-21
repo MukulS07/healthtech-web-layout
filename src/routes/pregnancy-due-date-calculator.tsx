@@ -4,6 +4,8 @@ import { CalendarHeart, ChevronDown } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
+import { A } from "@/components/common/A";
+import { seo } from "@/lib/seo";
 
 const cycleLengths = Array.from({ length: 22 }, (_, i) => 21 + i); // 21–42 days
 
@@ -66,16 +68,13 @@ function FaqAccordion() {
 }
 
 export const Route = createFileRoute("/pregnancy-due-date-calculator")({
-  head: () => ({
-    meta: [
-      { title: "Pregnancy Due Date Calculator | Go Surgery" },
-      {
-        name: "description",
-        content:
-          "Estimate your baby's due date from your last menstrual period and cycle length.",
-      },
-    ],
-  }),
+  head: ({ match }) =>
+    seo({
+      locale: match.context.locale,
+      title: "Pregnancy Due Date Calculator",
+      description: "Estimate your baby's due date from your last menstrual period and cycle length.",
+      path: "/pregnancy-due-date-calculator",
+    }),
   component: PregnancyCalculatorPage,
 });
 
@@ -182,9 +181,9 @@ function PregnancyCalculatorPage() {
                     This is an estimate, not a diagnosis. The actual delivery date may vary by a
                     few days or weeks — your doctor can confirm this with an ultrasound.
                   </p>
-                  <a href="/contact" className="mt-5 inline-block">
+                  <A href="/contact" className="mt-5 inline-block">
                     <OrangeButton>Book a Consultation</OrangeButton>
-                  </a>
+                  </A>
                 </div>
               ) : (
                 <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">

@@ -11,6 +11,7 @@ import { getSpeciality } from "@/data/catalog";
 import { cn } from "@/lib/utils";
 import { seo } from "@/lib/seo";
 import { CONSULT_PHRASE } from "@/lib/site";
+import { A } from "@/components/common/A";
 
 const sortOptions = ["Relevance", "Experience: High to Low", "Rating: High to Low"];
 const PAGE_SIZE = 24;
@@ -59,7 +60,7 @@ export const Route = createFileRoute("/doctors/")({
     if (search.city) params.set("city", search.city);
     if (search.page) params.set("page", String(search.page));
     const qs = params.toString();
-    return seo({
+    return seo({ locale: match.context.locale,
       title: `${title}${search.page ? ` — Page ${search.page}` : ""}`,
       description: `Browse surgeons${spec ? ` specialising in ${spec}` : ""}${place}. Compare qualifications, experience and hospitals, and book ${CONSULT_PHRASE} with Go Surgery.`,
       path: `/doctors${qs ? `?${qs}` : ""}`,
@@ -266,9 +267,9 @@ function DoctorsPage() {
                   >
                     Clear filters
                   </OutlineButton>
-                  <a href="/contact">
+                  <A href="/contact">
                     <OutlineButton>Talk to a care specialist</OutlineButton>
-                  </a>
+                  </A>
                 </div>
               </div>
             ) : (

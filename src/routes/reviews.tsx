@@ -7,6 +7,7 @@ import { OrangeButton, Container, SectionHead, Eyebrow } from "@/components/home
 import { Pagination } from "@/components/common/Pagination";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { seo } from "@/lib/seo";
+import { A } from "@/components/common/A";
 
 const ratingOptions = [
   { label: "All ratings", value: 0 },
@@ -146,7 +147,7 @@ export const Route = createFileRoute("/reviews")({
   head: ({ match }) => {
     const { page, rating } = match.search as ReviewsSearch;
     const suffix = [rating ? `${rating}★ and up` : "", page ? `Page ${page}` : ""].filter(Boolean).join(" — ");
-    return seo({
+    return seo({ locale: match.context.locale,
       title: `Patient Reviews & Stories${suffix ? ` — ${suffix}` : ""}`,
       description:
         "Read what patients say about doctors in the Go Surgery directory — ratings, treatments and cities — and share your own experience.",
@@ -193,14 +194,14 @@ function ReviewsPage() {
               title="Patient Reviews"
               subtitle="Reviews held in our directory records for listed doctors. We're verifying where older reviews came from — any that fail our checks are held back, and very short reviews aren't shown."
               action={
-                <a href="/reviews/write">
+                <A href="/reviews/write">
                   <OrangeButton>Write a Review</OrangeButton>
-                </a>
+                </A>
               }
             />
             <div className="mb-6 flex flex-wrap items-center gap-2">
               {ratingOptions.map((opt) => (
-                <a
+                <A
                   key={opt.value}
                   href={reviewsHref({}, { rating: opt.value || undefined })}
                   aria-current={minRating === opt.value ? "true" : undefined}
@@ -211,7 +212,7 @@ function ReviewsPage() {
                   }`}
                 >
                   {opt.label}
-                </a>
+                </A>
               ))}
             </div>
 

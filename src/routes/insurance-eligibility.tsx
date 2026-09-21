@@ -6,6 +6,7 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
 import { submitInsuranceCheckFn } from "@/lib/server-functions/insurance";
+import { seo } from "@/lib/seo";
 
 const insurers = [
   "Star Health",
@@ -198,16 +199,13 @@ function EligibilityForm() {
 }
 
 export const Route = createFileRoute("/insurance-eligibility")({
-  head: () => ({
-    meta: [
-      { title: "Check Insurance Eligibility | Go Surgery" },
-      {
-        name: "description",
-        content:
-          "Find out if your health insurance covers cashless treatment at Go Surgery — free, no obligation.",
-      },
-    ],
-  }),
+  head: ({ match }) =>
+    seo({
+      locale: match.context.locale,
+      title: "Check Insurance Eligibility",
+      description: "Find out if your health insurance covers cashless treatment at Go Surgery — free, no obligation.",
+      path: "/insurance-eligibility",
+    }),
   component: InsuranceEligibilityPage,
 });
 

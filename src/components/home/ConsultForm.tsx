@@ -6,6 +6,7 @@ import { submitConsultationFn } from "@/lib/server-functions/consultations";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { CONDITIONS, SPECIALITIES, TREATMENTS } from "@/data/catalog";
 import { BOOK_LABEL, CALLBACK_PHRASE, CALLER, cap, CITIES, promiseEnabled, SITE, whatsappHref } from "@/lib/site";
+import { A } from "@/components/common/A";
 
 /** Options for the "treatment or condition" select, grouped by speciality. */
 function useInterestGroups() {
@@ -155,15 +156,15 @@ export function ConsultForm({
             <li>2. They understand your symptoms and suggest the right specialist.</li>
             <li>3. Your consultation is scheduled at a time that suits you.</li>
           </ol>
-          <a href={whatsappHref(`Hi, I just requested a consultation (${name}).`)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:underline">
+          <A href={whatsappHref(`Hi, I just requested a consultation (${name}).`)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:underline">
             <MessageCircle className="h-4 w-4" /> Chat with us on WhatsApp
-          </a>
+          </A>
           {!user ? (
             <p className="text-xs text-muted-foreground">
               Want to track your request online?{" "}
-              <a href="/account" className="font-semibold text-primary hover:underline">
+              <A href="/account" className="font-semibold text-primary hover:underline">
                 Create a free account
-              </a>{" "}
+              </A>{" "}
               (optional).
             </p>
           ) : null}
@@ -247,9 +248,9 @@ export function ConsultForm({
             <input type="checkbox" className="mt-0.5 accent-[var(--primary)]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
             <span>
               I agree to be contacted by phone/WhatsApp about this enquiry, as described in the{" "}
-              <a href="/privacy" className="underline">
+              <A href="/privacy" className="underline">
                 privacy policy
-              </a>
+              </A>
               .
             </span>
           </label>

@@ -7,6 +7,7 @@ import { CostEstimator } from "@/components/tools/CostEstimator";
 import { TREATMENTS } from "@/data/catalog";
 import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
 import { BOOK_LABEL } from "@/lib/site";
+import { A } from "@/components/common/A";
 
 const FAQS = [
   {
@@ -32,8 +33,8 @@ const FAQS = [
 ];
 
 export const Route = createFileRoute("/surgery-cost-calculator")({
-  head: () =>
-    seo({
+  head: ({ match }) =>
+    seo({ locale: match.context.locale,
       title: "Surgery Cost Calculator",
       description: `Pick from ${TREATMENTS.length} procedures and your city to see the cost range we hold, what drives the final bill, and how to get a written estimate from the hospital.`,
       path: "/surgery-cost-calculator",
@@ -106,9 +107,9 @@ function CostCalculatorPage() {
             <p className="mt-3 text-sm text-navy-foreground/75">
               Tell us your procedure and city and we'll help you get a written estimate from the hospital.
             </p>
-            <a href="/contact" className="mt-6 inline-block">
+            <A href="/contact" className="mt-6 inline-block">
               <OrangeButton>{BOOK_LABEL}</OrangeButton>
-            </a>
+            </A>
           </Container>
         </section>
       </main>

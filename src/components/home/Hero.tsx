@@ -4,6 +4,7 @@ import { ConsultForm } from "./ConsultForm";
 import { ENABLED_PROMISES, telHref } from "@/lib/site";
 import { roundDownPlus } from "@/lib/format";
 import type { SiteStats } from "@/lib/server-functions/site-stats";
+import { A } from "@/components/common/A";
 
 const promiseIcons: Record<string, typeof ShieldCheck> = {
   coordinator: HeartHandshake,
@@ -45,14 +46,14 @@ export function Hero({ stats }: { stats: SiteStats | null }) {
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a href="/specialities">
+              <A href="/specialities">
                 <OrangeButton>Browse Specialities</OrangeButton>
-              </a>
-              <a href={telHref}>
+              </A>
+              <A href={telHref}>
                 <OutlineButton tone="light" className="gap-2">
                   <Phone className="h-4 w-4 text-brand-orange" /> Call our care team
                 </OutlineButton>
-              </a>
+              </A>
             </div>
 
             {stats && stats.surgeons > 0 ? (

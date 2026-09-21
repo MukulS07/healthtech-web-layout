@@ -11,6 +11,7 @@ import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { getTreatment } from "@/data/catalog";
 import { BOOK_LABEL, CONSULT_PHRASE, SITE, telHref } from "@/lib/site";
 import { breadcrumbLd, seo } from "@/lib/seo";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/doctors/$slug")({
   loader: async ({ params }) => {
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/doctors/$slug")({
       reviewAverage: reviewsRes?.success ? reviewsRes.averageRating : 0,
     };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     const d = loaderData?.doctor;
     if (!d) return {};
     const place = d.city ? ` in ${d.city}` : "";
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/doctors/$slug")({
       loaderData.reviewTotal > 0
         ? { "@type": "AggregateRating", ratingValue: loaderData.reviewAverage, reviewCount: loaderData.reviewTotal, bestRating: 5, worstRating: 1 }
         : undefined;
-    return seo({
+    return seo({ locale: match.context.locale,
       title: `${d.name}${d.specialty ? ` — ${d.specialty}` : ""}${place}`,
       description: `${d.name}${d.specialty ? `, ${d.specialty}` : ""}${place}.${d.cred ? ` ${d.cred}.` : ""}${d.exp ? ` ${d.exp} years of experience.` : ""} See hospitals, reviews and book ${CONSULT_PHRASE}.`,
       path: `/doctors/${d.slug}`,
@@ -143,10 +144,10 @@ function DoctorProfile() {
                 ) : null}
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
-                <a href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></a>
-                <a href={telHref}>
+                <A href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></A>
+                <A href={telHref}>
                   <OutlineButton tone="light"><Phone className="h-4 w-4" /> Call {SITE.phone.display}</OutlineButton>
-                </a>
+                </A>
               </div>
             </div>
           </Container>
@@ -172,7 +173,7 @@ function DoctorProfile() {
                   {procedures.map((p) => (
                     <li key={p.slug} className="flex items-center gap-2 text-sm capitalize text-ink/85">
                       <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                      {p.treatment ? <a href={`/treatments/${p.treatment.slug}`} className="hover:text-primary hover:underline">{p.treatment.name}</a> : p.label}
+                      {p.treatment ? <A href={`/treatments/${p.treatment.slug}`} className="hover:text-primary hover:underline">{p.treatment.name}</A> : p.label}
                     </li>
                   ))}
                 </ul>
@@ -191,14 +192,14 @@ function DoctorProfile() {
                         {h.consultationFee > 0 ? <p className="mt-1 text-xs text-muted-foreground">Clinic consultation fee: ₹{h.consultationFee}</p> : null}
                       </div>
                       <div className="flex gap-2">
-                        <a
+                        <A
                           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([h.name, h.address || h.locality, h.city].filter(Boolean).join(", "))}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
                           <OutlineButton className="gap-1 px-3 py-1.5 text-xs"><Navigation className="h-3 w-3" /> Map</OutlineButton>
-                        </a>
-                        {h.slug ? <a href={`/hospitals/${h.slug}`}><OutlineButton className="px-3 py-1.5 text-xs">View</OutlineButton></a> : null}
+                        </A>
+                        {h.slug ? <A href={`/hospitals/${h.slug}`}><OutlineButton className="px-3 py-1.5 text-xs">View</OutlineButton></A> : null}
                       </div>
                     </div>
                   ))}
@@ -209,7 +210,7 @@ function DoctorProfile() {
             <Section
               eyebrow="Patient feedback"
               title="What patients say"
-              action={<a href={`/reviews/write?doctor=${d.slug}`}><OutlineButton className="gap-1.5 px-3 py-2 text-xs"><PenLine className="h-3.5 w-3.5" /> Write a review</OutlineButton></a>}
+              action={<A href={`/reviews/write?doctor=${d.slug}`}><OutlineButton className="gap-1.5 px-3 py-2 text-xs"><PenLine className="h-3.5 w-3.5" /> Write a review</OutlineButton></A>}
             >
               {reviewTotal > 0 ? (
                 <div className="mb-4 flex items-center gap-3 rounded-lg bg-cream p-4">

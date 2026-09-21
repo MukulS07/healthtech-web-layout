@@ -5,6 +5,7 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, OrangeButton } from "@/components/home/primitives";
 import { requestPasswordResetFn } from "@/lib/server-functions/password-reset";
+import { A } from "@/components/common/A";
 
 export const Route = createFileRoute("/forgot-password")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -52,9 +53,9 @@ function ForgotPasswordPage() {
                   If an account exists for <strong className="text-navy">{email}</strong>, we've sent
                   a link to set a new password. It's valid for 1 hour.
                 </p>
-                <a href="/account" className="mt-5 inline-block text-sm font-semibold text-primary hover:underline">
+                <A href="/account" className="mt-5 inline-block text-sm font-semibold text-primary hover:underline">
                   Back to log in
-                </a>
+                </A>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,9 +85,9 @@ function ForgotPasswordPage() {
                     "Send reset link"
                   )}
                 </OrangeButton>
-                <a href="/account" className="block text-center text-xs font-semibold text-muted-foreground hover:text-navy">
+                <A href="/account" className="block text-center text-xs font-semibold text-muted-foreground hover:text-navy">
                   Remembered it? Log in
-                </a>
+                </A>
               </form>
             )}
           </div>

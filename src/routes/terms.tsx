@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, Eyebrow } from "@/components/home/primitives";
+import { seo } from "@/lib/seo";
 
 const sections = [
   {
@@ -100,15 +101,13 @@ Email: legal@gosurgery.in
 ];
 
 export const Route = createFileRoute("/terms")({
-  head: () => ({
-    meta: [
-      { title: "Terms of Use | Go Surgery" },
-      {
-        name: "description",
-        content: "Terms and conditions governing the use of Go Surgery's website and services.",
-      },
-    ],
-  }),
+  head: ({ match }) =>
+    seo({
+      locale: match.context.locale,
+      title: "Terms of Use",
+      description: "Terms and conditions governing the use of Go Surgery's website and services.",
+      path: "/terms",
+    }),
   component: TermsPage,
 });
 

@@ -12,6 +12,7 @@ import { getHospitalsFn } from "@/lib/server-functions/hospitals";
 import { CONSULT_PHRASE, SITE } from "@/lib/site";
 import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
 import hospitalFallbackImg from "@/assets/hospital-1.jpg";
+import { A } from "@/components/common/A";
 
 function cityFaqs(name: string, doctorCount: number, hospitalCount: number) {
   return [
@@ -48,10 +49,10 @@ export const Route = createFileRoute("/locations/$city")({
       hospitals: hospitalsRes?.success ? hospitalsRes.hospitals : [],
     };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     const city = loaderData?.city;
     if (!city) return {};
-    return seo({
+    return seo({ locale: match.context.locale,
       title: `Surgery & Specialist Surgeons in ${city.name}`,
       description: `Find surgeons in ${city.name} across ${city.specialities.length} specialities — compare doctors and hospitals, read patient reviews and book ${CONSULT_PHRASE} with ${SITE.name}.`,
       path: `/locations/${city.slug}`,
@@ -109,13 +110,13 @@ function CityPage() {
               <Section eyebrow="By speciality" title={`Top specialities in ${city.name}`}>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {city.specialities.map((s) => (
-                    <a key={s.slug} href={`/specialities/${s.slug}/${city.slug}`} className="group flex items-center justify-between gap-2 rounded-lg border border-border bg-cream px-4 py-3 transition-shadow hover:shadow-md">
+                    <A key={s.slug} href={`/specialities/${s.slug}/${city.slug}`} className="group flex items-center justify-between gap-2 rounded-lg border border-border bg-cream px-4 py-3 transition-shadow hover:shadow-md">
                       <span>
                         <span className="block text-sm font-bold text-navy group-hover:text-primary">{s.name}</span>
                         <span className="text-xs text-muted-foreground">{s.count.toLocaleString("en-IN")} surgeons</span>
                       </span>
                       <ArrowRight className="h-4 w-4 shrink-0 text-brand-orange" />
-                    </a>
+                    </A>
                   ))}
                 </div>
               </Section>
@@ -124,7 +125,7 @@ function CityPage() {
             <Section
               eyebrow="Surgeons"
               title={`Top surgeons in ${city.name}`}
-              action={<a href={`/doctors?city=${cityQ}`}><OutlineButton className="px-3 py-2 text-xs">View all {city.doctorCount.toLocaleString("en-IN")}</OutlineButton></a>}
+              action={<A href={`/doctors?city=${cityQ}`}><OutlineButton className="px-3 py-2 text-xs">View all {city.doctorCount.toLocaleString("en-IN")}</OutlineButton></A>}
             >
               {doctors.length ? (
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -138,12 +139,12 @@ function CityPage() {
             <Section
               eyebrow="Hospitals"
               title={`Hospitals in ${city.name}`}
-              action={<a href={`/hospitals?city=${cityQ}`}><OutlineButton className="px-3 py-2 text-xs">View all</OutlineButton></a>}
+              action={<A href={`/hospitals?city=${cityQ}`}><OutlineButton className="px-3 py-2 text-xs">View all</OutlineButton></A>}
             >
               {hospitals.length ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {hospitals.map((h) => (
-                    <a key={h.id} href={`/hospitals/${h.slug}`} className="flex gap-3 rounded-lg border border-border bg-background p-3 transition-shadow hover:shadow-md">
+                    <A key={h.id} href={`/hospitals/${h.slug}`} className="flex gap-3 rounded-lg border border-border bg-background p-3 transition-shadow hover:shadow-md">
                       <img src={h.img || hospitalFallbackImg} alt={h.name} loading="lazy" className="h-16 w-20 shrink-0 rounded-md object-cover" />
                       <div className="min-w-0">
                         <h3 className="line-clamp-1 text-sm font-bold text-navy">{h.name}</h3>
@@ -154,7 +155,7 @@ function CityPage() {
                           </p>
                         ) : null}
                       </div>
-                    </a>
+                    </A>
                   ))}
                 </div>
               ) : (
@@ -173,7 +174,7 @@ function CityPage() {
             <div className="rounded-xl bg-navy p-6 text-navy-foreground">
               <p className="text-lg font-bold">Not sure where to start?</p>
               <p className="mt-1 text-sm text-navy-foreground/75">Tell us your symptoms — we'll suggest the right specialist in {city.name}.</p>
-              <a href="#book" className="mt-4 inline-block"><OrangeButton>Talk to a care specialist</OrangeButton></a>
+              <A href="#book" className="mt-4 inline-block"><OrangeButton>Talk to a care specialist</OrangeButton></A>
             </div>
           </div>
 

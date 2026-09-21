@@ -10,10 +10,10 @@ export const Route = createFileRoute("/specialities/$slug_/$city")({
     if (!spec || spec.slug !== params.slug || !city) throw notFound();
     return { slug: spec.slug, citySlug: city.slug, data: await loadSpecialityData(spec, city.name) };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     const spec = loaderData ? getSpeciality(loaderData.slug) : undefined;
     const city = cityBySlug(loaderData?.citySlug);
-    return spec && city ? specialityHead(spec, city, loaderData?.data) : {};
+    return spec && city ? specialityHead(spec, city, loaderData?.data, match.context.locale) : {};
   },
   component: SpecialityCityRoute,
 });

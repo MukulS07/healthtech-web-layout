@@ -13,6 +13,9 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE } from "@/lib/site";
+import { localeInfo, type Locale } from "@/lib/i18n/locales";
+import { LocaleProvider } from "@/lib/i18n/context";
+import { A } from "@/components/common/A";
 
 /**
  * Somewhere useful to land, not a dead end. This used to render a bare "404 / Go home" card with
@@ -92,19 +95,19 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           >
             Try again
           </button>
-          <a
+          <A
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Go home
-          </a>
+          </A>
         </div>
       </div>
     </div>
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient; locale: Locale }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -145,8 +148,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const { locale } = Route.useRouteContext();
   return (
-    <html lang="en">
+    // lang matters for screen readers and for search engines to trust the hreflang set.
+    <html lang={localeInfo(locale).htmlLang}>
       <head>
         <HeadContent />
       </head>
@@ -159,13 +164,15 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
+  const { queryClient, locale } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster position="top-center" richColors />
+      <LocaleProvider locale={locale}>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster position="top-center" richColors />
+      </LocaleProvider>
     </QueryClientProvider>
   );
 }
