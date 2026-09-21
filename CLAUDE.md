@@ -688,6 +688,70 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
       **Next:** fill TREATMENT_COSTS with real figures (hospital quotes, or published CGHS/PM-JAY
       rates), set verified + source + date per entry, then flip COSTS_PUBLISHED.
 
+- [x] **2026-09-21 — full live-site review + fixes (commit `9e120cc`, pushed and verified live).**
+      Opened every page type on the deploy and exercised filters, forms, search and both
+      calculators. 495 internal links checked — none broken. What was wrong and is now fixed:
+      - **`/hospitals` died past page ~130** with "We couldn't load the hospital directory".
+        `getHospitalsFn` sorts on `totalDoctors`, which had **no index**, so Mongo exceeded its
+        32MB in-memory sort limit once the skip got deep (`Sort exceeded memory limit of 33554432
+        bytes ... Pass allowDiskUse:true`). Added `{ totalDoctors: -1 }` and
+        `{ city: 1, totalDoctors: -1 }` to `Hospital`, plus `.allowDiskUse(true)` as a fallback for
+        when an index is still building. `/doctors` never hit this because its sort was indexed —
+        it now has `allowDiskUse` too, and a new `{ "rating.average": -1, "rating.count": -1 }`
+        index. **Lesson: any listing that sorts an unindexed field breaks only at depth, so page 1
+        passing tells you nothing — test a deep page.**
+      - **`sitemap-hospitals.xml` was empty** (34k hospital pages invisible to search engines) —
+        same unindexed sort, thrown and swallowed into an empty urlset. Now 14,706 URLs. Both
+        child sitemaps now return **500 on failure instead of an empty urlset**, because an empty
+        sitemap is indistinguishable from "this site has no hospitals" and gets believed.
+      - **Mongo errors were reaching the browser** — server functions returned `error.message`,
+        which the route rendered into the page. New `src/lib/server-error.ts` (`serverError()`)
+        logs the real message and returns a generic one; applied to 33 call sites. `auth.ts` is
+        deliberately excluded — its messages are user-facing validation text.
+      - **Imported hospital blurbs state false facts about real named institutions.** All 16
+        sampled were wrong: a 300-bed multi-speciality hospital described as "a dental clinic",
+        Medanta (1,250 beds) and Artemis as "a clinic", Indraprastha Apollo as "a diagnostic
+        center", the private Sir Ganga Ram as "a government hospital"; bed counts are off too.
+        `verifiedHospitalAbout()` in `hospitals.ts` drops anything matching the generated template
+        ("is a <type> in <City>", "It has around N beds", "Core specialties include"), so the
+        About section is omitted rather than shown. Hand-written copy added later survives.
+        **Same fabrication-trap category as `faqs`/`surgeryfaqpages` — treat every prose field
+        inherited from the archive as unverified.**
+      - **Keyboard-mash reviews were the first thing on `/reviews`** ("dxgfhghjil aaaaaaaa…").
+        They cleared the 40-char bar. `getReviewsFn` now also requires ≥5 vowel-bearing words of
+        3+ letters (Mongo `$regexFindAll` + `$filter` in the existing `$expr`), so this works
+        without a DB write. `scripts/flag-reviews.ts` gained a matching **`gibberish`** reason.
+      - Homepage stated **two different review totals** (2,40,000+ in the hero, 2,47,591 in
+        testimonials) — both now use `roundDownPlus`.
+      - **`/reviews` paging/rating filter were React state only**, so all 10,316 pages shared one
+        URL: unlinkable, unbookmarkable, back-button broke, and crawlers only saw the first 24.
+        Now URL-driven (`?rating=&page=`) with the shared crawlable `Pagination`, like `/doctors`.
+      - **"Rating: High to Low" did nothing** — it fell through to the relevance branch
+        (`rating.count`). Now sorts `rating.average` with count as tiebreaker.
+      - **Unknown `?specialty=` and out-of-range `?page=` returned empty 200s** (minting unlimited
+        indexable thin pages, `<h1>bogus-spec Surgeons</h1>`). Both now `notFound()`.
+      - **404 page was a dead end** (no header/footer, one link). Now offers the main entry points
+        and sets its own title client-side.
+      - **Homepage scrolled sideways 23px on phones** — caused by the junk review: one long
+        unbroken token stretched a grid item (`min-width: auto`). Added `min-w-0`/`break-words`.
+      - **Mobile browse strip had 20px tap targets** (under the 24px WCAG 2.2 minimum) — now 44px.
+        The mobile menu panel's hardcoded `top-[105px]` then overlapped by 5px, so it now
+        positions off the header itself (`absolute top-full h-[calc(100vh-100%)]`).
+      - **Consent checkbox was pre-ticked** (`useState(true)`) — not affirmative consent under the
+        DPDP Act, and worthless as a record if a lead disputes being called. Now unticked.
+      - Added a **Content-Security-Policy** header (the other five were already set).
+      **Checked and found fine** (don't re-raise): all 35 static routes, 495 internal links, city/
+      speciality filters and facet counts, header autocomplete, deep `/doctors` pagination, EMI
+      maths, phone validation, canonicals/noindex, JSON-LD. Mobile search **does** exist inside
+      the hamburger menu — an earlier pass wrongly reported it missing (the input has no `type`
+      attribute, so an `input[type=text]` selector misses it).
+      **Still outstanding (needs the user, not code):** run `scripts/flag-reviews.ts` against
+      Atlas — the ~40k suspect reviews are still public there and the read-time gibberish gate is
+      a filter, not a fix; rotate the Atlas `doctarcloud_db_user` password (pasted in chat);
+      real phone/WhatsApp numbers (still `1800 000 1234`); reviews from non-surgical specialities
+      (Psychiatrist, Dentist) still show on the wall, unlike `/doctors` which is filtered
+      surgically — needs a denormalised field or a flagging pass, not a read-time join.
+
 ---
 
 ## Superseded original plan (historical record only — do not follow)
