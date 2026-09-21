@@ -21,7 +21,7 @@ import {
   treatmentsForSpeciality,
   type Speciality,
 } from "@/data/catalog";
-import { BOOK_LABEL, CITIES, TOP_CITIES, CONSULT_PHRASE } from "@/lib/site";
+import { BOOK_LABEL, CITIES, TOP_CITIES, CONSULT_PHRASE, promiseEnabled } from "@/lib/site";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { getHospitalsFn } from "@/lib/server-functions/hospitals";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
@@ -30,6 +30,8 @@ import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
 import type { Locale } from "@/lib/i18n/locales";
 import hospital1 from "@/assets/hospital-1.jpg";
 import { A } from "@/components/common/A";
+import { useLocale, useSpecName, useT } from "@/lib/i18n/context";
+import { WithLink } from "@/lib/i18n/rich";
 
 export type CitySlug = (typeof CITIES)[number]["slug"];
 
@@ -98,8 +100,9 @@ export function specialityHead(
 }
 
 function Stars({ value }: { value: number }) {
+  const t = useT();
   return (
-    <span className="inline-flex" aria-label={`${value} out of 5`}>
+    <span className="inline-flex" aria-label={t("home.starsAria", { value })}>
       {[1, 2, 3, 4, 5].map((n) => (
         <Star key={n} className={n <= Math.round(value) ? "h-4 w-4 fill-brand-orange text-brand-orange" : "h-4 w-4 text-border"} />
       ))}
@@ -116,8 +119,14 @@ export function SpecialityPage({
   citySlug?: string | undefined;
   data: SpecialityData;
 }) {
+  const t = useT();
+  const locale = useLocale();
+  const specLabel = useSpecName();
   const city = cityBySlug(citySlug);
-  const where = city ? ` in ${city.name}` : "";
+  const name = specLabel(spec.slug, spec.name);
+  // English keeps its lower-cased running text ("proctology doctors"); other scripts have no case.
+  const lc = (s: string) => (locale === "en" ? s.toLowerCase() : s);
+  const inCity = (title: string) => (city ? t("dir.titleInCity", { title, city: city.name }) : title);
   const conditions = conditionsForSpeciality(spec.slug);
   const treatments = treatmentsForSpeciality(spec.slug);
   const faqs = [...spec.faqs, ...(data?.extraFaqs ?? []), ...BOOKING_FAQS];
@@ -125,13 +134,13 @@ export function SpecialityPage({
   const hospitalsHref = `/hospitals?speciality=${spec.slug}${city ? `&city=${encodeURIComponent(city.name)}` : ""}`;
 
   const toc = [
-    ["about", "About"],
-    ["conditions", "Conditions"],
-    ["treatments", "Treatments"],
-    ["doctors", "Doctors"],
-    ["hospitals", "Hospitals"],
-    ["reviews", "Reviews"],
-    ["faqs", "FAQs"],
+    ["about", t("sp.tocAbout")],
+    ["conditions", t("nav.conditions")],
+    ["treatments", t("nav.treatments")],
+    ["doctors", t("nav.doctors")],
+    ["hospitals", t("nav.hospitals")],
+    ["reviews", t("sp.tocReviews")],
+    ["faqs", t("nav.faqs")],
   ] as const;
 
   return (
@@ -140,37 +149,38 @@ export function SpecialityPage({
       <main>
         <Breadcrumbs
           items={[
-            { name: "Home", href: "/" },
-            { name: "Specialities", href: "/specialities" },
-            city ? { name: spec.name, href: `/specialities/${spec.slug}` } : { name: spec.name },
+            { name: t("common.home"), href: "/" },
+            { name: t("nav.specialities"), href: "/specialities" },
+            city ? { name, href: `/specialities/${spec.slug}` } : { name },
             ...(city ? [{ name: city.name }] : []),
           ]}
         />
 
         <section className="bg-navy py-12">
           <Container>
-            <Eyebrow tone="light">Speciality</Eyebrow>
+            <Eyebrow tone="light">{t("dir.speciality")}</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
-              {spec.name}
-              {where}
+              {inCity(name)}
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-navy-foreground/80 sm:text-base">{spec.tagline}</p>
             <ContentReviewNote reviewedBy={spec.reviewedBy} />
             <div className="mt-6 flex flex-wrap gap-3">
-              <A href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></A>
-              <A href="#doctors"><OutlineButton tone="light">Find a {spec.name} doctor</OutlineButton></A>
+              <A href="#book"><OrangeButton>{promiseEnabled("free-consult") ? BOOK_LABEL : t("action.book")}</OrangeButton></A>
+              <A href="#doctors"><OutlineButton tone="light">{t("sp.findDoctor", { spec: name })}</OutlineButton></A>
             </div>
             {data.reviewSummary.count > 0 || data.doctorTotal > 0 ? (
               <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold">
                 {data.doctorTotal > 0 ? (
                   <span className="rounded-full bg-white/10 px-3 py-1.5 text-navy-foreground">
-                    {data.doctorTotal.toLocaleString("en-IN")} {spec.name.toLowerCase()} doctors listed{where}
+                    {city
+                      ? t("sp.doctorsListedIn", { n: data.doctorTotal.toLocaleString("en-IN"), spec: lc(name), city: city.name })
+                      : t("sp.doctorsListed", { n: data.doctorTotal.toLocaleString("en-IN"), spec: lc(name) })}
                   </span>
                 ) : null}
                 {data.reviewSummary.count > 0 ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1.5 text-navy-foreground">
-                    <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" /> {data.reviewSummary.average}/5 from{" "}
-                    {data.reviewSummary.count.toLocaleString("en-IN")} patient reviews
+                    <Star className="h-3.5 w-3.5 fill-brand-orange text-brand-orange" />{" "}
+                    {t("sp.ratingChip", { rating: data.reviewSummary.average, n: data.reviewSummary.count.toLocaleString("en-IN") })}
                   </span>
                 ) : null}
               </div>
@@ -178,7 +188,7 @@ export function SpecialityPage({
           </Container>
         </section>
 
-        <nav aria-label="On this page" className="sticky top-[73px] z-30 border-b border-border bg-background/95 backdrop-blur">
+        <nav aria-label={t("sp.onThisPage")} className="sticky top-[73px] z-30 border-b border-border bg-background/95 backdrop-blur">
           <Container className="no-scrollbar flex gap-5 overflow-x-auto py-2.5 text-sm font-semibold">
             {toc.map(([id, label]) => (
               <A key={id} href={`#${id}`} className="shrink-0 text-muted-foreground hover:text-navy">{label}</A>
@@ -189,12 +199,12 @@ export function SpecialityPage({
         <section className="py-10">
           <Container className="grid gap-10 lg:grid-cols-[1.5fr_0.8fr]">
             <div className="min-w-0 space-y-12">
-              <Section id="about" eyebrow="Overview" title={`What is ${spec.name}?`}>
+              <Section id="about" eyebrow={t("sp.overview")} title={t("sp.whatIs", { spec: name })}>
                 <ReadMore intro={spec.intro} more={spec.more} />
               </Section>
 
               {conditions.length ? (
-                <Section id="conditions" eyebrow="What we treat" title={`Conditions treated in ${spec.name}`}>
+                <Section id="conditions" eyebrow={t("sp.whatWeTreat")} title={t("sp.conditionsIn", { spec: name })}>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {conditions.map((c) => (
                       <A key={c.slug} href={`/conditions/${c.slug}`} className="group rounded-lg border border-border bg-cream p-4 transition-shadow hover:shadow-md">
@@ -208,21 +218,21 @@ export function SpecialityPage({
                 </Section>
               ) : null}
 
-              <Section id="treatments" eyebrow="Procedures" title={`${spec.name} treatments`}>
+              <Section id="treatments" eyebrow={t("prof.eyebrowProcedures")} title={t("sp.treatmentsOf", { spec: name })}>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {treatments.map((t) => (
-                    <A key={t.slug} href={`/treatments/${t.slug}`} className="group rounded-lg border border-border bg-background p-4 transition-shadow hover:shadow-md">
+                  {treatments.map((tr) => (
+                    <A key={tr.slug} href={`/treatments/${tr.slug}`} className="group rounded-lg border border-border bg-background p-4 transition-shadow hover:shadow-md">
                       <h3 className="flex items-center justify-between text-sm font-bold text-navy">
-                        {t.name} <ArrowRight className="h-4 w-4 text-brand-orange opacity-60 group-hover:opacity-100" />
+                        {tr.name} <ArrowRight className="h-4 w-4 text-brand-orange opacity-60 group-hover:opacity-100" />
                       </h3>
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.summary}</p>
-                      <p className="mt-2 text-[11px] font-semibold text-primary">Stay: {t.stay}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{tr.summary}</p>
+                      <p className="mt-2 text-[11px] font-semibold text-primary">{t("sp.stay", { stay: tr.stay })}</p>
                     </A>
                   ))}
                 </div>
               </Section>
 
-              <Section eyebrow="Why Go Surgery" title="Why patients choose us">
+              <Section eyebrow={t("sp.whyEyebrow")} title={t("sp.whyTitle")}>
                 <WhyChooseUs specialityName={spec.name} />
                 <div className="mt-4">
                   <BenefitsStrip />
@@ -231,17 +241,16 @@ export function SpecialityPage({
 
               <Section
                 id="doctors"
-                eyebrow="Specialists"
-                title={`${spec.name} doctors${where}`}
+                eyebrow={t("sp.specialists")}
+                title={inCity(t("sp.doctorsTitle", { spec: name }))}
                 action={
                   <A href={doctorsHref}>
-                    <OutlineButton className="px-3 py-2 text-xs">View all{data.doctorTotal ? ` ${data.doctorTotal.toLocaleString("en-IN")}` : ""} doctors</OutlineButton>
+                    <OutlineButton className="px-3 py-2 text-xs">{data.doctorTotal ? t("sp.viewAllDoctorsN", { n: data.doctorTotal.toLocaleString("en-IN") }) : t("sp.viewAllDoctors")}</OutlineButton>
                   </A>
                 }
               >
                 <p className="-mt-2 mb-3 text-xs text-muted-foreground">
-                  Matched by the speciality recorded in each doctor's profile. Profiles aren't individually
-                  verified yet — ask our team if you need a surgeon for a specific procedure.
+                  {t("sp.matchedNote")}
                 </p>
                 <CityPicker specSlug={spec.slug} active={city?.slug} />
                 {data.doctors.length ? (
@@ -252,18 +261,20 @@ export function SpecialityPage({
                   </div>
                 ) : (
                   <div className="mt-4 rounded-xl border border-border bg-cream p-6 text-center">
-                    <p className="font-semibold text-navy">We don't have {spec.name.toLowerCase()} doctors listed{where} yet.</p>
-                    <p className="mt-1 text-sm text-muted-foreground">Talk to a care specialist — we'll help you find the right surgeon nearby.</p>
-                    <A href="#book" className="mt-3 inline-block"><OrangeButton className="px-4 py-2 text-sm">Talk to a care specialist</OrangeButton></A>
+                    <p className="font-semibold text-navy">
+                      {city ? t("sp.noDoctorsIn", { spec: lc(name), city: city.name }) : t("sp.noDoctors", { spec: lc(name) })}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">{t("sp.noDoctorsSub")}</p>
+                    <A href="#book" className="mt-3 inline-block"><OrangeButton className="px-4 py-2 text-sm">{t("dir.talkSpecialist")}</OrangeButton></A>
                   </div>
                 )}
               </Section>
 
               <Section
                 id="hospitals"
-                eyebrow="Hospitals"
-                title={`Hospitals for ${spec.name}${where}`}
-                action={data.hospitals.length ? <A href={hospitalsHref}><OutlineButton className="px-3 py-2 text-xs">View all hospitals</OutlineButton></A> : undefined}
+                eyebrow={t("nav.hospitals")}
+                title={inCity(t("sp.hospitalsFor", { spec: name }))}
+                action={data.hospitals.length ? <A href={hospitalsHref}><OutlineButton className="px-3 py-2 text-xs">{t("sp.viewAllHospitals")}</OutlineButton></A> : undefined}
               >
                 {data.hospitals.length ? (
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -286,19 +297,19 @@ export function SpecialityPage({
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Ask our care team about hospitals for {spec.name.toLowerCase()}{where} — we'll suggest options that suit your treatment and insurance.
+                    {city ? t("sp.hospAskIn", { spec: lc(name), city: city.name }) : t("sp.hospAsk", { spec: lc(name) })}
                   </p>
                 )}
               </Section>
 
               <Section
                 id="reviews"
-                eyebrow="Patient reviews"
-                title={`What ${spec.name.toLowerCase()} patients say`}
+                eyebrow={t("nav.reviews")}
+                title={t("sp.whatPatientsSay", { spec: lc(name) })}
                 action={
                   <div className="flex gap-2">
-                    <A href={`/reviews/write`}><OrangeButton className="gap-1.5 px-3 py-2 text-xs"><PenLine className="h-3.5 w-3.5" /> Write a Review</OrangeButton></A>
-                    <A href="/reviews"><OutlineButton className="px-3 py-2 text-xs">View all</OutlineButton></A>
+                    <A href={`/reviews/write`}><OrangeButton className="gap-1.5 px-3 py-2 text-xs"><PenLine className="h-3.5 w-3.5" /> {t("action.writeReview")}</OrangeButton></A>
+                    <A href="/reviews"><OutlineButton className="px-3 py-2 text-xs">{t("home.viewAll")}</OutlineButton></A>
                   </div>
                 }
               >
@@ -308,7 +319,7 @@ export function SpecialityPage({
                     <div>
                       <Stars value={data.reviewSummary.average} />
                       <p className="text-xs text-muted-foreground">
-                        Based on {data.reviewSummary.count.toLocaleString("en-IN")} reviews of {spec.name.toLowerCase()} doctors in our directory
+                        {t("sp.basedOn", { n: data.reviewSummary.count.toLocaleString("en-IN"), spec: lc(name) })}
                       </p>
                     </div>
                   </div>
@@ -327,27 +338,29 @@ export function SpecialityPage({
                         <p className="mt-2 line-clamp-4 text-sm text-ink/80">{r.comment}</p>
                         {r.doctorName ? (
                           <p className="mt-2 text-xs text-muted-foreground">
-                            Treated by{" "}
-                            {r.doctorSlug ? <A href={`/doctors/${r.doctorSlug}`} className="font-semibold text-primary hover:underline">{r.doctorName}</A> : r.doctorName}
+                            <WithLink
+                              text={t("home.treatedBy")}
+                              link={r.doctorSlug ? <A href={`/doctors/${r.doctorSlug}`} className="font-semibold text-primary hover:underline">{r.doctorName}</A> : r.doctorName}
+                            />
                           </p>
                         ) : null}
                       </article>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No detailed reviews yet for this speciality.</p>
+                  <p className="text-sm text-muted-foreground">{t("sp.noReviews")}</p>
                 )}
               </Section>
 
-              <Section eyebrow="Paying for treatment" title="Insurance & EMI">
+              <Section eyebrow={t("sp.payEyebrow")} title={t("home.insEyebrow")}>
                 <InsuranceEmiBlock />
               </Section>
 
-              <Section id="faqs" eyebrow="FAQs" title={`${spec.name} — frequently asked questions`}>
+              <Section id="faqs" eyebrow={t("nav.faqs")} title={t("sp.faqTitle", { spec: name })}>
                 <FaqList faqs={faqs} />
               </Section>
 
-              <Section eyebrow="Near you" title={`${spec.name} treatment in top cities`}>
+              <Section eyebrow={t("sp.nearYou")} title={t("sp.topCities", { spec: name })}>
                 <div className="flex flex-wrap gap-2">
                   {TOP_CITIES.map((c) => (
                     <A
@@ -355,7 +368,7 @@ export function SpecialityPage({
                       href={`/specialities/${spec.slug}/${c.slug}`}
                       className="rounded-full border border-border bg-cream px-3 py-1.5 text-xs font-semibold text-navy hover:border-primary/40"
                     >
-                      {spec.name} in {c.name}
+                      {t("footer.specInCity", { spec: name, city: c.name })}
                     </A>
                   ))}
                 </div>
@@ -376,13 +389,14 @@ export function SpecialityPage({
 }
 
 function CityPicker({ specSlug, active }: { specSlug: string; active?: string | undefined }) {
+  const t = useT();
   return (
     <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
       <A
         href={`/specialities/${specSlug}#doctors`}
         className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${!active ? "border-navy bg-navy text-white" : "border-border bg-background text-navy"}`}
       >
-        All cities
+        {t("city.allCities")}
       </A>
       {TOP_CITIES.map((c) => (
         <A

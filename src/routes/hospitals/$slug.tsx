@@ -18,6 +18,7 @@ import { SITE, CONSULT_PHRASE } from "@/lib/site";
 import { breadcrumbLd, seo } from "@/lib/seo";
 import { A } from "@/components/common/A";
 import { track } from "@/lib/track";
+import { useT } from "@/lib/i18n/context";
 
 export const Route = createFileRoute("/hospitals/$slug")({
   loader: async ({ params }) => {
@@ -63,6 +64,7 @@ export const Route = createFileRoute("/hospitals/$slug")({
 });
 
 function HospitalDetail() {
+  const t = useT();
   const data = Route.useLoaderData();
   // What the admin Call & WhatsApp report keys this hospital's interactions on.
   const trackTarget = { targetType: "hospital" as const, targetId: data.id, targetName: data.name, city: data.city };
@@ -74,11 +76,11 @@ function HospitalDetail() {
         <nav className="border-b border-border bg-cream py-3 text-xs text-muted-foreground">
           <Container className="flex items-center gap-2">
             <A href="/" className="hover:text-brand-orange">
-              Home
+              {t("common.home")}
             </A>
             <span>/</span>
             <A href="/hospitals" className="hover:text-brand-orange">
-              Hospitals
+              {t("nav.hospitals")}
             </A>
             <span>/</span>
             <span className="font-medium text-ink">{data.name}</span>
@@ -99,7 +101,7 @@ function HospitalDetail() {
             <Container className="pb-8">
               {data.emergency24x7 && (
                 <span className="inline-block rounded-full bg-brand-orange-soft px-3 py-1 text-[11px] font-semibold text-brand-orange-dark">
-                  24/7 Emergency
+                  {t("hprof.emergency")}
                 </span>
               )}
               <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">{data.name}</h1>
@@ -116,18 +118,18 @@ function HospitalDetail() {
             <div className="flex flex-wrap items-center gap-6">
               {data.rating ? (
                 <span className="flex items-center gap-1.5 text-sm font-semibold text-navy">
-                  <Star className="h-4 w-4 fill-brand-orange text-brand-orange" /> {data.rating} (
-                  {data.reviewCount} patient reviews)
+                  <Star className="h-4 w-4 fill-brand-orange text-brand-orange" />{" "}
+                  {t("hprof.ratingReviews", { rating: data.rating, count: data.reviewCount })}
                 </span>
               ) : (
-                <span className="text-sm text-muted-foreground">No reviews yet</span>
+                <span className="text-sm text-muted-foreground">{t("hprof.noReviews")}</span>
               )}
               {data.totalBeds > 0 && (
                 <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <BedDouble className="h-3.5 w-3.5" /> {data.totalBeds} Beds
+                  <BedDouble className="h-3.5 w-3.5" /> {t("hprof.beds", { n: data.totalBeds })}
                 </span>
               )}
-              <span className="text-sm text-muted-foreground">{data.totalDoctors} Specialists</span>
+              <span className="text-sm text-muted-foreground">{t("hprof.specialists", { n: data.totalDoctors })}</span>
             </div>
             <div className="flex gap-2">
               {data.address && (
@@ -137,11 +139,11 @@ function HospitalDetail() {
                   rel="noreferrer"
                   onClick={() => track({ type: "directions", ...trackTarget })}
                 >
-                  <OutlineButton className="px-3 py-2 text-xs">Get Directions</OutlineButton>
+                  <OutlineButton className="px-3 py-2 text-xs">{t("action.getDirections")}</OutlineButton>
                 </A>
               )}
               <A href={`/contact?city=${encodeURIComponent(data.city)}`}>
-                <OrangeButton className="px-3 py-2 text-xs">Request consultation</OrangeButton>
+                <OrangeButton className="px-3 py-2 text-xs">{t("hprof.requestConsultation")}</OrangeButton>
               </A>
             </div>
           </Container>
@@ -151,7 +153,7 @@ function HospitalDetail() {
           <div className="min-w-0 space-y-12">
             {data.about && (
               <section>
-                <h2 className="text-xl font-bold text-navy">About the Hospital</h2>
+                <h2 className="text-xl font-bold text-navy">{t("hprof.about")}</h2>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
                   {data.about}
                 </p>
@@ -160,18 +162,18 @@ function HospitalDetail() {
 
             {(data.emergency24x7 || data.icuBeds > 0 || data.website) && (
               <section>
-                <h2 className="text-xl font-bold text-navy">Facilities</h2>
+                <h2 className="text-xl font-bold text-navy">{t("hprof.facilities")}</h2>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   {data.emergency24x7 && (
                     <div className="flex items-center gap-3 rounded-lg border border-border bg-cream px-4 py-3">
                       <Clock className="h-5 w-5 shrink-0 text-brand-orange" />
-                      <span className="text-sm font-medium text-ink">24/7 Emergency</span>
+                      <span className="text-sm font-medium text-ink">{t("hprof.emergency")}</span>
                     </div>
                   )}
                   {data.icuBeds > 0 && (
                     <div className="flex items-center gap-3 rounded-lg border border-border bg-cream px-4 py-3">
                       <BedDouble className="h-5 w-5 shrink-0 text-brand-orange" />
-                      <span className="text-sm font-medium text-ink">{data.icuBeds} ICU Beds</span>
+                      <span className="text-sm font-medium text-ink">{t("hprof.icuBeds", { n: data.icuBeds })}</span>
                     </div>
                   )}
                   {data.website && (
@@ -182,7 +184,7 @@ function HospitalDetail() {
                       className="flex items-center gap-3 rounded-lg border border-border bg-cream px-4 py-3 hover:border-brand-orange"
                     >
                       <Globe className="h-5 w-5 shrink-0 text-brand-orange" />
-                      <span className="text-sm font-medium text-ink">Visit Website</span>
+                      <span className="text-sm font-medium text-ink">{t("hprof.website")}</span>
                     </A>
                   )}
                 </div>
@@ -191,7 +193,7 @@ function HospitalDetail() {
 
             {data.departments.length > 0 && (
               <section>
-                <h2 className="text-xl font-bold text-navy">Specialties Available</h2>
+                <h2 className="text-xl font-bold text-navy">{t("hprof.specialties")}</h2>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {data.departments.map((s: string) => (
                     <span
@@ -207,7 +209,7 @@ function HospitalDetail() {
 
             {data.services.length > 0 && (
               <section>
-                <h2 className="text-xl font-bold text-navy">Services</h2>
+                <h2 className="text-xl font-bold text-navy">{t("hprof.services")}</h2>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {data.services.map((s: string) => (
                     <span
@@ -224,11 +226,11 @@ function HospitalDetail() {
             {data.doctors.length > 0 ? (
               <section>
                 <SectionHead
-                  eyebrow="Meet the team"
-                  title="Doctors at This Hospital"
+                  eyebrow={t("hprof.meetTeam")}
+                  title={t("hprof.doctorsAt")}
                   action={
                     <A href={`/doctors?city=${encodeURIComponent(data.city)}`}>
-                      <OutlineButton>View All</OutlineButton>
+                      <OutlineButton>{t("home.viewAll")}</OutlineButton>
                     </A>
                   }
                 />
@@ -245,18 +247,18 @@ function HospitalDetail() {
                         <h3 className="truncate text-sm font-bold text-navy">{d.name}</h3>
                         <p className="mt-0.5 text-xs text-muted-foreground">{d.specialty}</p>
                         {d.experience ? (
-                          <p className="mt-1.5 text-xs font-semibold text-brand-blue">{d.experience} years experience</p>
+                          <p className="mt-1.5 text-xs font-semibold text-brand-blue">{d.experience === 1 ? t("card.exp1") : t("card.exp", { n: d.experience })}</p>
                         ) : null}
                         <div className="mt-3 flex gap-2">
                           {d.slug ? (
                             <Link to="/doctors/$slug" params={{ slug: d.slug }} className="flex-1">
                               <OrangeButton className="w-full px-2 py-1.5 text-xs">
-                                View Profile
+                                {t("action.viewProfile")}
                               </OrangeButton>
                             </Link>
                           ) : (
                             <A href="/contact" className="flex-1">
-                              <OrangeButton className="w-full px-2 py-1.5 text-xs">Book</OrangeButton>
+                              <OrangeButton className="w-full px-2 py-1.5 text-xs">{t("footer.barBook")}</OrangeButton>
                             </A>
                           )}
                         </div>
@@ -267,13 +269,13 @@ function HospitalDetail() {
               </section>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Doctor roster for this hospital isn't available yet.
+                {t("hprof.noRoster")}
               </p>
             )}
 
             {data.address && (
               <section>
-                <h2 className="text-xl font-bold text-navy">Location</h2>
+                <h2 className="text-xl font-bold text-navy">{t("hprof.location")}</h2>
                 <div className="mt-4 rounded-xl border border-border bg-cream p-5">
                   <p className="flex items-start gap-2 text-sm text-ink/80">
                     <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-orange" /> {data.address}
@@ -283,8 +285,7 @@ function HospitalDetail() {
               </section>
             )}
             <p className="text-[11px] text-muted-foreground">
-              Hospital names and trademarks belong to their respective owners. This is a directory listing
-              and does not imply affiliation with or endorsement by the hospital.
+              {t("hprof.disclaimer")}
             </p>
           </div>
 
@@ -292,14 +293,14 @@ function HospitalDetail() {
             <ConsultForm defaultCity={data.city || undefined} />
             {(data.phone || data.emergencyContact) && (
               <div className="rounded-lg border border-border bg-cream p-4 text-xs text-muted-foreground">
-                <Eyebrow>Contact</Eyebrow>
+                <Eyebrow>{t("hprof.contact")}</Eyebrow>
                 {data.emergencyContact && (
                   <A
                     href={`tel:${data.emergencyContact}`}
                     className="mt-2 flex items-center gap-2 text-sm font-bold text-brand-orange"
                     onClick={() => track({ type: "call", ...trackTarget, targetPhone: data.emergencyContact })}
                   >
-                    <Phone className="h-4 w-4" /> {data.emergencyContact} (Emergency)
+                    <Phone className="h-4 w-4" /> {t("hprof.emergencyTag", { phone: data.emergencyContact })}
                   </A>
                 )}
                 {data.phone && (

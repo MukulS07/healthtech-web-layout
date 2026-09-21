@@ -9,6 +9,8 @@ import { CONDITIONS, SPECIALITIES } from "@/data/catalog";
 import { breadcrumbLd, seo } from "@/lib/seo";
 import { A } from "@/components/common/A";
 
+import { useSpecName, useT } from "@/lib/i18n/context";
+import { WithLink } from "@/lib/i18n/rich";
 export const Route = createFileRoute("/conditions/")({
   head: ({ match }) =>
     seo({ locale: match.context.locale,
@@ -21,6 +23,8 @@ export const Route = createFileRoute("/conditions/")({
 });
 
 function ConditionsIndex() {
+  const t = useT();
+  const specName = useSpecName();
   const [q, setQ] = useState("");
   const term = q.trim().toLowerCase();
   const groups = useMemo(
@@ -38,22 +42,21 @@ function ConditionsIndex() {
     <div className="bg-background">
       <Header />
       <main>
-        <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Conditions" }]} />
+        <Breadcrumbs items={[{ name: t("common.home"), href: "/" }, { name: t("nav.conditions") }]} />
         <section className="bg-navy py-12">
           <Container>
-            <Eyebrow tone="light">Conditions</Eyebrow>
-            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">Conditions We Treat</h1>
+            <Eyebrow tone="light">{t("nav.conditions")}</Eyebrow>
+            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">{t("idx.condTitle")}</h1>
             <p className="mt-3 max-w-2xl text-sm text-navy-foreground/75 sm:text-base">
-              Start with what you're experiencing. Each guide explains symptoms, causes, how it's diagnosed
-              and the treatment options available.
+              {t("idx.condIntro")}
             </p>
             <label className="mt-6 flex max-w-xl items-center gap-2 rounded-lg bg-background px-3 py-2.5">
               <Search className="h-4 w-4 text-brand-orange" />
-              <span className="sr-only">Search conditions</span>
+              <span className="sr-only">{t("idx.condSearchLabel")}</span>
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search — e.g. piles, kidney stones, cataract"
+                placeholder={t("idx.condSearchPh")}
                 className="w-full bg-transparent text-sm outline-none"
               />
             </label>
@@ -63,7 +66,7 @@ function ConditionsIndex() {
           <Container className="space-y-10">
             {groups.map((g) => (
               <section key={g.spec.slug}>
-                <h2 className="mb-4 text-xl font-bold text-navy">{g.spec.name}</h2>
+                <h2 className="mb-4 text-xl font-bold text-navy">{specName(g.spec.slug, g.spec.name)}</h2>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {g.items.map((c) => (
                     <A key={c.slug} href={`/conditions/${c.slug}`} className="group rounded-lg border border-border bg-background p-4 transition-shadow hover:shadow-md">
@@ -76,7 +79,7 @@ function ConditionsIndex() {
                 </div>
               </section>
             ))}
-            {groups.length === 0 ? <p className="py-10 text-center text-sm text-muted-foreground">No conditions match “{q}”.</p> : null}
+            {groups.length === 0 ? <p className="py-10 text-center text-sm text-muted-foreground">{t("idx.condNone", { q })}</p> : null}
           </Container>
         </section>
       </main>

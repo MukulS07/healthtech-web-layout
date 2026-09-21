@@ -8,6 +8,8 @@ import { SPECIALITIES, conditionsForSpeciality, treatmentsForSpeciality } from "
 import { breadcrumbLd, seo } from "@/lib/seo";
 import { A } from "@/components/common/A";
 
+import { useSpecName, useT } from "@/lib/i18n/context";
+import { WithLink } from "@/lib/i18n/rich";
 export const Route = createFileRoute("/specialities/")({
   head: ({ match }) =>
     seo({ locale: match.context.locale,
@@ -20,18 +22,19 @@ export const Route = createFileRoute("/specialities/")({
 });
 
 function SpecialitiesIndex() {
+  const t = useT();
+  const specName = useSpecName();
   return (
     <div className="bg-background">
       <Header />
       <main>
-        <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Specialities" }]} />
+        <Breadcrumbs items={[{ name: t("common.home"), href: "/" }, { name: t("nav.specialities") }]} />
         <section className="bg-navy py-12">
           <Container>
-            <Eyebrow tone="light">Specialities</Eyebrow>
-            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">All {SPECIALITIES.length} Specialities</h1>
+            <Eyebrow tone="light">{t("nav.specialities")}</Eyebrow>
+            <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">{t("idx.specTitle", { n: SPECIALITIES.length })}</h1>
             <p className="mt-3 max-w-2xl text-sm text-navy-foreground/75 sm:text-base">
-              Choose a speciality to learn about the conditions it treats, the procedures involved, and
-              specialists and hospitals near you.
+              {t("idx.specIntro")}
             </p>
           </Container>
         </section>
@@ -44,12 +47,12 @@ function SpecialitiesIndex() {
                 <A key={s.slug} href={`/specialities/${s.slug}`} className="group flex flex-col justify-between rounded-xl border border-border bg-background p-5 shadow-sm transition-shadow hover:shadow-md">
                   <div>
                     <h2 className="flex items-center justify-between text-lg font-bold text-navy group-hover:text-primary">
-                      {s.name} <ArrowRight className="h-4 w-4 text-brand-orange" />
+                      {specName(s.slug, s.name)} <ArrowRight className="h-4 w-4 text-brand-orange" />
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">{s.tagline}</p>
                   </div>
                   <p className="mt-4 text-xs font-semibold text-primary">
-                    {nT} treatments{nC ? ` · ${nC} conditions` : ""}
+                    {nC ? t("idx.nTreatmentsConds", { n: nT, c: nC }) : t("idx.nTreatments", { n: nT })}
                   </p>
                 </A>
               );

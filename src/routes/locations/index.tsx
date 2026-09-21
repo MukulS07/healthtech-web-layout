@@ -13,6 +13,7 @@ const bgGradients = [
   "from-purple-50 to-indigo-50",
 ];
 
+import { useT } from "@/lib/i18n/context";
 export const Route = createFileRoute("/locations/")({
   loader: async () => {
     try {
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/locations/")({
 });
 
 function LocationsPage() {
+  const t = useT();
   const { cities } = Route.useLoaderData();
 
   return (
@@ -40,12 +42,12 @@ function LocationsPage() {
       <main>
         <section className="bg-navy py-14">
           <Container>
-            <Eyebrow tone="light">Our presence</Eyebrow>
+            <Eyebrow tone="light">{t("idx.locEyebrow")}</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
-              Find Care Near You
+              {t("idx.locTitle")}
             </h1>
             <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-              Specialist surgeons and hospitals across India.
+              {t("idx.locSub")}
             </p>
           </Container>
         </section>
@@ -53,12 +55,12 @@ function LocationsPage() {
         <section className="py-14">
           <Container>
             <SectionHead
-              eyebrow="Our presence"
-              title="Cities We Serve"
-              subtitle="Click any city to see the hospitals, doctors and specialities available there."
+              eyebrow={t("idx.locEyebrow")}
+              title={t("idx.locCitiesTitle")}
+              subtitle={t("idx.locCitiesSub")}
             />
             {cities.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No cities available yet.</p>
+              <p className="text-sm text-muted-foreground">{t("idx.locNone")}</p>
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {cities.map((city, i) => (
@@ -80,13 +82,13 @@ function LocationsPage() {
                         <p className="text-lg font-extrabold text-brand-orange">
                           {city.hospitalCount.toLocaleString("en-IN")}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">Hospitals listed</p>
+                        <p className="text-[10px] text-muted-foreground">{t("hero.statHospitals")}</p>
                       </div>
                       <div>
                         <p className="text-lg font-extrabold text-brand-orange">
                           {city.doctorCount.toLocaleString("en-IN")}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">Surgeons listed</p>
+                        <p className="text-[10px] text-muted-foreground">{t("hero.statSurgeons")}</p>
                       </div>
                     </div>
                   </Link>

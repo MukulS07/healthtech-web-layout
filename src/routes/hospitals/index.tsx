@@ -12,6 +12,7 @@ import { getSpeciality } from "@/data/catalog";
 import { seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { A } from "@/components/common/A";
+import { useSpecName, useT } from "@/lib/i18n/context";
 
 const hospitalImages = [hospital1, hospital2];
 const PAGE_SIZE = 24;
@@ -66,6 +67,8 @@ export const Route = createFileRoute("/hospitals/")({
 });
 
 function HospitalsPage() {
+  const t = useT();
+  const specLabel = useSpecName();
   const { list, facets } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/hospitals/" });
@@ -98,14 +101,18 @@ function HospitalsPage() {
       <main>
         <section className="bg-navy py-12">
           <Container>
-            <Eyebrow tone="light">Hospital directory</Eyebrow>
+            <Eyebrow tone="light">{t("dir.hospEyebrow")}</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
-              {search.speciality ? `${getSpeciality(search.speciality)?.name ?? ""} ` : ""}Hospitals
-              {search.city ? ` in ${search.city}` : ""}
+              {(() => {
+                const spec = search.speciality
+                  ? specLabel(search.speciality, getSpeciality(search.speciality)?.name ?? "")
+                  : "";
+                const title = spec ? t("dir.hospTitleSpec", { spec }) : t("dir.hospTitle");
+                return search.city ? t("dir.titleInCity", { title, city: search.city }) : title;
+              })()}
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-navy-foreground/75 sm:text-base">
-              Search hospitals by name, city or speciality and see which surgeons practise there. Our
-              care team can help you choose based on your treatment and insurance.
+              {t("dir.hospIntro")}
             </p>
           </Container>
         </section>
@@ -115,27 +122,27 @@ function HospitalsPage() {
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
               <label className="col-span-2 flex flex-1 items-center gap-2 rounded-lg border border-border bg-cream px-3 py-2.5 sm:min-w-[240px]">
                 <Search className="h-4 w-4 shrink-0 text-brand-orange" />
-                <span className="sr-only">Search hospitals by name</span>
+                <span className="sr-only">{t("dir.hospSearchLabel")}</span>
                 <input
                   className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                  placeholder="Search by hospital name or area…"
+                  placeholder={t("dir.hospSearchPh")}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
               </label>
-              <select aria-label="City" className={selectClass} value={search.city ?? ""} onChange={(e) => update({ city: e.target.value || undefined })}>
-                <option value="">All cities</option>
+              <select aria-label={t("form.city")} className={selectClass} value={search.city ?? ""} onChange={(e) => update({ city: e.target.value || undefined })}>
+                <option value="">{t("city.allCities")}</option>
                 {facets?.cities.map((c) => (
                   <option key={c.name} value={c.name}>
                     {c.name} ({c.count.toLocaleString("en-IN")})
                   </option>
                 ))}
               </select>
-              <select aria-label="Speciality" className={selectClass} value={search.speciality ?? ""} onChange={(e) => update({ speciality: e.target.value || undefined })}>
-                <option value="">All specialities</option>
+              <select aria-label={t("dir.speciality")} className={selectClass} value={search.speciality ?? ""} onChange={(e) => update({ speciality: e.target.value || undefined })}>
+                <option value="">{t("dir.allSpecs")}</option>
                 {facets?.specialities.map((s) => (
                   <option key={s.slug} value={s.slug}>
-                    {s.name}
+                    {specLabel(s.slug, s.name)}
                   </option>
                 ))}
               </select>
@@ -147,12 +154,16 @@ function HospitalsPage() {
           <Container>
             <div className="mb-5 flex items-center justify-between">
               <p className="text-sm text-muted-foreground" aria-live="polite">
-                {failed ? "Couldn't load hospitals." : `${(list?.total ?? 0).toLocaleString("en-IN")} hospitals found${(list?.totalPages ?? 1) > 1 ? ` · page ${list?.page} of ${list?.totalPages}` : ""}`}
+                {failed
+                  ? t("dir.hospLoadShort")
+                  : (list?.totalPages ?? 1) > 1
+                    ? t("dir.hospitalsFoundPaged", { n: (list?.total ?? 0).toLocaleString("en-IN"), page: list?.page ?? 1, total: list?.totalPages ?? 1 })
+                    : t("dir.hospitalsFound", { n: (list?.total ?? 0).toLocaleString("en-IN") })}
                 {pending ? <Loader2 className="ml-2 inline h-3.5 w-3.5 animate-spin text-brand-orange" /> : null}
               </p>
               {search.city || search.speciality || search.q ? (
                 <button type="button" onClick={clear} className="text-xs font-semibold text-primary hover:underline">
-                  Clear filters
+                  {t("dir.clearFilters")}
                 </button>
               ) : null}
             </div>
@@ -160,14 +171,14 @@ function HospitalsPage() {
             {failed ? (
               <div className="rounded-xl border border-border bg-cream py-14 text-center">
                 <AlertTriangle className="mx-auto h-9 w-9 text-brand-orange" />
-                <p className="mt-3 font-semibold text-navy">We couldn't load the hospital directory.</p>
-                <OutlineButton className="mt-4" onClick={() => window.location.reload()}>Retry</OutlineButton>
+                <p className="mt-3 font-semibold text-navy">{t("dir.hospFailTitle")}</p>
+                <OutlineButton className="mt-4" onClick={() => window.location.reload()}>{t("action.retry")}</OutlineButton>
               </div>
             ) : hospitals.length === 0 ? (
               <div className="rounded-xl border border-border bg-cream py-14 text-center">
                 <SearchX className="mx-auto h-9 w-9 text-muted-foreground/60" />
-                <p className="mt-3 font-semibold text-navy">No hospitals match these filters.</p>
-                <OutlineButton className="mt-4" onClick={clear}>Clear filters</OutlineButton>
+                <p className="mt-3 font-semibold text-navy">{t("dir.hospNone")}</p>
+                <OutlineButton className="mt-4" onClick={clear}>{t("dir.clearFilters")}</OutlineButton>
               </div>
             ) : (
               <div className={cn("grid gap-5 transition-opacity sm:grid-cols-2 lg:grid-cols-3", pending && "opacity-60")}>
@@ -201,7 +212,7 @@ function HospitalsPage() {
                           </p>
                           {h.totalDoctors ? (
                             <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                              <Building2 className="h-3.5 w-3.5 shrink-0" /> {h.totalDoctors} doctors listed
+                              <Building2 className="h-3.5 w-3.5 shrink-0" /> {t("dir.doctorsListed", { n: h.totalDoctors })}
                             </p>
                           ) : null}
                           {h.specialties.length ? (
@@ -209,17 +220,17 @@ function HospitalsPage() {
                               {h.specialties.slice(0, MAX_CHIPS).map((sp) => (
                                 <span key={sp} className="rounded-full bg-cream px-2.5 py-0.5 text-[11px] font-medium text-navy">{sp}</span>
                               ))}
-                              {extra > 0 ? <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">+{extra} more</span> : null}
+                              {extra > 0 ? <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">{t("dir.moreChips", { n: extra })}</span> : null}
                             </div>
                           ) : null}
                         </div>
                       </A>
                       <div className="mt-auto flex gap-2 p-4">
                         <A href={href} className="flex-1">
-                          <OutlineButton className="w-full justify-center px-2 py-2 text-xs">View details</OutlineButton>
+                          <OutlineButton className="w-full justify-center px-2 py-2 text-xs">{t("action.viewDetails")}</OutlineButton>
                         </A>
                         <A href={`/contact?city=${encodeURIComponent(h.city)}`} className="flex-1">
-                          <OrangeButton className="w-full justify-center px-2 py-2 text-xs">Request consult</OrangeButton>
+                          <OrangeButton className="w-full justify-center px-2 py-2 text-xs">{t("home.requestConsult")}</OrangeButton>
                         </A>
                       </div>
                     </article>
@@ -245,8 +256,7 @@ function HospitalsPage() {
             ) : null}
 
             <p className="mt-10 text-center text-[11px] text-muted-foreground">
-              Hospital names and trademarks belong to their respective owners. A listing in our directory
-              does not imply affiliation with or endorsement by the hospital.
+              {t("home.hospDisclaimer")}
             </p>
           </Container>
         </section>

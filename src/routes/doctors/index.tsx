@@ -10,10 +10,16 @@ import { getDoctorFacetsFn, getDoctorsFn } from "@/lib/server-functions/doctors"
 import { getSpeciality } from "@/data/catalog";
 import { cn } from "@/lib/utils";
 import { seo } from "@/lib/seo";
-import { CONSULT_PHRASE } from "@/lib/site";
+import { CONSULT_PHRASE, DEFAULT_WORDING } from "@/lib/site";
 import { A } from "@/components/common/A";
+import { useSpecName, useT } from "@/lib/i18n/context";
 
-const sortOptions = ["Relevance", "Experience: High to Low", "Rating: High to Low"];
+// `value` is what goes in the URL and what the server matches on, so it stays English.
+const sortOptions = [
+  { value: "Relevance", key: "dir.sortRelevance" },
+  { value: "Experience: High to Low", key: "dir.sortExp" },
+  { value: "Rating: High to Low", key: "dir.sortRating" },
+];
 const PAGE_SIZE = 24;
 
 type DoctorsSearch = {
@@ -72,6 +78,8 @@ export const Route = createFileRoute("/doctors/")({
 });
 
 function DoctorsPage() {
+  const t = useT();
+  const specLabel = useSpecName();
   const { list, facets } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/doctors/" });
@@ -116,7 +124,8 @@ function DoctorsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
-  const specName = search.specialty ? getSpeciality(search.specialty)?.name ?? search.specialty : null;
+  const activeSpec = search.specialty ? getSpeciality(search.specialty) : undefined;
+  const specName = search.specialty ? specLabel(search.specialty, activeSpec?.name ?? search.specialty) : null;
   const hasFilters = Boolean(search.city || search.specialty || search.q);
   const selectClass = "rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-ink outline-none";
 
@@ -126,15 +135,17 @@ function DoctorsPage() {
       <main>
         <section className="bg-navy py-12">
           <Container>
-            <Eyebrow tone="light">Our specialists</Eyebrow>
+            <Eyebrow tone="light">{t("dir.docEyebrow")}</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
-              {specName ? `${specName} Surgeons` : "Find the Right Surgeon"}
-              {search.city ? ` in ${search.city}` : ""}
+              {(() => {
+                const title = specName ? t("dir.docTitleSpec", { spec: specName }) : t("dir.docTitle");
+                return search.city ? t("dir.titleInCity", { title, city: search.city }) : title;
+              })()}
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-navy-foreground/75 sm:text-base">
-              Surgeons and surgical specialists listed in our directory. Compare qualifications,
-              experience and where they practise — then book {CONSULT_PHRASE} and our care team
-              will help you choose.
+              {DEFAULT_WORDING
+                ? t("dir.docIntro")
+                : `Surgeons and surgical specialists listed in our directory. Compare qualifications, experience and where they practise — then book ${CONSULT_PHRASE} and our care team will help you choose.`}
             </p>
           </Container>
         </section>
@@ -144,21 +155,21 @@ function DoctorsPage() {
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
               <label className="col-span-2 flex flex-1 items-center gap-2 rounded-lg border border-border bg-cream px-3 py-2.5 sm:min-w-[240px]">
                 <Search className="h-4 w-4 shrink-0 text-brand-orange" />
-                <span className="sr-only">Search doctors</span>
+                <span className="sr-only">{t("dir.searchDoctors")}</span>
                 <input
                   className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                  placeholder="Search by doctor name, speciality or area…"
+                  placeholder={t("dir.searchDoctorsPh")}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
               </label>
               <select
-                aria-label="City"
+                aria-label={t("form.city")}
                 className={selectClass}
                 value={search.city ?? ""}
                 onChange={(e) => update({ city: e.target.value || undefined })}
               >
-                <option value="">All cities</option>
+                <option value="">{t("city.allCities")}</option>
                 {facets?.cities.map((c) => (
                   <option key={c.name} value={c.name}>
                     {c.name} ({c.count.toLocaleString("en-IN")})
@@ -169,26 +180,28 @@ function DoctorsPage() {
                 ) : null}
               </select>
               <select
-                aria-label="Speciality"
+                aria-label={t("dir.speciality")}
                 className={selectClass}
                 value={search.specialty ?? ""}
                 onChange={(e) => update({ specialty: e.target.value || undefined })}
               >
-                <option value="">All specialities</option>
+                <option value="">{t("dir.allSpecs")}</option>
                 {facets?.specialities.map((s) => (
                   <option key={s.slug} value={s.slug}>
-                    {s.name} ({s.count.toLocaleString("en-IN")})
+                    {specLabel(s.slug, s.name)} ({s.count.toLocaleString("en-IN")})
                   </option>
                 ))}
               </select>
               <select
-                aria-label="Sort by"
+                aria-label={t("dir.sortBy")}
                 className={cn(selectClass, "col-span-2 sm:col-span-1")}
                 value={search.sort ?? "Relevance"}
                 onChange={(e) => update({ sort: e.target.value === "Relevance" ? undefined : e.target.value })}
               >
                 {sortOptions.map((s) => (
-                  <option key={s}>{s}</option>
+                  <option key={s.value} value={s.value}>
+                    {t(s.key)}
+                  </option>
                 ))}
               </select>
             </div>
@@ -200,10 +213,14 @@ function DoctorsPage() {
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground" aria-live="polite">
                 {failed
-                  ? "Couldn't load doctors."
-                  : `${(list?.total ?? 0).toLocaleString("en-IN")} doctors found${
-                      (list?.totalPages ?? 1) > 1 ? ` · page ${list?.page} of ${list?.totalPages}` : ""
-                    }`}
+                  ? t("dir.docLoadShort")
+                  : (list?.totalPages ?? 1) > 1
+                    ? t("dir.doctorsFoundPaged", {
+                        n: (list?.total ?? 0).toLocaleString("en-IN"),
+                        page: list?.page ?? 1,
+                        total: list?.totalPages ?? 1,
+                      })
+                    : t("dir.doctorsFound", { n: (list?.total ?? 0).toLocaleString("en-IN") })}
                 {pending ? <Loader2 className="ml-2 inline h-3.5 w-3.5 animate-spin text-brand-orange" /> : null}
               </p>
               <div className="flex items-center gap-2">
@@ -216,13 +233,13 @@ function DoctorsPage() {
                     }}
                     className="text-xs font-semibold text-primary hover:underline"
                   >
-                    Clear filters
+                    {t("dir.clearFilters")}
                   </button>
                 ) : null}
                 <div className="flex rounded-lg border border-border p-0.5">
                   <button
                     type="button"
-                    aria-label="Grid view"
+                    aria-label={t("dir.gridView")}
                     aria-pressed={layout === "card"}
                     onClick={() => chooseLayout("card")}
                     className={cn("rounded-md p-1.5", layout === "card" ? "bg-navy text-white" : "text-muted-foreground")}
@@ -231,7 +248,7 @@ function DoctorsPage() {
                   </button>
                   <button
                     type="button"
-                    aria-label="List view"
+                    aria-label={t("dir.listView")}
                     aria-pressed={layout === "row"}
                     onClick={() => chooseLayout("row")}
                     className={cn("rounded-md p-1.5", layout === "row" ? "bg-navy text-white" : "text-muted-foreground")}
@@ -245,18 +262,18 @@ function DoctorsPage() {
             {failed ? (
               <div className="rounded-xl border border-border bg-cream py-14 text-center">
                 <AlertTriangle className="mx-auto h-9 w-9 text-brand-orange" />
-                <p className="mt-3 font-semibold text-navy">We couldn't load the doctor directory.</p>
-                <p className="mt-1 text-sm text-muted-foreground">Please check your connection and try again.</p>
+                <p className="mt-3 font-semibold text-navy">{t("dir.docFailTitle")}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t("dir.checkConnection")}</p>
                 <OutlineButton className="mt-4" onClick={() => window.location.reload()}>
-                  Retry
+                  {t("action.retry")}
                 </OutlineButton>
               </div>
             ) : doctors.length === 0 ? (
               <div className="rounded-xl border border-border bg-cream py-14 text-center">
                 <SearchX className="mx-auto h-9 w-9 text-muted-foreground/60" />
-                <p className="mt-3 font-semibold text-navy">No doctors match these filters.</p>
+                <p className="mt-3 font-semibold text-navy">{t("dir.docNoneTitle")}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Try another city or speciality — or ask our care team to find a surgeon for you.
+                  {t("dir.docNoneSub")}
                 </p>
                 <div className="mt-4 flex justify-center gap-3">
                   <OutlineButton
@@ -265,10 +282,10 @@ function DoctorsPage() {
                       navigate({ search: {} });
                     }}
                   >
-                    Clear filters
+                    {t("dir.clearFilters")}
                   </OutlineButton>
                   <A href="/contact">
-                    <OutlineButton>Talk to a care specialist</OutlineButton>
+                    <OutlineButton>{t("dir.talkSpecialist")}</OutlineButton>
                   </A>
                 </div>
               </div>

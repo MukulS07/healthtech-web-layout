@@ -6,10 +6,13 @@ import { cn } from "@/lib/utils";
 import type { Faq } from "@/data/catalog";
 import type { ClinicalReview } from "@/data/catalog/types";
 import { A } from "@/components/common/A";
+import { useT } from "@/lib/i18n/context";
+import { WithLink } from "@/lib/i18n/rich";
 
 export function Breadcrumbs({ items }: { items: { name: string; href?: string }[] }) {
+  const t = useT();
   return (
-    <nav aria-label="Breadcrumb" className="border-b border-border bg-cream py-3 text-xs text-muted-foreground">
+    <nav aria-label={t("blk.breadcrumb")} className="border-b border-border bg-cream py-3 text-xs text-muted-foreground">
       <div className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-2 px-4 sm:px-6 lg:px-8">
         {items.map((it, i) => (
           <span key={it.name} className="flex items-center gap-2">
@@ -53,6 +56,7 @@ export function FaqList({ faqs, defaultOpen = 0 }: { faqs: Faq[]; defaultOpen?: 
 
 /** Intro paragraph always visible; extra paragraphs behind "Read more" (still in the DOM for SEO). */
 export function ReadMore({ intro, more }: { intro: string; more: string[] }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   return (
     <div className="text-sm leading-relaxed text-ink/85 sm:text-base">
@@ -65,7 +69,7 @@ export function ReadMore({ intro, more }: { intro: string; more: string[] }) {
             ))}
           </div>
           <button type="button" onClick={() => setExpanded(!expanded)} className="mt-3 text-sm font-semibold text-primary hover:underline">
-            {expanded ? "Read less" : "Read more"}
+            {expanded ? t("blk.readLess") : t("blk.readMore")}
           </button>
         </>
       ) : null}
@@ -113,28 +117,27 @@ export function BenefitsStrip() {
 }
 
 export function InsuranceEmiBlock() {
+  const t = useT();
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="rounded-xl border border-border bg-cream p-5">
         <ShieldCheck className="h-6 w-6 text-primary" />
-        <h3 className="mt-3 text-base font-bold text-navy">Check your insurance</h3>
+        <h3 className="mt-3 text-base font-bold text-navy">{t("blk.insTitle")}</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Share your policy details and our team will check whether your treatment could be covered
-          cashless, and what you may need to pay yourself.
+          {t("blk.insBody")}
         </p>
         <A href="/insurance-eligibility" className="mt-4 inline-block">
-          <OrangeButton className="px-4 py-2 text-sm">Check eligibility</OrangeButton>
+          <OrangeButton className="px-4 py-2 text-sm">{t("home.insCheck")}</OrangeButton>
         </A>
       </div>
       <div className="rounded-xl border border-border bg-cream p-5">
         <Wallet className="h-6 w-6 text-primary" />
-        <h3 className="mt-3 text-base font-bold text-navy">Paying in instalments</h3>
+        <h3 className="mt-3 text-base font-bold text-navy">{t("blk.emiTitle")}</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          If insurance doesn't cover your treatment, ask us about EMI options. Where plans are
-          available, eligibility and terms are set by the lender.
+          {t("blk.emiBody")}
         </p>
         <A href="/emi-calculator" className="mt-4 inline-block">
-          <OutlineButton className="px-4 py-2 text-sm">Calculate EMI</OutlineButton>
+          <OutlineButton className="px-4 py-2 text-sm">{t("blk.emiBtn")}</OutlineButton>
         </A>
       </div>
     </div>
@@ -146,38 +149,44 @@ export function InsuranceEmiBlock() {
  * the catalog entry has a real `reviewedBy` — never implies a review that hasn't happened.
  */
 export function ContentReviewNote({ reviewedBy, tone = "dark" }: { reviewedBy?: ClinicalReview | undefined; tone?: "dark" | "light" }) {
+  const t = useT();
   const base = tone === "dark" ? "bg-white/10 text-navy-foreground/85" : "bg-cream text-muted-foreground border border-border";
   return (
     <p className={cn("mt-4 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg px-3 py-2 text-xs", base)}>
       <Info className="h-3.5 w-3.5 shrink-0" />
-      <span>Written by the Go Surgery Editorial Team</span>
+      <span>{t("blk.writtenBy")}</span>
       <span aria-hidden>·</span>
       {reviewedBy ? (
         <span>
-          Medically reviewed by{" "}
-          {reviewedBy.profileSlug ? (
-            <A href={`/doctors/${reviewedBy.profileSlug}`} className="font-semibold underline">{reviewedBy.name}</A>
-          ) : (
-            <span className="font-semibold">{reviewedBy.name}</span>
-          )}
-          , {reviewedBy.credentials} ({new Date(reviewedBy.date).toLocaleDateString("en-IN", { month: "short", year: "numeric" })})
+          <WithLink
+            text={t("blk.reviewedBy", {
+              credentials: reviewedBy.credentials,
+              date: new Date(reviewedBy.date).toLocaleDateString("en-IN", { month: "short", year: "numeric" }),
+            })}
+            link={
+              reviewedBy.profileSlug ? (
+                <A href={`/doctors/${reviewedBy.profileSlug}`} className="font-semibold underline">{reviewedBy.name}</A>
+              ) : (
+                <span className="font-semibold">{reviewedBy.name}</span>
+              )
+            }
+          />
         </span>
       ) : (
-        <span className="font-semibold">Pending medical review</span>
+        <span className="font-semibold">{t("blk.pendingReview")}</span>
       )}
-      <A href="/editorial-policy" className="underline">How we write our content</A>
+      <A href="/editorial-policy" className="underline">{t("blk.howWrite")}</A>
     </p>
   );
 }
 
 export function MedicalDisclaimer() {
+  const t = useT();
   return (
     <p className="flex items-start gap-2 rounded-lg border border-border bg-cream p-3 text-xs text-muted-foreground">
       <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       <span>
-        This page is general health information to help you understand your options. It isn't medical
-        advice and doesn't replace a consultation with a qualified doctor who can examine you.{" "}
-        <A href="/editorial-policy" className="underline">How we write our content</A>.
+        <WithLink text={t("blk.disclaimer")} link={<A href="/editorial-policy" className="underline">{t("blk.howWrite")}</A>} />
       </span>
     </p>
   );

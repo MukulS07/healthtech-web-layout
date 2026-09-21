@@ -10,10 +10,11 @@ import { Breadcrumbs, Section } from "@/components/care/Blocks";
 import { getDoctorBySlugFn } from "@/lib/server-functions/doctors";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { getTreatment } from "@/data/catalog";
-import { BOOK_LABEL, CONSULT_PHRASE, SITE, telHref } from "@/lib/site";
+import { BOOK_LABEL, CONSULT_PHRASE, promiseEnabled, SITE, telHref } from "@/lib/site";
 import { breadcrumbLd, seo } from "@/lib/seo";
 import { A } from "@/components/common/A";
 import { track } from "@/lib/track";
+import { useT } from "@/lib/i18n/context";
 
 export const Route = createFileRoute("/doctors/$slug")({
   loader: async ({ params }) => {
@@ -100,6 +101,7 @@ function aboutText(d: {
 }
 
 function DoctorProfile() {
+  const t = useT();
   const { doctor: d, reviews, reviewTotal, reviewAverage } = Route.useLoaderData();
   const procedures = d.surgeryTypes.map((s: string) => ({ slug: s, treatment: getTreatment(s), label: s.replace(/-/g, " ") }));
 
@@ -114,8 +116,8 @@ function DoctorProfile() {
       <main>
         <Breadcrumbs
           items={[
-            { name: "Home", href: "/" },
-            { name: "Doctors", href: "/doctors" },
+            { name: t("common.home"), href: "/" },
+            { name: t("nav.doctors"), href: "/doctors" },
             ...(d.specialitySlug ? [{ name: d.specialityName ?? "", href: `/doctors?specialty=${d.specialitySlug}` }] : []),
             { name: d.name },
           ]}
@@ -131,12 +133,12 @@ function DoctorProfile() {
               <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
                 {reviewTotal > 0 ? (
                   <span className="flex items-center gap-1.5 font-semibold text-brand-orange">
-                    <Star className="h-4 w-4 fill-brand-orange" /> {reviewAverage} ({reviewTotal} reviews)
+                    <Star className="h-4 w-4 fill-brand-orange" /> {t("prof.ratingReviews", { rating: reviewAverage, n: reviewTotal })}
                   </span>
                 ) : null}
                 {d.exp ? (
                   <span className="flex items-center gap-1.5 text-navy-foreground/80">
-                    <Briefcase className="h-4 w-4 text-brand-orange" /> {d.exp} years experience
+                    <Briefcase className="h-4 w-4 text-brand-orange" /> {d.exp === 1 ? t("card.exp1") : t("card.exp", { n: d.exp })}
                   </span>
                 ) : null}
                 {d.city ? (
@@ -146,19 +148,19 @@ function DoctorProfile() {
                 ) : null}
                 {d.registrationNumber ? (
                   <span className="flex items-center gap-1.5 text-navy-foreground/80">
-                    <BadgeCheck className="h-4 w-4 text-brand-orange" /> Reg. no. {d.registrationNumber}
+                    <BadgeCheck className="h-4 w-4 text-brand-orange" /> {t("prof.regNo", { no: d.registrationNumber })}
                   </span>
                 ) : null}
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
-                <A href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></A>
+                <A href="#book"><OrangeButton>{promiseEnabled("free-consult") ? BOOK_LABEL : t("action.book")}</OrangeButton></A>
                 <A
                   href={telHref}
                   onClick={() =>
                     track({ type: "call", targetType: "doctor", targetId: d.id, targetName: d.name, city: d.city })
                   }
                 >
-                  <OutlineButton tone="light"><Phone className="h-4 w-4" /> Call {SITE.phone.display}</OutlineButton>
+                  <OutlineButton tone="light"><Phone className="h-4 w-4" /> {t("prof.callNumber", { phone: SITE.phone.display })}</OutlineButton>
                 </A>
               </div>
             </div>
@@ -167,7 +169,7 @@ function DoctorProfile() {
 
         <Container className="grid gap-10 py-10 lg:grid-cols-[1.5fr_0.8fr]">
           <div className="min-w-0 space-y-12">
-            <Section eyebrow="Profile" title={`About ${d.name}`}>
+            <Section eyebrow={t("prof.eyebrowProfile")} title={t("prof.aboutTitle", { name: d.name })}>
               <p className="text-sm leading-relaxed text-ink/85 sm:text-base">{d.bio || aboutText(d)}</p>
               {d.languages.length ? (
                 <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -180,7 +182,7 @@ function DoctorProfile() {
             </Section>
 
             {procedures.length ? (
-              <Section eyebrow="Procedures" title="Procedures performed">
+              <Section eyebrow={t("prof.eyebrowProcedures")} title={t("prof.proceduresTitle")}>
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {procedures.map((p) => (
                     <li key={p.slug} className="flex items-center gap-2 text-sm capitalize text-ink/85">
@@ -189,19 +191,19 @@ function DoctorProfile() {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-2 text-[11px] text-muted-foreground">As listed in the doctor's profile.</p>
+                <p className="mt-2 text-[11px] text-muted-foreground">{t("prof.asListed")}</p>
               </Section>
             ) : null}
 
             {d.hospitals.length ? (
-              <Section eyebrow="Where to consult" title="Hospitals & clinics">
+              <Section eyebrow={t("prof.eyebrowWhere")} title={t("prof.hospitalsTitle")}>
                 <div className="space-y-3">
                   {d.hospitals.map((h) => (
                     <div key={h.id || h.name} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-cream p-4">
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-navy">{h.name}</p>
                         <p className="text-xs text-muted-foreground">{h.address || [h.locality, h.city].filter(Boolean).join(", ")}</p>
-                        {h.consultationFee > 0 ? <p className="mt-1 text-xs text-muted-foreground">Clinic consultation fee: ₹{h.consultationFee}</p> : null}
+                        {h.consultationFee > 0 ? <p className="mt-1 text-xs text-muted-foreground">{t("prof.consultFee", { fee: h.consultationFee })}</p> : null}
                       </div>
                       <div className="flex gap-2">
                         <A
@@ -209,9 +211,9 @@ function DoctorProfile() {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <OutlineButton className="gap-1 px-3 py-1.5 text-xs"><Navigation className="h-3 w-3" /> Map</OutlineButton>
+                          <OutlineButton className="gap-1 px-3 py-1.5 text-xs"><Navigation className="h-3 w-3" /> {t("prof.map")}</OutlineButton>
                         </A>
-                        {h.slug ? <A href={`/hospitals/${h.slug}`}><OutlineButton className="px-3 py-1.5 text-xs">View</OutlineButton></A> : null}
+                        {h.slug ? <A href={`/hospitals/${h.slug}`}><OutlineButton className="px-3 py-1.5 text-xs">{t("prof.view")}</OutlineButton></A> : null}
                       </div>
                     </div>
                   ))}
@@ -220,16 +222,16 @@ function DoctorProfile() {
             ) : null}
 
             <Section
-              eyebrow="Patient feedback"
-              title="What patients say"
-              action={<A href={`/reviews/write?doctor=${d.slug}`}><OutlineButton className="gap-1.5 px-3 py-2 text-xs"><PenLine className="h-3.5 w-3.5" /> Write a review</OutlineButton></A>}
+              eyebrow={t("prof.eyebrowFeedback")}
+              title={t("prof.whatSay")}
+              action={<A href={`/reviews/write?doctor=${d.slug}`}><OutlineButton className="gap-1.5 px-3 py-2 text-xs"><PenLine className="h-3.5 w-3.5" /> {t("action.writeReview")}</OutlineButton></A>}
             >
               {reviewTotal > 0 ? (
                 <div className="mb-4 flex items-center gap-3 rounded-lg bg-cream p-4">
                   <p className="text-3xl font-extrabold text-navy">{reviewAverage}</p>
                   <div>
                     <Stars value={reviewAverage} />
-                    <p className="text-xs text-muted-foreground">{reviewTotal} patient reviews</p>
+                    <p className="text-xs text-muted-foreground">{t("prof.nReviews", { n: reviewTotal })}</p>
                   </div>
                 </div>
               ) : null}
@@ -250,13 +252,13 @@ function DoctorProfile() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No reviews for this doctor yet.</p>
+                <p className="text-sm text-muted-foreground">{t("prof.noReviews")}</p>
               )}
             </Section>
           </div>
 
           <aside id="book" className="scroll-mt-40 space-y-4 lg:sticky lg:top-36 lg:self-start">
-            {d.fees > 0 ? (
+            {d.fees > 0 && promiseEnabled("free-consult") ? (
               <div className="rounded-lg border border-primary/30 bg-cream p-4">
                 <p className="text-sm font-semibold text-navy">First consultation via {SITE.name}</p>
                 <p className="mt-1 text-lg font-bold">
