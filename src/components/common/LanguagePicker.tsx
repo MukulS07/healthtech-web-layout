@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { Check, ChevronDown, Languages } from "lucide-react";
 import { useLocale, useT } from "@/lib/i18n/context";
 import { LOCALES, localeInfo, localePath, type Locale } from "@/lib/i18n/locales";
@@ -16,13 +17,15 @@ export function LanguagePicker({ className, align = "end" }: { className?: strin
   const locale = useLocale();
   const t = useT();
   const [open, setOpen] = useState(false);
-  const [path, setPath] = useState("/");
   const ref = useRef<HTMLDivElement>(null);
 
-  // Read the real browser path (the router strips the locale prefix from its own location).
-  useEffect(() => {
-    setPath(window.location.pathname + window.location.search);
-  }, []);
+  // The current page, taken from the router rather than window.location, for two reasons: it is
+  // already correct during server rendering (so the links work before hydration and a crawler can
+  // follow them), and it updates on every in-app navigation. Reading window.location once in a
+  // mount effect left this stale — after moving from the homepage to /doctors, switching language
+  // sent the reader back to the homepage instead of the page they were reading. The router's own
+  // location has the locale prefix stripped by the rewrite, which is exactly what localePath wants.
+  const path = useRouterState({ select: (s) => `${s.location.pathname}${s.location.searchStr}` });
 
   useEffect(() => {
     if (!open) return;
