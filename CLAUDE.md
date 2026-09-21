@@ -909,6 +909,41 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
         `useRouterState`, which is right during SSR and updates on every navigation.
 
 
+- [x] **2026-09-21 — the homepage and /reviews took ~17s in production (commit `4e6818a`).** Found
+      while verifying the client-bundle fix: `curl` returned `000` on `/` because it exceeded a
+      20-second timeout.
+      - **Cause:** `getReviewsFn` computed its total with `countDocuments()` over a filter that
+        includes the **`$expr` keyboard-mash test** (added in `9e120cc`). No index can serve
+        `$expr`, so Mongo evaluated that expression against all 207k reviews on **every request**.
+        Measured on the real data: **537,180ms with `$expr` vs 113ms without**, and the two answers
+        differ by **3 reviews out of 207,179 (0.0014%)**.
+      - **Fix:** the total now comes from the rating-summary aggregate that was already being
+        computed (same number, `$expr` excluded). The `$expr` still runs on the *list* query, where
+        it walks the `createdAt` index and stops after one page, so junk is still never displayed.
+        The overcount is far smaller than one page, so it cannot create an empty page.
+      - Locally, same data: **`/` 23.9s → 0.42s, `/reviews` 23.4s → 0.17s.**
+      - **Rule to remember: a filter that can't use an index is fine on a `find().limit(n)` (it
+        stops early) and catastrophic on a `countDocuments()` (it must examine everything).** If a
+        read-time guard has to exist, keep it off the count path.
+      - **The bundle guard was itself broken and passing vacuously.** `check-client-bundle` only
+        looked in `.output/public/assets` (the **node-server** layout). `npm run build` on Vercel
+        uses the **vercel** preset, which writes client assets to **`.vercel/output/static`** — so
+        it found nothing, printed "nothing to check" and exited 0, in exactly the place it was
+        supposed to protect. It now searches all known output locations **and fails when it finds
+        no assets at all**, because "I couldn't check" must never read as "it's clean".
+      - **Also fixed:** `/reviews` now 404s a page past the end, like `/doctors` and `/hospitals`
+        already did — it was missed when those were fixed in `9e120cc`, so any made-up `?page=`
+        returned an empty, indexable 200.
+      - **Still open:** a very deep review page (~8,600) takes ~10s because of the `skip`. That is
+        pre-existing and rare for a human, but the pagination links are crawlable, so a search
+        engine can walk into it.
+      - **Testing gotcha that cost time here:** `npm run build` (vercel preset) writes to
+        `.vercel/output`, while `NITRO_PRESET=node-server npm run build` writes to `.output`. A
+        measurement was taken against a **stale `.output`** from an earlier preset build and
+        reported 10s when the code was actually 0.4s. **Always rebuild with the same preset you
+        then run, and confirm your change is present in the built output before timing it.**
+
+
 ---
 
 ## Superseded original plan (historical record only — do not follow)
