@@ -37,24 +37,31 @@ import hospital1 from "@/assets/hospital-1.jpg";
 import hospital2 from "@/assets/hospital-2.jpg";
 import { CONDITIONS, SPECIALITIES, TREATMENTS } from "@/data/catalog";
 import { BLOG_POSTS } from "@/data/blog";
-import { CALLER, cap, ENABLED_PROMISES, whatsappHref } from "@/lib/site";
+import { CALLER, cap, DEFAULT_WORDING, ENABLED_PROMISES, promiseEnabled, whatsappHref } from "@/lib/site";
 import { roundDownPlus } from "@/lib/format";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { subscribeFn } from "@/lib/server-functions/subscribers";
 import type { SiteStats } from "@/lib/server-functions/site-stats";
 import { cn } from "@/lib/utils";
 import { A } from "@/components/common/A";
+import { useSpecName, useT } from "@/lib/i18n/context";
+import { Emph, WithLink } from "@/lib/i18n/rich";
 
 /* ---------------- Find care ---------------- */
 
-const tabs = ["Specialities", "Treatments", "Conditions"] as const;
+const tabs = ["specialities", "treatments", "conditions"] as const;
 type Tab = (typeof tabs)[number];
+const TAB_LABEL_KEY: Record<Tab, string> = {
+  specialities: "nav.specialities",
+  treatments: "nav.treatments",
+  conditions: "nav.conditions",
+};
 
 const featuredTiles = [
-  { slug: "proctology", title: "Piles, Fissure & Fistula", img: tileProctology },
-  { slug: "laparoscopy", title: "Hernia & Gallstone Surgery", img: tileLaparoscopy },
-  { slug: "orthopaedics", title: "Knee & Joint Replacement", img: tileOrtho },
-  { slug: "plastic-cosmetic-surgery", title: "Cosmetic & Reconstructive", img: tileAesthetics },
+  { slug: "proctology", titleKey: "home.tileProctology", img: tileProctology },
+  { slug: "laparoscopy", titleKey: "home.tileLaparoscopy", img: tileLaparoscopy },
+  { slug: "orthopaedics", titleKey: "home.tileOrtho", img: tileOrtho },
+  { slug: "plastic-cosmetic-surgery", titleKey: "home.tileAesthetics", img: tileAesthetics },
 ];
 
 const POPULAR_TREATMENTS = [
@@ -73,22 +80,28 @@ const POPULAR_TREATMENTS = [
 ];
 
 export function FindCare() {
-  const [tab, setTab] = useState<Tab>("Specialities");
+  const t = useT();
+  const specName = useSpecName();
+  const [tab, setTab] = useState<Tab>("specialities");
   const [searchTerm, setSearchTerm] = useState("");
   const term = searchTerm.trim().toLowerCase();
 
   const matches = (text: string) => !term || text.toLowerCase().includes(term);
+  const specLabel = (slug: string) => {
+    const s = SPECIALITIES.find((x) => x.slug === slug);
+    return s ? specName(s.slug, s.name) : "";
+  };
 
   const items = useMemo(() => {
-    if (tab === "Specialities") {
-      return SPECIALITIES.filter((s) => matches(`${s.name} ${s.tagline}`)).map((s) => ({
+    if (tab === "specialities") {
+      return SPECIALITIES.filter((s) => matches(`${s.name} ${specName(s.slug, s.name)} ${s.tagline}`)).map((s) => ({
         key: s.slug,
         href: `/specialities/${s.slug}`,
-        title: s.name,
+        title: specName(s.slug, s.name),
         sub: s.tagline,
       }));
     }
-    if (tab === "Treatments") {
+    if (tab === "treatments") {
       const list = term
         ? TREATMENTS.filter((t) => matches(`${t.name} ${(t.aka ?? []).join(" ")}`))
         : POPULAR_TREATMENTS.map((slug) => TREATMENTS.find((t) => t.slug === slug)!).filter(Boolean);
@@ -96,7 +109,7 @@ export function FindCare() {
         key: t.slug,
         href: `/treatments/${t.slug}`,
         title: t.name,
-        sub: SPECIALITIES.find((s) => s.slug === t.speciality)?.name ?? "",
+        sub: specLabel(t.speciality),
       }));
     }
     return CONDITIONS.filter((c) => matches(`${c.name} ${(c.aka ?? []).join(" ")}`))
@@ -105,15 +118,15 @@ export function FindCare() {
         key: c.slug,
         href: `/conditions/${c.slug}`,
         title: c.name,
-        sub: SPECIALITIES.find((s) => s.slug === c.speciality)?.name ?? "",
+        sub: specLabel(c.speciality),
       }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, term]);
 
   const viewAll = {
-    Specialities: { href: "/specialities", label: `View All ${SPECIALITIES.length} Specialities` },
-    Treatments: { href: "/treatments", label: `View All ${TREATMENTS.length} Treatments` },
-    Conditions: { href: "/conditions", label: `View All ${CONDITIONS.length} Conditions` },
+    specialities: { href: "/specialities", label: t("home.viewAllSpecs", { n: SPECIALITIES.length }) },
+    treatments: { href: "/treatments", label: t("home.viewAllTreatments", { n: TREATMENTS.length }) },
+    conditions: { href: "/conditions", label: t("home.viewAllConditions", { n: CONDITIONS.length }) },
   }[tab];
 
   return (
@@ -121,45 +134,41 @@ export function FindCare() {
       <Container>
         <SectionHead
           align="center"
-          eyebrow="Care near you"
-          title={
-            <>
-              Explore Care That <span className="text-primary">Fits Your Needs</span>
-            </>
-          }
-          subtitle="Browse by speciality, by treatment, or by the condition you're dealing with."
+          eyebrow={t("home.careEyebrow")}
+          title={<Emph text={t("home.careTitle")} />}
+          subtitle={t("home.careSub")}
         />
         <div className="mx-auto max-w-3xl rounded-2xl border border-border bg-cream/80 p-2 shadow-sm sm:flex sm:items-center sm:gap-2">
           <div role="tablist" className="flex shrink-0 gap-1 rounded-xl bg-background/90 p-1">
-            {tabs.map((t) => (
+            {tabs.map((id) => (
               <button
-                key={t}
+                key={id}
                 role="tab"
-                aria-selected={tab === t}
+                aria-selected={tab === id}
                 type="button"
-                onClick={() => setTab(t)}
+                onClick={() => setTab(id)}
                 className={cn(
                   "flex-1 cursor-pointer rounded-lg px-3.5 py-2 text-xs font-semibold transition-all",
-                  tab === t ? "bg-navy text-navy-foreground shadow-sm" : "text-muted-foreground hover:text-navy",
+                  tab === id ? "bg-navy text-navy-foreground shadow-sm" : "text-muted-foreground hover:text-navy",
                 )}
               >
-                {t}
+                {t(TAB_LABEL_KEY[id])}
               </button>
             ))}
           </div>
           <label className="mt-2 flex flex-1 items-center gap-2 px-3 py-1.5 sm:mt-0">
             <Search className="h-4 w-4 shrink-0 text-brand-orange" />
-            <span className="sr-only">Search {tab.toLowerCase()}</span>
+            <span className="sr-only">{t("home.searchLabel", { what: t(TAB_LABEL_KEY[tab]).toLowerCase() })}</span>
             <input
               className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted-foreground"
-              placeholder={`Search ${tab.toLowerCase()} — e.g. piles, hernia, cataract`}
+              placeholder={t("home.searchPlaceholder", { what: t(TAB_LABEL_KEY[tab]).toLowerCase() })}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </label>
         </div>
 
-        {tab === "Specialities" && !term ? (
+        {tab === "specialities" && !term ? (
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {featuredTiles.map((tile) => {
               const spec = SPECIALITIES.find((s) => s.slug === tile.slug)!;
@@ -171,7 +180,7 @@ export function FindCare() {
                 >
                   <img
                     src={tile.img}
-                    alt={tile.title}
+                    alt={t(tile.titleKey)}
                     loading="lazy"
                     width={800}
                     height={1000}
@@ -180,10 +189,10 @@ export function FindCare() {
                   <div className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/30 to-transparent" />
                   <div className="absolute inset-x-4 bottom-4 rounded-lg bg-background/95 p-3.5 shadow-lg backdrop-blur-md">
                     <div className="flex items-center justify-between">
-                      <Eyebrow tone="orange">{spec.name}</Eyebrow>
+                      <Eyebrow tone="orange">{specName(spec.slug, spec.name)}</Eyebrow>
                       <ArrowRight className="h-4 w-4 text-brand-orange transition-transform group-hover:translate-x-1" />
                     </div>
-                    <p className="mt-1 text-sm font-bold text-navy">{tile.title}</p>
+                    <p className="mt-1 text-sm font-bold text-navy">{t(tile.titleKey)}</p>
                   </div>
                 </A>
               );
@@ -209,11 +218,14 @@ export function FindCare() {
           ))}
           {items.length === 0 ? (
             <p className="col-span-full py-6 text-center text-sm text-muted-foreground">
-              Nothing matches “{searchTerm}”. Try another word, or{" "}
-              <A href="/contact" className="font-semibold text-primary underline">
-                ask our care team
-              </A>
-              .
+              <WithLink
+                text={t("home.noMatch", { term: searchTerm })}
+                link={
+                  <A href="/contact" className="font-semibold text-primary underline">
+                    {t("home.askTeam")}
+                  </A>
+                }
+              />
             </p>
           ) : null}
         </div>
@@ -233,32 +245,35 @@ export function FindCare() {
 /* ---------------- Specialised centres ---------------- */
 
 const centres = [
-  { name: "Women's Health", icon: Baby, desc: "Gynaecology, fibroids, endometriosis and fertility care.", slugs: ["gynaecology", "ivf-fertility"] },
-  { name: "Bone & Joint", icon: Bone, desc: "Joint replacement, sports injuries and spine care.", slugs: ["orthopaedics", "spine-surgery"] },
-  { name: "Digestive & Gut Health", icon: HeartPulse, desc: "Piles, fistula, gallstones, hernia, reflux and weight-loss surgery.", slugs: ["proctology", "laparoscopy", "gastrointestinal-surgery", "bariatric-surgery"] },
-  { name: "Kidney & Urology", icon: ClipboardList, desc: "Kidney stones, prostate and urinary problems.", slugs: ["urology"] },
-  { name: "Eye Care", icon: Eye, desc: "Cataract, LASIK, glaucoma and retina.", slugs: ["ophthalmology"] },
-  { name: "Advanced Aesthetics", icon: Sparkles, desc: "Cosmetic, reconstructive and hair restoration.", slugs: ["plastic-cosmetic-surgery", "hair-transplant"] },
+  { key: "women", icon: Baby, slugs: ["gynaecology", "ivf-fertility"] },
+  { key: "bone", icon: Bone, slugs: ["orthopaedics", "spine-surgery"] },
+  { key: "digestive", icon: HeartPulse, slugs: ["proctology", "laparoscopy", "gastrointestinal-surgery", "bariatric-surgery"] },
+  { key: "kidney", icon: ClipboardList, slugs: ["urology"] },
+  { key: "eye", icon: Eye, slugs: ["ophthalmology"] },
+  { key: "aesthetics", icon: Sparkles, slugs: ["plastic-cosmetic-surgery", "hair-transplant"] },
 ];
+const centreKey = (k: string) => `home.centre${k.charAt(0).toUpperCase()}${k.slice(1)}`;
 
 export function SpecialisedCentres() {
+  const t = useT();
+  const specName = useSpecName();
   return (
     <section className="bg-cream py-12 sm:py-16">
       <Container>
         <SectionHead
           align="center"
-          eyebrow="Specialised centres"
-          title="Care Organised Around What You Need"
-          subtitle="Related specialities grouped together, so you can find the right team faster."
+          eyebrow={t("home.centresEyebrow")}
+          title={t("home.centresTitle")}
+          subtitle={t("home.centresSub")}
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {centres.map((c) => (
-            <article key={c.name} className="flex flex-col rounded-xl border border-border/80 bg-background p-5 shadow-sm">
+            <article key={c.key} className="flex flex-col rounded-xl border border-border/80 bg-background p-5 shadow-sm">
               <span className="grid h-11 w-11 place-items-center rounded-lg bg-brand-orange-soft text-primary">
                 <c.icon className="h-5 w-5" />
               </span>
-              <h3 className="mt-4 text-base font-bold text-navy">{c.name}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{c.desc}</p>
+              <h3 className="mt-4 text-base font-bold text-navy">{t(centreKey(c.key))}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{t(`${centreKey(c.key)}Desc`)}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {c.slugs.map((slug) => {
                   const s = SPECIALITIES.find((x) => x.slug === slug);
@@ -268,7 +283,7 @@ export function SpecialisedCentres() {
                       href={`/specialities/${slug}`}
                       className="rounded-full border border-border bg-cream px-3 py-1 text-xs font-semibold text-navy hover:border-primary/40"
                     >
-                      {s.name}
+                      {specName(s.slug, s.name)}
                     </A>
                   ) : null;
                 })}
@@ -284,62 +299,40 @@ export function SpecialisedCentres() {
 /* ---------------- Patient experiences ---------------- */
 
 const experiences = [
-  {
-    tag: "Before surgery",
-    img: expPre,
-    points: [
-      `${cap(CALLER)} listens to your symptoms and questions`,
-      "A consultation with a surgeon who explains every option",
-      "A clear plan: tests needed, procedure, stay and recovery",
-      "Help checking your insurance and payment options",
-    ],
-  },
-  {
-    tag: "On the day",
-    img: expDuring,
-    points: [
-      "Admission steps explained in advance",
-      "A point of contact for you and your family",
-      "Updates for family members while you're in surgery",
-      "Minimally invasive techniques where suitable",
-    ],
-  },
-  {
-    tag: "Recovery",
-    img: expRecovery,
-    points: [
-      "Written discharge and recovery instructions",
-      "Diet and activity guidance for the weeks ahead",
-      "Help booking your follow-up review",
-      "Someone to call if something doesn't feel right",
-    ],
-  },
+  { id: "pre", tagKey: "home.expPre", img: expPre, points: ["home.expPre1", "home.expPre2", "home.expPre3", "home.expPre4"] },
+  { id: "day", tagKey: "home.expDay", img: expDuring, points: ["home.expDay1", "home.expDay2", "home.expDay3", "home.expDay4"] },
+  { id: "rec", tagKey: "home.expRec", img: expRecovery, points: ["home.expRec1", "home.expRec2", "home.expRec3", "home.expRec4"] },
 ];
 
 export function PatientExperiences() {
+  const t = useT();
+  // The first point names who listens, which follows the CALLER flag; the translation describes the
+  // default ("our team"), so once a flag changes the English wording built from it is shown instead.
+  const point = (key: string) =>
+    key === "home.expPre1" && !DEFAULT_WORDING ? `${cap(CALLER)} listens to your symptoms and questions` : t(key);
   return (
     <section className="bg-background py-12 sm:py-16">
       <Container>
         <SectionHead
           align="center"
-          eyebrow="What care feels like"
-          title="Support Before, During & After Treatment"
-          subtitle="Surgery is stressful. Here's how we help at each stage."
+          eyebrow={t("home.expEyebrow")}
+          title={t("home.expTitle")}
+          subtitle={t("home.expSub")}
         />
         <div className="grid gap-6 lg:grid-cols-3">
           {experiences.map((exp) => (
-            <article key={exp.tag} className="flex flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm">
+            <article key={exp.id} className="flex flex-col overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm">
               <div className="relative">
-                <img src={exp.img} alt={exp.tag} loading="lazy" width={800} height={900} className="h-52 w-full object-cover" />
+                <img src={exp.img} alt={t(exp.tagKey)} loading="lazy" width={800} height={900} className="h-52 w-full object-cover" />
                 <span className="absolute left-4 top-4 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-navy-foreground shadow-sm">
-                  {exp.tag}
+                  {t(exp.tagKey)}
                 </span>
               </div>
               <ul className="flex-1 space-y-2.5 p-5">
                 {exp.points.map((p) => (
                   <li key={p} className="flex items-start gap-2.5 text-sm text-muted-foreground">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span>{p}</span>
+                    <span>{point(p)}</span>
                   </li>
                 ))}
               </ul>
@@ -365,18 +358,19 @@ export interface HomeHospital {
 }
 
 export function Hospitals({ hospitals }: { hospitals: HomeHospital[] }) {
+  const t = useT();
   if (!hospitals.length) return null;
   return (
     <section className="bg-navy py-12 text-navy-foreground sm:py-16">
       <Container>
         <SectionHead
           tone="light"
-          eyebrow="Hospitals near you"
-          title="Hospitals in Our Directory"
-          subtitle="Browse hospitals and see which surgeons practise there. Ask our care team which options suit your treatment and insurance."
+          eyebrow={t("home.hospEyebrow")}
+          title={t("home.hospTitle")}
+          subtitle={t("home.hospSub")}
           action={
             <A href="/hospitals">
-              <OutlineButton tone="light">Explore All Hospitals</OutlineButton>
+              <OutlineButton tone="light">{t("home.hospAll")}</OutlineButton>
             </A>
           }
         />
@@ -412,10 +406,10 @@ export function Hospitals({ hospitals }: { hospitals: HomeHospital[] }) {
               <div className="p-4 pt-0">
                 <div className="flex gap-2">
                   <A href={h.slug ? `/hospitals/${h.slug}` : "/hospitals"} className="flex-1">
-                    <OutlineButton className="w-full justify-center px-3 py-2 text-xs">View details</OutlineButton>
+                    <OutlineButton className="w-full justify-center px-3 py-2 text-xs">{t("action.viewDetails")}</OutlineButton>
                   </A>
                   <A href={`/contact?city=${encodeURIComponent(h.city)}`} className="flex-1">
-                    <OrangeButton className="w-full justify-center px-3 py-2 text-xs">Request consult</OrangeButton>
+                    <OrangeButton className="w-full justify-center px-3 py-2 text-xs">{t("home.requestConsult")}</OrangeButton>
                   </A>
                 </div>
               </div>
@@ -423,8 +417,7 @@ export function Hospitals({ hospitals }: { hospitals: HomeHospital[] }) {
           ))}
         </Carousel>
         <p className="mt-6 text-[11px] text-navy-foreground/60">
-          Hospital names and trademarks belong to their respective owners. A listing in our directory
-          does not imply affiliation with or endorsement by the hospital.
+          {t("home.hospDisclaimer")}
         </p>
       </Container>
     </section>
@@ -434,27 +427,32 @@ export function Hospitals({ hospitals }: { hospitals: HomeHospital[] }) {
 /* ---------------- Journey ---------------- */
 
 const journey = [
-  { icon: Phone, title: "Tell us what's going on", desc: `Fill in the form or call us. ${cap(CALLER)} calls you back to understand your symptoms.` },
-  { icon: Stethoscope, title: "Meet the right surgeon", desc: "We suggest suitable specialists near you and book a consultation at a time that works." },
-  { icon: ClipboardList, title: "Understand your plan", desc: "Your surgeon explains the diagnosis, options, risks, stay and recovery — so you can decide calmly." },
-  { icon: Wallet, title: "Sort out payment", desc: "Ask us to check your insurance for cashless eligibility, or about EMI options if you need them." },
-  { icon: HeartHandshake, title: "Surgery and recovery", desc: "We help you with admission steps and booking your follow-up review." },
+  { icon: Phone, n: 1 },
+  { icon: Stethoscope, n: 2 },
+  { icon: ClipboardList, n: 3 },
+  { icon: Wallet, n: 4 },
+  { icon: HeartHandshake, n: 5 },
 ];
 
 export function Journey() {
+  const t = useT();
+  const desc = (n: number) =>
+    n === 1 && !DEFAULT_WORDING
+      ? `Fill in the form or call us. ${cap(CALLER)} calls you back to understand your symptoms.`
+      : t(`home.step${n}Desc`);
   return (
     <section className="bg-cream py-12 sm:py-16">
       <Container>
-        <SectionHead align="center" eyebrow="How it works" title="From First Call to Recovery" subtitle="Five straightforward steps, with one person guiding you throughout." />
+        <SectionHead align="center" eyebrow={t("home.howEyebrow")} title={t("home.howTitle")} subtitle={t("home.howSub")} />
         <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {journey.map((step, i) => (
-            <li key={step.title} className="relative rounded-xl border border-border/80 bg-background p-5 shadow-sm">
+            <li key={step.n} className="relative rounded-xl border border-border/80 bg-background p-5 shadow-sm">
               <span className="absolute right-4 top-4 text-3xl font-extrabold text-navy/10">{i + 1}</span>
               <span className="grid h-10 w-10 place-items-center rounded-full bg-navy text-navy-foreground">
                 <step.icon className="h-5 w-5" />
               </span>
-              <h3 className="mt-4 text-base font-bold text-navy">{step.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.desc}</p>
+              <h3 className="mt-4 text-base font-bold text-navy">{t(`home.step${step.n}Title`)}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{desc(step.n)}</p>
             </li>
           ))}
         </ol>
@@ -466,21 +464,18 @@ export function Journey() {
 /* ---------------- Doctors ---------------- */
 
 export function Doctors({ doctors }: { doctors: DoctorCardData[] }) {
+  const t = useT();
   if (!doctors.length) return null;
   return (
     <section className="bg-background py-12 sm:py-16">
       <Container>
         <SectionHead
-          eyebrow="Our surgeons"
-          title={
-            <>
-              Meet Surgeons <span className="text-brand-orange">Patients Recommend</span>
-            </>
-          }
-          subtitle="Surgeons from our directory with the most patient reviews. See qualifications, experience and where they practise."
+          eyebrow={t("home.docEyebrow")}
+          title={<Emph text={t("home.docTitle")} className="text-brand-orange" />}
+          subtitle={t("home.docSub")}
           action={
             <A href="/doctors">
-              <OutlineButton>View All Doctors</OutlineButton>
+              <OutlineButton>{t("home.docAll")}</OutlineButton>
             </A>
           }
         />
@@ -497,12 +492,13 @@ export function Doctors({ doctors }: { doctors: DoctorCardData[] }) {
 /* ---------------- Stats ---------------- */
 
 export function Stats({ stats }: { stats: SiteStats | null }) {
+  const t = useT();
   if (!stats || stats.surgeons === 0) return null;
   const items = [
-    { value: roundDownPlus(stats.surgeons), label: "Surgeons in our directory" },
-    { value: roundDownPlus(stats.hospitals), label: "Hospitals listed" },
-    { value: String(stats.cities), label: "Cities listed" },
-    ...(stats.reviews > 0 ? [{ value: roundDownPlus(stats.reviews), label: "Patient reviews" }] : []),
+    { value: roundDownPlus(stats.surgeons), label: t("home.statDirectory") },
+    { value: roundDownPlus(stats.hospitals), label: t("hero.statHospitals") },
+    { value: String(stats.cities), label: t("hero.statCities") },
+    ...(stats.reviews > 0 ? [{ value: roundDownPlus(stats.reviews), label: t("home.statReviews") }] : []),
   ];
   return (
     <section className="bg-navy py-12">
@@ -556,32 +552,31 @@ const insurers = [
 ];
 
 export function Insurance() {
+  const t = useT();
   return (
     <section className="bg-background py-12 sm:py-16">
       <Container className="grid items-center gap-10 lg:grid-cols-2">
         <div className="min-w-0">
-          <Eyebrow>Insurance & EMI</Eyebrow>
+          <Eyebrow>{t("home.insEyebrow")}</Eyebrow>
           <h2 className="mt-2 text-2xl font-bold leading-tight text-navy sm:text-3xl lg:text-[34px]">
-            Help With Insurance, <span className="text-primary">So You Can Focus on Recovery</span>
+            <Emph text={t("home.insTitle")} />
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Our team checks what your policy covers, helps with pre-authorisation paperwork and
-            explains any out-of-pocket amount before you decide. If insurance doesn't apply, we can
-            walk you through EMI options.
+            {t("home.insBody")}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <A href="/insurance-eligibility">
-              <OrangeButton>Check Eligibility</OrangeButton>
+              <OrangeButton>{t("home.insCheck")}</OrangeButton>
             </A>
             <A href="/no-cost-emi">
               <OutlineButton className="gap-2">
-                <Wallet className="h-4 w-4 shrink-0 text-brand-orange" /> EMI options
+                <Wallet className="h-4 w-4 shrink-0 text-brand-orange" /> {t("home.insEmi")}
               </OutlineButton>
             </A>
           </div>
         </div>
         <div>
-          <p className="mb-3 text-xs font-semibold text-muted-foreground">Policies we commonly help patients with include:</p>
+          <p className="mb-3 text-xs font-semibold text-muted-foreground">{t("home.insCommon")}</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {insurers.map((i) => (
               <div key={i} className="grid h-16 place-items-center rounded-xl border border-border bg-cream/70 px-2 text-center text-xs font-semibold text-navy">
@@ -590,7 +585,7 @@ export function Insurance() {
             ))}
           </div>
           <p className="mt-3 text-[11px] text-muted-foreground">
-            Insurer names are trademarks of their owners. Coverage depends on your individual policy.
+            {t("home.insDisclaimer")}
           </p>
         </div>
       </Container>
@@ -615,8 +610,9 @@ export interface HomeTestimonial {
 const storyDepartments = ["all", "proctology", "orthopaedics", "urology", "gynaecology", "ophthalmology", "ent"];
 
 function Stars({ value }: { value: number }) {
+  const t = useT();
   return (
-    <span className="inline-flex" aria-label={`${value} out of 5 stars`}>
+    <span className="inline-flex" aria-label={t("home.starsAria", { value })}>
       {[1, 2, 3, 4, 5].map((n) => (
         <Star key={n} className={cn("h-3.5 w-3.5", n <= Math.round(value) ? "fill-brand-orange text-brand-orange" : "text-border")} />
       ))}
@@ -631,6 +627,8 @@ export function Testimonials({
   testimonials: HomeTestimonial[];
   summary?: { averageRating: number; totalReviews: number } | null;
 }) {
+  const t = useT();
+  const specName = useSpecName();
   const [dept, setDept] = useState("all");
   const [items, setItems] = useState(initial);
   const [loading, setLoading] = useState(false);
@@ -656,27 +654,31 @@ export function Testimonials({
       <Container>
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <Eyebrow>Patient stories</Eyebrow>
-            <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl lg:text-[34px]">In Our Patients' Words</h2>
+            <Eyebrow>{t("home.storiesEyebrow")}</Eyebrow>
+            <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl lg:text-[34px]">{t("home.storiesTitle")}</h2>
             {summary && summary.totalReviews > 0 ? (
               <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                 <Stars value={summary.averageRating} />
                 {/* roundDownPlus, not the exact count: the hero states the same figure as
                     "2,40,000+" and printing "2,47,591" here made one page claim two different
                     review totals. */}
-                <strong className="text-navy">{summary.averageRating}/5</strong> average from{" "}
-                {roundDownPlus(summary.totalReviews)} patient reviews
+                <span>
+                  <Emph
+                    text={t("home.storiesAvg", { rating: summary.averageRating, count: roundDownPlus(summary.totalReviews) })}
+                    className="font-bold text-navy"
+                  />
+                </span>
               </p>
             ) : null}
           </div>
           <div className="flex gap-2">
             <A href="/reviews/write">
               <OrangeButton className="gap-2">
-                <PenLine className="h-4 w-4" /> Write a Review
+                <PenLine className="h-4 w-4" /> {t("action.writeReview")}
               </OrangeButton>
             </A>
             <A href="/reviews">
-              <OutlineButton>View All</OutlineButton>
+              <OutlineButton>{t("home.viewAll")}</OutlineButton>
             </A>
           </div>
         </div>
@@ -692,7 +694,7 @@ export function Testimonials({
                 dept === d ? "border-navy bg-navy text-white" : "border-border bg-background text-navy hover:border-navy/30",
               )}
             >
-              {d === "all" ? "All departments" : SPECIALITIES.find((s) => s.slug === d)?.name}
+              {d === "all" ? t("home.allDepts") : specName(d, SPECIALITIES.find((s) => s.slug === d)?.name ?? d)}
             </button>
           ))}
         </div>
@@ -702,38 +704,42 @@ export function Testimonials({
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : items.length === 0 ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">No detailed reviews in this department yet.</p>
+          <p className="py-10 text-center text-sm text-muted-foreground">{t("home.noDetailed")}</p>
         ) : (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {/* min-w-0 + break-words on the cards below: grid items default to min-width:auto, so a
                 review containing one long unbroken token stretched the card past the viewport and
                 gave the whole homepage a horizontal scrollbar on phones. */}
-            {items.map((t) => (
-              <article key={t.id} className="flex min-w-0 flex-col justify-between rounded-xl border border-border/80 bg-background p-6 shadow-sm">
+            {items.map((r) => (
+              <article key={r.id} className="flex min-w-0 flex-col justify-between rounded-xl border border-border/80 bg-background p-6 shadow-sm">
                 <div className="min-w-0">
                   <div className="flex items-center justify-between">
                     <Quote className="h-6 w-6 text-brand-orange" />
-                    {t.rating ? <Stars value={t.rating} /> : null}
+                    {r.rating ? <Stars value={r.rating} /> : null}
                   </div>
-                  <p className="mt-4 line-clamp-5 break-words text-sm leading-relaxed text-ink/80">"{t.comment}"</p>
+                  <p className="mt-4 line-clamp-5 break-words text-sm leading-relaxed text-ink/80">"{r.comment}"</p>
                 </div>
                 <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                    {t.patientName.trim().slice(0, 1).toUpperCase()}
+                    {r.patientName.trim().slice(0, 1).toUpperCase()}
                   </span>
                   <div className="min-w-0 text-xs">
-                    <p className="truncate text-sm font-semibold text-navy">{t.patientName}</p>
-                    <p className="truncate text-muted-foreground">{[t.treatment, t.city].filter(Boolean).join(" • ")}</p>
-                    {t.doctorName ? (
+                    <p className="truncate text-sm font-semibold text-navy">{r.patientName}</p>
+                    <p className="truncate text-muted-foreground">{[r.treatment, r.city].filter(Boolean).join(" • ")}</p>
+                    {r.doctorName ? (
                       <p className="truncate text-muted-foreground">
-                        Treated by{" "}
-                        {t.doctorSlug ? (
-                          <A href={`/doctors/${t.doctorSlug}`} className="font-semibold text-primary hover:underline">
-                            {t.doctorName}
-                          </A>
-                        ) : (
-                          t.doctorName
-                        )}
+                        <WithLink
+                          text={t("home.treatedBy")}
+                          link={
+                            r.doctorSlug ? (
+                              <A href={`/doctors/${r.doctorSlug}`} className="font-semibold text-primary hover:underline">
+                                {r.doctorName}
+                              </A>
+                            ) : (
+                              r.doctorName
+                            )
+                          }
+                        />
                       </p>
                     ) : null}
                   </div>
@@ -750,34 +756,27 @@ export function Testimonials({
 /* ---------------- About + sticky form ---------------- */
 
 export function About() {
+  const t = useT();
   return (
     <section className="bg-background py-12 sm:py-16">
       <Container className="grid gap-10 lg:grid-cols-[1.4fr_0.8fr]">
         <div className="min-w-0">
-          <Eyebrow>About us</Eyebrow>
-          <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">About Go Surgery</h2>
+          <Eyebrow>{t("home.aboutEyebrow")}</Eyebrow>
+          <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">{t("home.aboutTitle")}</h2>
           <div className="mt-4 space-y-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            <p>
-              Go Surgery helps patients in India get planned surgery with less confusion and less
-              running around. We help you find an experienced surgeon, understand your treatment,
-              and get help with insurance and paperwork.
-            </p>
+            <p>{t("home.aboutBody")}</p>
             <ul className="space-y-3 pt-2">
-              {[
-                ["One point of contact", "One team that knows your case — from the first call to your follow-up."],
-                ["Clear information", "Plain-language guides to conditions and treatments, so you can ask better questions."],
-                ["Honest about costs", "We help you understand what insurance may cover and what you may pay, before you commit."],
-              ].map(([title, text]) => (
-                <li key={title} className="flex gap-3">
+              {[1, 2, 3].map((n) => (
+                <li key={n} className="flex gap-3">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                   <div>
-                    <strong className="font-semibold text-navy">{title}:</strong> {text}
+                    <strong className="font-semibold text-navy">{t(`home.aboutPoint${n}`)}:</strong> {t(`home.aboutPoint${n}Text`)}
                   </div>
                 </li>
               ))}
             </ul>
             <A href="/about" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
-              More about us <ArrowRight className="h-4 w-4" />
+              {t("home.aboutMore")} <ArrowRight className="h-4 w-4" />
             </A>
           </div>
         </div>
@@ -792,17 +791,18 @@ export function About() {
 /* ---------------- Healthfeed ---------------- */
 
 export function Healthfeed() {
+  const t = useT();
   if (!BLOG_POSTS.length) return null;
   return (
     <section className="bg-cream py-12 sm:py-16">
       <Container>
         <SectionHead
-          eyebrow="Health guides & articles"
-          title="Read, Learn & Decide Better"
-          subtitle="Plain-language guides on treatments, recovery and insurance."
+          eyebrow={t("home.feedEyebrow")}
+          title={t("home.feedTitle")}
+          subtitle={t("home.feedSub")}
           action={
             <A href="/blog">
-              <OutlineButton>View All Articles</OutlineButton>
+              <OutlineButton>{t("home.feedAll")}</OutlineButton>
             </A>
           }
         />
@@ -819,7 +819,7 @@ export function Healthfeed() {
                 <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{p.excerpt}</p>
               </div>
               <p className="mt-6 flex items-center justify-between text-xs text-muted-foreground">
-                {p.readMinutes} min read <ArrowRight className="h-4 w-4 text-brand-orange" />
+                {t("home.readMin", { n: p.readMinutes })} <ArrowRight className="h-4 w-4 text-brand-orange" />
               </p>
             </A>
           ))}
@@ -831,8 +831,9 @@ export function Healthfeed() {
 
 /* ---------------- FAQ ---------------- */
 
-export const HOME_FAQS = [
+const ALL_HOME_FAQS: { q: string; a: string; requires?: "free-consult" }[] = [
   {
+    requires: "free-consult",
     q: "Is the first consultation really free?",
     a: "Yes. Your first consultation to discuss your condition and treatment options is free. Any tests or procedures the surgeon recommends are discussed with you — including costs — before anything is booked.",
   },
@@ -854,12 +855,17 @@ export const HOME_FAQS = [
   },
 ];
 
+// A FAQ that promises a free first consultation must not show (on the page or in the structured data
+// search engines read) unless that promise is switched on in src/lib/site.ts.
+export const HOME_FAQS = ALL_HOME_FAQS.filter((f) => !f.requires || promiseEnabled(f.requires));
+
 export function Faq() {
+  const t = useT();
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section className="bg-background py-12 sm:py-16">
       <Container className="max-w-3xl">
-        <SectionHead align="center" eyebrow="Good to know" title="Frequently Asked Questions" />
+        <SectionHead align="center" eyebrow={t("home.faqEyebrow")} title={t("home.faqTitle")} />
         <div className="space-y-3">
           {HOME_FAQS.map((f, i) => (
             <div key={f.q} className="overflow-hidden rounded-xl border border-border/80 bg-cream/70">
@@ -884,6 +890,7 @@ export function Faq() {
 /* ---------------- Join the community ---------------- */
 
 export function JoinCommunity() {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState("");
@@ -896,7 +903,7 @@ export function JoinCommunity() {
     if (res?.success) setState("done");
     else {
       setState("idle");
-      setError(res && !res.success ? res.error : "Something went wrong. Please try again.");
+      setError(res && !res.success ? res.error : t("home.genericError"));
     }
   };
 
@@ -904,18 +911,17 @@ export function JoinCommunity() {
     <section className="bg-navy py-12 sm:py-16">
       <Container className="grid items-center gap-10 lg:grid-cols-2">
         <div className="min-w-0 text-navy-foreground">
-          <Eyebrow tone="light">Join the community</Eyebrow>
+          <Eyebrow tone="light">{t("home.joinEyebrow")}</Eyebrow>
           <h2 className="mt-2 text-2xl font-bold leading-tight sm:text-3xl lg:text-[34px]">
-            Health Guides, <span className="text-brand-orange">Straight to Your Inbox</span>
+            <Emph text={t("home.joinTitle")} className="text-brand-orange" />
           </h2>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-navy-foreground/85 sm:text-base">
-            Join the Go Surgery community for practical articles on conditions, surgery preparation
-            and recovery.
+            {t("home.joinBody")}
           </p>
           <ul className="mt-5 space-y-2 text-sm text-navy-foreground/85">
-            {["New plain-language health guides", "Recovery tips from our care team", "Updates on insurance and EMI options"].map((t) => (
-              <li key={t} className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-brand-orange" /> {t}
+            {["home.joinPoint1", "home.joinPoint2", "home.joinPoint3"].map((k) => (
+              <li key={k} className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-brand-orange" /> {t(k)}
               </li>
             ))}
           </ul>
@@ -924,24 +930,24 @@ export function JoinCommunity() {
           {state === "done" ? (
             <div className="text-center">
               <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
-              <p className="mt-3 font-bold text-navy">You're in!</p>
-              <p className="mt-1 text-sm text-muted-foreground">Thanks for joining. Look out for our next guide.</p>
+              <p className="mt-3 font-bold text-navy">{t("home.joinDone")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("home.joinDoneSub")}</p>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-3">
-              <p className="text-base font-bold text-navy">Subscribe to our health newsletter</p>
+              <p className="text-base font-bold text-navy">{t("home.joinFormTitle")}</p>
               <input
                 type="email"
                 required
                 autoComplete="email"
-                placeholder="Your email address"
+                placeholder={t("home.joinEmail")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
               />
               {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
               <OrangeButton type="submit" disabled={state === "sending"} className="w-full">
-                {state === "sending" ? "Joining..." : "Join the community"}
+                {state === "sending" ? t("home.joining") : t("home.joinEyebrow")}
               </OrangeButton>
               <A
                 href={whatsappHref("Hi, I'd like to join the Go Surgery community updates on WhatsApp.")}
@@ -949,10 +955,17 @@ export function JoinCommunity() {
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 rounded-md border border-emerald-600/30 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
               >
-                <MessageCircle className="h-4 w-4" /> Or message us on WhatsApp
+                <MessageCircle className="h-4 w-4" /> {t("home.joinWhatsapp")}
               </A>
               <p className="text-center text-[11px] text-muted-foreground">
-                By subscribing you agree to our <A href="/privacy" className="underline">privacy policy</A>.
+                <WithLink
+                  text={t("home.joinConsent")}
+                  link={
+                    <A href="/privacy" className="underline">
+                      {t("form.consentLink")}
+                    </A>
+                  }
+                />
               </p>
             </form>
           )}

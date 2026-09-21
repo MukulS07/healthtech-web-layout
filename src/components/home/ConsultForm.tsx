@@ -5,24 +5,26 @@ import { cn } from "@/lib/utils";
 import { submitConsultationFn } from "@/lib/server-functions/consultations";
 import { track } from "@/lib/track";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useT } from "@/lib/i18n/context";
+import { useLocale, useT } from "@/lib/i18n/context";
+import { Emph, WithLink } from "@/lib/i18n/rich";
 import { CONDITIONS, SPECIALITIES, TREATMENTS } from "@/data/catalog";
-import { BOOK_LABEL, CALLBACK_PHRASE, CALLER, cap, CITIES, promiseEnabled, SITE, whatsappHref } from "@/lib/site";
+import { CALLBACK_PHRASE, CALLER, cap, CITIES, DEFAULT_WORDING, promiseEnabled, whatsappHref } from "@/lib/site";
 import { A } from "@/components/common/A";
 
 /** Options for the "treatment or condition" select, grouped by speciality. */
 function useInterestGroups() {
+  const t = useT();
   return useMemo(
     () =>
       SPECIALITIES.map((s) => ({
         label: s.name,
         options: [
-          { value: `s:${s.slug}`, label: `${s.name} — general consultation` },
+          { value: `s:${s.slug}`, label: t("form.generalConsult", { spec: s.name }) },
           ...CONDITIONS.filter((c) => c.speciality === s.slug).map((c) => ({ value: `c:${c.slug}`, label: c.name })),
           ...TREATMENTS.filter((t) => t.speciality === s.slug).map((t) => ({ value: `t:${t.slug}`, label: t.name })),
         ],
       })),
-    [],
+    [t],
   );
 }
 
@@ -53,6 +55,7 @@ export function ConsultForm({
 }) {
   const groups = useInterestGroups();
   const t = useT();
+  const locale = useLocale();
   const { user } = useCurrentUser();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -92,10 +95,13 @@ export function ConsultForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!consent) {
-      setError("Please agree to be contacted about your enquiry.");
-      return;
-    }
+    // Checked here as well as on the server so the message arrives in the reader's language; the
+    // server's own checks (and its English messages) remain the authority.
+    if (name.trim().length < 2) return void setError(t("form.errName"));
+    if (phone.replace(/\D/g, "").length < 10) return void setError(t("form.errPhone"));
+    if (!interest) return void setError(t("form.errInterest"));
+    if (!city) return void setError(t("form.errCity"));
+    if (!consent) return void setError(t("form.errConsent"));
     setStatus("sending");
     try {
       const res = await submitConsultationFn({
@@ -113,7 +119,7 @@ export function ConsultForm({
         },
       });
       if (res.success) {
-        setDoneMessage(res.message);
+        setDoneMessage(locale !== "en" && DEFAULT_WORDING ? t("consult.received") : res.message);
         setStatus("done");
         // Counts alongside calls and WhatsApp clicks in the admin report, so the care team can see
         // which pages actually produce enquiries rather than just traffic.
@@ -129,11 +135,11 @@ export function ConsultForm({
           /* ignore */
         }
       } else {
-        setError(res.error);
+        setError(locale !== "en" ? t("form.errSubmit") : res.error);
         setStatus("idle");
       }
     } catch {
-      setError("We couldn't submit your request. Please try again or call us.");
+      setError(t("form.errSubmit"));
       setStatus("idle");
     }
   };
@@ -142,16 +148,21 @@ export function ConsultForm({
     <div className={cn("overflow-hidden rounded-lg border border-navy/10 bg-background shadow-sm", className)}>
       <div className="border-b border-border bg-brand-orange-soft px-5 py-4">
         <p className="text-base font-bold text-navy">
-          {title ?? (
-            <>
-              Book a <span className="text-primary">{promiseEnabled("free-consult") ? "free consultation" : "consultation"}</span>
-            </>
-          )}
+          {title ??
+            (promiseEnabled("free-consult") ? (
+              <>
+                Book a <span className="text-primary">free consultation</span>
+              </>
+            ) : (
+              <Emph text={t("consult.title")} />
+            ))}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
           {doctorName
-            ? `Request a consultation with ${doctorName}. Our care team will confirm availability.`
-            : `Share a few details — ${CALLER} will call you back ${CALLBACK_PHRASE}.`}
+            ? t("consult.subDoctor", { doctor: doctorName })
+            : DEFAULT_WORDING
+              ? t("consult.subCallback")
+              : `Share a few details — ${CALLER} will call you back ${CALLBACK_PHRASE}.`}
         </p>
       </div>
 
@@ -159,36 +170,43 @@ export function ConsultForm({
         <div className="space-y-4 p-5 text-center">
           <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
           <div>
-            <p className="text-base font-bold text-navy">Thank you, {name.split(" ")[0]}!</p>
+            <p className="text-base font-bold text-navy">{t("consult.thanks", { name: name.split(" ")[0] ?? "" })}</p>
             <p className="mt-1 text-sm text-muted-foreground">{doneMessage}</p>
           </div>
           <ol className="space-y-1.5 rounded-lg bg-cream p-3 text-left text-xs text-ink/80">
-            <li>1. {cap(CALLER)} calls you on {phone.replace(/\D/g, "").slice(-10)}.</li>
-            <li>2. They understand your symptoms and suggest the right specialist.</li>
-            <li>3. Your consultation is scheduled at a time that suits you.</li>
+            <li>
+              {DEFAULT_WORDING
+                ? t("consult.step1", { phone: phone.replace(/\D/g, "").slice(-10) })
+                : `1. ${cap(CALLER)} calls you on ${phone.replace(/\D/g, "").slice(-10)}.`}
+            </li>
+            <li>{t("consult.step2")}</li>
+            <li>{t("consult.step3")}</li>
           </ol>
           <A href={whatsappHref(`Hi, I just requested a consultation (${name}).`)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:underline">
-            <MessageCircle className="h-4 w-4" /> Chat with us on WhatsApp
+            <MessageCircle className="h-4 w-4" /> {t("consult.whatsappChat")}
           </A>
           {!user ? (
             <p className="text-xs text-muted-foreground">
-              Want to track your request online?{" "}
-              <A href="/account" className="font-semibold text-primary hover:underline">
-                Create a free account
-              </A>{" "}
-              (optional).
+              <WithLink
+                text={t("consult.track")}
+                link={
+                  <A href="/account" className="font-semibold text-primary hover:underline">
+                    {t("consult.createAccount")}
+                  </A>
+                }
+              />
             </p>
           ) : null}
         </div>
       ) : (
         <form className="space-y-3 p-5" onSubmit={handleSubmit} noValidate>
           <label className="block">
-            <span className="sr-only">Full name</span>
+            <span className="sr-only">{t("form.fullName")}</span>
             <input className={inputClass} placeholder={`${t("form.fullName")} *`} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} required />
           </label>
           <label className="flex overflow-hidden rounded-md border border-border focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
             <span className="grid place-items-center border-r border-border bg-cream px-3 text-sm font-semibold text-navy">+91</span>
-            <span className="sr-only">Mobile number</span>
+            <span className="sr-only">{t("form.mobile")}</span>
             <input
               className="w-full bg-background px-4 py-3 text-sm text-ink outline-none placeholder:text-muted-foreground"
               placeholder={`${t("form.mobile")} *`}
@@ -201,7 +219,7 @@ export function ConsultForm({
             />
           </label>
           <label className="block">
-            <span className="sr-only">Treatment or condition</span>
+            <span className="sr-only">{t("form.treatmentOrCondition")}</span>
             <select className={inputClass} value={interest} onChange={(e) => setInterest(e.target.value)} required>
               <option value="" disabled>
                 {t("form.selectTreatment")} *
@@ -218,7 +236,7 @@ export function ConsultForm({
             </select>
           </label>
           <label className="block">
-            <span className="sr-only">City</span>
+            <span className="sr-only">{t("form.city")}</span>
             <select className={inputClass} value={city} onChange={(e) => setCity(e.target.value)} required>
               <option value="" disabled>
                 {t("form.selectCity")} *
@@ -228,7 +246,7 @@ export function ConsultForm({
                   {c.name}
                 </option>
               ))}
-              <option value="Other">Other city</option>
+              <option value="Other">{t("form.otherCity")}</option>
             </select>
           </label>
 
@@ -236,7 +254,7 @@ export function ConsultForm({
             <>
               <input className={inputClass} type="email" placeholder={t("form.emailOptional")} autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               <label className="block text-xs font-medium text-muted-foreground">
-                Preferred consultation date (optional)
+                {t("form.preferredDateOptional")}
                 <input
                   className={cn(inputClass, "mt-1")}
                   type="date"
@@ -258,11 +276,14 @@ export function ConsultForm({
           <label className="flex items-start gap-2 text-[11px] leading-snug text-muted-foreground">
             <input type="checkbox" className="mt-0.5 accent-[var(--primary)]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
             <span>
-              I agree to be contacted by phone/WhatsApp about this enquiry, as described in the{" "}
-              <A href="/privacy" className="underline">
-                privacy policy
-              </A>
-              .
+              <WithLink
+                text={t("form.consent")}
+                link={
+                  <A href="/privacy" className="underline">
+                    {t("form.consentLink")}
+                  </A>
+                }
+              />
             </span>
           </label>
 
@@ -271,14 +292,14 @@ export function ConsultForm({
           <OrangeButton type="submit" disabled={status === "sending"} className="w-full">
             {status === "sending" ? (
               <span className="inline-flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+                <Loader2 className="h-4 w-4 animate-spin" /> {t("form.sending")}
               </span>
             ) : (
               t("form.submit")
             )}
           </OrangeButton>
           <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
-            <Lock className="h-3.5 w-3.5 shrink-0" /> Your data is secure. We never share your medical details without consent.
+            <Lock className="h-3.5 w-3.5 shrink-0" /> {t("form.secure")}
           </p>
         </form>
       )}

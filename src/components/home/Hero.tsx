@@ -5,6 +5,8 @@ import { ENABLED_PROMISES, telHref } from "@/lib/site";
 import { roundDownPlus } from "@/lib/format";
 import type { SiteStats } from "@/lib/server-functions/site-stats";
 import { A } from "@/components/common/A";
+import { useT } from "@/lib/i18n/context";
+import { Emph } from "@/lib/i18n/rich";
 
 const promiseIcons: Record<string, typeof ShieldCheck> = {
   coordinator: HeartHandshake,
@@ -14,6 +16,7 @@ const promiseIcons: Record<string, typeof ShieldCheck> = {
 };
 
 export function Hero({ stats }: { stats: SiteStats | null }) {
+  const t = useT();
   return (
     <section id="top" className="bg-cream py-6 sm:py-10">
       <Container>
@@ -24,34 +27,33 @@ export function Hero({ stats }: { stats: SiteStats | null }) {
                 <div className="flex flex-wrap items-center gap-2">
                   {stats.averageRating && stats.reviews > 0 ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-background px-3 py-1.5 text-xs font-semibold text-navy shadow-sm">
-                      <Star className="h-3.5 w-3.5 shrink-0 fill-primary text-primary" /> {stats.averageRating}/5 from{" "}
-                      {roundDownPlus(stats.reviews)} reviews in our directory
+                      <Star className="h-3.5 w-3.5 shrink-0 fill-primary text-primary" />{" "}
+                      {t("hero.reviewsChip", { rating: stats.averageRating, count: roundDownPlus(stats.reviews) })}
                     </span>
                   ) : null}
                   {stats.surgeons > 0 ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-background px-3 py-1.5 text-xs font-semibold text-navy shadow-sm">
-                      <Stethoscope className="h-3.5 w-3.5 shrink-0 text-primary" /> {roundDownPlus(stats.surgeons)} surgeons listed
+                      <Stethoscope className="h-3.5 w-3.5 shrink-0 text-primary" /> {t("hero.surgeonsChip", { count: roundDownPlus(stats.surgeons) })}
                     </span>
                   ) : null}
                 </div>
               ) : null}
 
               <h1 className="mt-6 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-                Surgery, planned around <span className="text-brand-blue-light">you.</span>
+                <Emph text={t("hero.title")} className="text-brand-blue-light" />
               </h1>
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-navy-foreground/80 sm:text-base">
-                Tell us what's wrong. We'll help you understand your options, find an experienced
-                surgeon near you, sort out insurance, and stay with you until you've recovered.
+                {t("hero.sub")}
               </p>
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <A href="/specialities">
-                <OrangeButton>Browse Specialities</OrangeButton>
+                <OrangeButton>{t("hero.browse")}</OrangeButton>
               </A>
               <A href={telHref}>
                 <OutlineButton tone="light" className="gap-2">
-                  <Phone className="h-4 w-4 text-brand-orange" /> Call our care team
+                  <Phone className="h-4 w-4 text-brand-orange" /> {t("hero.callTeam")}
                 </OutlineButton>
               </A>
             </div>
@@ -59,9 +61,9 @@ export function Hero({ stats }: { stats: SiteStats | null }) {
             {stats && stats.surgeons > 0 ? (
               <div className="mt-8 grid grid-cols-3 gap-3 border-t border-navy-foreground/15 pt-6 sm:gap-6">
                 {[
-                  { value: roundDownPlus(stats.surgeons), label: "Surgeons listed" },
-                  { value: roundDownPlus(stats.hospitals), label: "Hospitals listed" },
-                  { value: String(stats.cities), label: "Cities listed" },
+                  { value: roundDownPlus(stats.surgeons), label: t("hero.statSurgeons") },
+                  { value: roundDownPlus(stats.hospitals), label: t("hero.statHospitals") },
+                  { value: String(stats.cities), label: t("hero.statCities") },
                 ].map((stat) => (
                   <div key={stat.label} className="min-w-0">
                     <p className="text-xl font-bold text-brand-blue-light sm:text-2xl lg:text-3xl">{stat.value}</p>

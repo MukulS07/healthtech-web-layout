@@ -1,9 +1,10 @@
 import { Building2, MapPin, Phone, Star } from "lucide-react";
 import { OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { cn } from "@/lib/utils";
-import { BOOK_LABEL_SHORT, telHref } from "@/lib/site";
+import { BOOK_LABEL_SHORT, promiseEnabled, telHref } from "@/lib/site";
 import { A } from "@/components/common/A";
 import { track } from "@/lib/track";
+import { useT } from "@/lib/i18n/context";
 
 export interface DoctorCardData {
   id: string;
@@ -76,6 +77,7 @@ export function DoctorCard({
   layout?: "card" | "row";
   className?: string;
 }) {
+  const t = useT();
   const profileHref = d.slug ? `/doctors/${d.slug}` : "/doctors";
   const where = [d.hospital?.name, d.hospital?.locality || d.locality, d.city].filter(Boolean);
   const bookHref = `/contact?doctor=${encodeURIComponent(d.name)}${d.city ? `&city=${encodeURIComponent(d.city)}` : ""}`;
@@ -87,15 +89,15 @@ export function DoctorCard({
       <A
         href={telHref}
         className="flex-1"
-        aria-label={`Call about ${d.name}`}
+        aria-label={t("card.callAbout", { name: d.name })}
         onClick={() => track({ type: "call", ...trackTarget })}
       >
         <OutlineButton className="w-full justify-center px-2 py-2 text-xs">
-          <Phone className="h-3 w-3" /> Call
+          <Phone className="h-3 w-3" /> {t("action.call")}
         </OutlineButton>
       </A>
       <A href={bookHref} className="flex-1">
-        <OrangeButton className="w-full justify-center px-2 py-2 text-xs">{BOOK_LABEL_SHORT}</OrangeButton>
+        <OrangeButton className="w-full justify-center px-2 py-2 text-xs">{promiseEnabled("free-consult") ? BOOK_LABEL_SHORT : t("action.bookShort")}</OrangeButton>
       </A>
     </div>
   );
@@ -107,7 +109,7 @@ export function DoctorCard({
       {d.cred ? <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{d.cred}</p> : null}
       {d.exp ? (
         <p className="mt-1.5 text-xs font-semibold text-navy">
-          {d.exp} {d.exp === 1 ? "year" : "years"} experience
+          {d.exp === 1 ? t("card.exp1") : t("card.exp", { n: d.exp })}
         </p>
       ) : null}
       {d.hospital?.name ? (
@@ -160,7 +162,7 @@ export function DoctorCard({
       </A>
       <div className="p-4">
         <A href={profileHref} className="mb-2 block text-center text-xs font-semibold text-primary hover:underline">
-          View profile
+          {t("action.viewProfile")}
         </A>
         {actions}
       </div>

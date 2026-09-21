@@ -1,7 +1,9 @@
 import { DEFAULT_LOCALE, type Locale } from "./locales";
+import en from "./dict/en";
+import type { Dict, TVars } from "./types";
 
 /**
- * Interface strings only — navigation, buttons, form labels, pickers.
+ * Interface strings only — navigation, buttons, form labels, headings, short marketing lines.
  *
  * ⚠️ Deliberately NOT here: treatment, condition and speciality copy, blog articles and the legal
  * pages. That is medical and legal text, and machine-translating it would put unreviewed clinical
@@ -14,551 +16,54 @@ import { DEFAULT_LOCALE, type Locale } from "./locales";
  *
  * Anything missing from a language falls back to English rather than rendering blank, so a partial
  * translation is always safe to add.
+ *
+ * How the dictionaries load: English is bundled (it's the fallback). Every other language is its
+ * own file under ./dict and is fetched with a dynamic import by `loadDictionary()`, which
+ * `getRouter()` awaits before the app renders — on the server and in the browser alike, so the two
+ * always agree and no visitor downloads a language they aren't reading. The registry below is keyed
+ * by locale and only ever holds immutable dictionaries, so sharing it across server requests can't
+ * leak one visitor's language into another's.
  */
-type Dict = Record<string, string>;
+const REGISTRY: Partial<Record<Locale, Dict>> = { en };
 
-const en: Dict = {
-  "nav.forPatients": "For Patients",
-  "nav.ourCompany": "Our Company",
-  "nav.doctors": "Doctors",
-  "nav.hospitals": "Hospitals",
-  "nav.specialities": "Specialities",
-  "nav.treatments": "Treatments",
-  "nav.conditions": "Conditions",
-  "nav.surgeryCost": "Surgery Cost",
-  "nav.insurance": "Insurance",
-  "nav.articles": "Articles",
-  "nav.myAppointments": "My Appointments",
-  "nav.reviews": "Patient Reviews",
-  "nav.faqs": "FAQs",
-  "nav.about": "About Us",
-  "nav.contact": "Contact Us",
-  "nav.locations": "Locations",
-  "nav.careers": "Careers",
-  "nav.browse": "Browse",
-
-  "action.book": "Book a Consultation",
-  "action.bookShort": "Book Consult",
-  "action.viewProfile": "View profile",
-  "action.viewDetails": "View details",
-  "action.call": "Call",
-  "action.search": "Search",
-  "action.getDirections": "Get Directions",
-  "action.writeReview": "Write a Review",
-  "action.retry": "Retry",
-  "action.clear": "Clear",
-  "action.openMenu": "Open menu",
-  "action.closeMenu": "Close menu",
-
-  "city.select": "Select city",
-  "city.getMyLocation": "Get my location",
-  "city.searchCity": "Search city",
-  "city.searchCityLabel": "Search for your city",
-  "city.allCities": "All cities",
-  "city.finding": "Finding you…",
-  "city.blocked": "Location is blocked for this site. Allow it in your browser, or pick a city below.",
-  "city.failed": "We couldn't get your location. Pick a city below.",
-  "city.notCovered": "You're not near a city we cover yet — pick the nearest one below.",
-  "city.unsupported": "Your browser can't share a location.",
-  "city.noMatch": "No city matches",
-  "city.cities": "Cities",
-
-  "search.placeholder": "Search doctors, treatments, conditions",
-  "search.label": "Search doctors, treatments, conditions and cities",
-
-  "form.fullName": "Full name",
-  "form.mobile": "Mobile number",
-  "form.city": "City",
-  "form.emailOptional": "Email (optional)",
-  "form.treatmentOrCondition": "Treatment or condition",
-  "form.selectCity": "Select city",
-  "form.selectTreatment": "Select treatment or condition",
-  "form.preferredDate": "Preferred date",
-  "form.describeConcern": "Describe your concern (optional)",
-  "form.submit": "Book a Consultation",
-  "form.sending": "Sending…",
-  "form.required": "Required",
-  "form.optional": "optional",
-
-  "common.language": "Language",
-  "common.chooseLanguage": "Choose a language",
-  "common.loading": "Loading…",
-  "common.home": "Home",
-  "common.notFound": "Page not found",
-  "common.notFoundBody": "The page you're looking for doesn't exist, or it has moved. Here's where most people go next.",
-  "common.backHome": "Back to the home page",
-  "common.page": "Page",
-  "common.of": "of",
-  "common.translatedNotice":
-    "This page's interface is translated. Medical information is shown in English until a clinician has reviewed the translation.",
+const LOADERS: Record<Exclude<Locale, "en">, () => Promise<{ default: Dict }>> = {
+  hi: () => import("./dict/hi"),
+  ta: () => import("./dict/ta"),
+  te: () => import("./dict/te"),
+  ml: () => import("./dict/ml"),
+  kn: () => import("./dict/kn"),
+  mr: () => import("./dict/mr"),
 };
 
-const hi: Dict = {
-  "nav.forPatients": "मरीज़ों के लिए",
-  "nav.ourCompany": "हमारी कंपनी",
-  "nav.doctors": "डॉक्टर",
-  "nav.hospitals": "अस्पताल",
-  "nav.specialities": "विशेषज्ञताएँ",
-  "nav.treatments": "उपचार",
-  "nav.conditions": "रोग",
-  "nav.surgeryCost": "सर्जरी का खर्च",
-  "nav.insurance": "बीमा",
-  "nav.articles": "लेख",
-  "nav.myAppointments": "मेरी अपॉइंटमेंट",
-  "nav.reviews": "मरीज़ों की समीक्षाएँ",
-  "nav.faqs": "अक्सर पूछे जाने वाले प्रश्न",
-  "nav.about": "हमारे बारे में",
-  "nav.contact": "संपर्क करें",
-  "nav.locations": "शहर",
-  "nav.careers": "करियर",
-  "nav.browse": "ब्राउज़ करें",
+/** Makes sure a locale's dictionary is in the registry. Safe to call repeatedly. */
+export async function loadDictionary(locale: Locale): Promise<void> {
+  if (locale === DEFAULT_LOCALE || REGISTRY[locale]) return;
+  const load = LOADERS[locale as Exclude<Locale, "en">];
+  if (!load) return;
+  try {
+    REGISTRY[locale] = (await load()).default;
+  } catch {
+    // A failed chunk must never take the page down — English fallback is always available.
+  }
+}
 
-  "action.book": "परामर्श बुक करें",
-  "action.bookShort": "बुक करें",
-  "action.viewProfile": "प्रोफ़ाइल देखें",
-  "action.viewDetails": "विवरण देखें",
-  "action.call": "कॉल करें",
-  "action.search": "खोजें",
-  "action.getDirections": "रास्ता देखें",
-  "action.writeReview": "समीक्षा लिखें",
-  "action.retry": "फिर कोशिश करें",
-  "action.clear": "हटाएँ",
-  "action.openMenu": "मेन्यू खोलें",
-  "action.closeMenu": "मेन्यू बंद करें",
-
-  "city.select": "शहर चुनें",
-  "city.getMyLocation": "मेरा स्थान पता करें",
-  "city.searchCity": "शहर खोजें",
-  "city.searchCityLabel": "अपना शहर खोजें",
-  "city.allCities": "सभी शहर",
-  "city.finding": "आपका स्थान खोजा जा रहा है…",
-  "city.blocked": "इस साइट के लिए स्थान की अनुमति बंद है। ब्राउज़र में अनुमति दें, या नीचे से शहर चुनें।",
-  "city.failed": "हम आपका स्थान नहीं पा सके। नीचे से शहर चुनें।",
-  "city.notCovered": "आप जिस क्षेत्र में हैं वहाँ हमारी सेवा अभी नहीं है — नीचे से नज़दीकी शहर चुनें।",
-  "city.unsupported": "आपका ब्राउज़र स्थान साझा नहीं कर सकता।",
-  "city.noMatch": "कोई शहर नहीं मिला",
-  "city.cities": "शहर",
-
-  "search.placeholder": "डॉक्टर, उपचार, रोग खोजें",
-  "search.label": "डॉक्टर, उपचार, रोग और शहर खोजें",
-
-  "form.fullName": "पूरा नाम",
-  "form.mobile": "मोबाइल नंबर",
-  "form.city": "शहर",
-  "form.emailOptional": "ईमेल (वैकल्पिक)",
-  "form.treatmentOrCondition": "उपचार या रोग",
-  "form.selectCity": "शहर चुनें",
-  "form.selectTreatment": "उपचार या रोग चुनें",
-  "form.preferredDate": "पसंदीदा तारीख",
-  "form.describeConcern": "अपनी समस्या बताएँ (वैकल्पिक)",
-  "form.submit": "परामर्श बुक करें",
-  "form.sending": "भेजा जा रहा है…",
-  "form.required": "आवश्यक",
-  "form.optional": "वैकल्पिक",
-
-  "common.language": "भाषा",
-  "common.chooseLanguage": "भाषा चुनें",
-  "common.loading": "लोड हो रहा है…",
-  "common.home": "होम",
-  "common.notFound": "पेज नहीं मिला",
-  "common.notFoundBody": "आप जो पेज खोज रहे हैं वह मौजूद नहीं है या हटा दिया गया है। अधिकतर लोग यहाँ जाते हैं।",
-  "common.backHome": "होम पेज पर वापस जाएँ",
-  "common.page": "पेज",
-  "common.of": "में से",
-  "common.translatedNotice":
-    "इस पेज का इंटरफ़ेस अनुवादित है। चिकित्सा जानकारी तब तक अंग्रेज़ी में दिखाई जाएगी जब तक कोई चिकित्सक अनुवाद की जाँच नहीं कर लेता।",
-};
-
-const ta: Dict = {
-  "nav.forPatients": "நோயாளிகளுக்கு",
-  "nav.ourCompany": "எங்கள் நிறுவனம்",
-  "nav.doctors": "மருத்துவர்கள்",
-  "nav.hospitals": "மருத்துவமனைகள்",
-  "nav.specialities": "சிறப்புத் துறைகள்",
-  "nav.treatments": "சிகிச்சைகள்",
-  "nav.conditions": "நோய்கள்",
-  "nav.surgeryCost": "அறுவை சிகிச்சை செலவு",
-  "nav.insurance": "காப்பீடு",
-  "nav.articles": "கட்டுரைகள்",
-  "nav.myAppointments": "எனது சந்திப்புகள்",
-  "nav.reviews": "நோயாளர் மதிப்புரைகள்",
-  "nav.faqs": "அடிக்கடி கேட்கப்படும் கேள்விகள்",
-  "nav.about": "எங்களைப் பற்றி",
-  "nav.contact": "தொடர்பு கொள்ள",
-  "nav.locations": "இடங்கள்",
-  "nav.careers": "வேலைவாய்ப்புகள்",
-  "nav.browse": "உலாவுக",
-
-  "action.book": "ஆலோசனையைப் பதிவு செய்யுங்கள்",
-  "action.bookShort": "பதிவு செய்",
-  "action.viewProfile": "சுயவிவரத்தைக் காண",
-  "action.viewDetails": "விவரங்களைக் காண",
-  "action.call": "அழைக்க",
-  "action.search": "தேடு",
-  "action.getDirections": "வழியைப் பெறு",
-  "action.writeReview": "மதிப்புரை எழுதுங்கள்",
-  "action.retry": "மீண்டும் முயற்சிக்க",
-  "action.clear": "அழி",
-  "action.openMenu": "மெனுவைத் திற",
-  "action.closeMenu": "மெனுவை மூடு",
-
-  "city.select": "நகரத்தைத் தேர்ந்தெடுக்கவும்",
-  "city.getMyLocation": "எனது இருப்பிடத்தைப் பெறு",
-  "city.searchCity": "நகரத்தைத் தேடு",
-  "city.searchCityLabel": "உங்கள் நகரத்தைத் தேடுங்கள்",
-  "city.allCities": "அனைத்து நகரங்கள்",
-  "city.finding": "உங்களைக் கண்டறிகிறோம்…",
-  "city.blocked": "இந்த தளத்திற்கு இருப்பிட அனுமதி தடுக்கப்பட்டுள்ளது. உலாவியில் அனுமதியுங்கள், அல்லது கீழே ஒரு நகரத்தைத் தேர்ந்தெடுக்கவும்.",
-  "city.failed": "உங்கள் இருப்பிடத்தைப் பெற முடியவில்லை. கீழே ஒரு நகரத்தைத் தேர்ந்தெடுக்கவும்.",
-  "city.notCovered": "நாங்கள் சேவை வழங்கும் நகரத்திற்கு அருகில் நீங்கள் இல்லை — கீழே அருகிலுள்ள நகரத்தைத் தேர்ந்தெடுக்கவும்.",
-  "city.unsupported": "உங்கள் உலாவி இருப்பிடத்தைப் பகிர முடியாது.",
-  "city.noMatch": "நகரம் எதுவும் பொருந்தவில்லை",
-  "city.cities": "நகரங்கள்",
-
-  "search.placeholder": "மருத்துவர்கள், சிகிச்சைகள், நோய்களைத் தேடுங்கள்",
-  "search.label": "மருத்துவர்கள், சிகிச்சைகள், நோய்கள் மற்றும் நகரங்களைத் தேடுங்கள்",
-
-  "form.fullName": "முழுப் பெயர்",
-  "form.mobile": "கைபேசி எண்",
-  "form.city": "நகரம்",
-  "form.emailOptional": "மின்னஞ்சல் (விருப்பம்)",
-  "form.treatmentOrCondition": "சிகிச்சை அல்லது நோய்",
-  "form.selectCity": "நகரத்தைத் தேர்ந்தெடுக்கவும்",
-  "form.selectTreatment": "சிகிச்சை அல்லது நோயைத் தேர்ந்தெடுக்கவும்",
-  "form.preferredDate": "விரும்பிய தேதி",
-  "form.describeConcern": "உங்கள் பிரச்சினையை விவரிக்கவும் (விருப்பம்)",
-  "form.submit": "ஆலோசனையைப் பதிவு செய்யுங்கள்",
-  "form.sending": "அனுப்பப்படுகிறது…",
-  "form.required": "தேவை",
-  "form.optional": "விருப்பம்",
-
-  "common.language": "மொழி",
-  "common.chooseLanguage": "மொழியைத் தேர்ந்தெடுக்கவும்",
-  "common.loading": "ஏற்றுகிறது…",
-  "common.home": "முகப்பு",
-  "common.notFound": "பக்கம் கிடைக்கவில்லை",
-  "common.notFoundBody": "நீங்கள் தேடும் பக்கம் இல்லை, அல்லது இடம் மாற்றப்பட்டுள்ளது. பெரும்பாலானோர் இங்கே செல்கிறார்கள்.",
-  "common.backHome": "முகப்புப் பக்கத்திற்குத் திரும்பு",
-  "common.page": "பக்கம்",
-  "common.of": "இல்",
-  "common.translatedNotice":
-    "இந்தப் பக்கத்தின் இடைமுகம் மொழிபெயர்க்கப்பட்டுள்ளது. மருத்துவத் தகவல், ஒரு மருத்துவர் மொழிபெயர்ப்பைச் சரிபார்க்கும் வரை ஆங்கிலத்தில் காட்டப்படும்.",
-};
-
-const te: Dict = {
-  "nav.forPatients": "రోగుల కోసం",
-  "nav.ourCompany": "మా సంస్థ",
-  "nav.doctors": "వైద్యులు",
-  "nav.hospitals": "ఆసుపత్రులు",
-  "nav.specialities": "ప్రత్యేకతలు",
-  "nav.treatments": "చికిత్సలు",
-  "nav.conditions": "వ్యాధులు",
-  "nav.surgeryCost": "శస్త్రచికిత్స ఖర్చు",
-  "nav.insurance": "బీమా",
-  "nav.articles": "వ్యాసాలు",
-  "nav.myAppointments": "నా అపాయింట్‌మెంట్లు",
-  "nav.reviews": "రోగుల సమీక్షలు",
-  "nav.faqs": "తరచుగా అడిగే ప్రశ్నలు",
-  "nav.about": "మా గురించి",
-  "nav.contact": "సంప్రదించండి",
-  "nav.locations": "ప్రాంతాలు",
-  "nav.careers": "కెరీర్‌లు",
-  "nav.browse": "బ్రౌజ్ చేయండి",
-
-  "action.book": "సంప్రదింపును బుక్ చేయండి",
-  "action.bookShort": "బుక్ చేయండి",
-  "action.viewProfile": "ప్రొఫైల్ చూడండి",
-  "action.viewDetails": "వివరాలు చూడండి",
-  "action.call": "కాల్ చేయండి",
-  "action.search": "వెతకండి",
-  "action.getDirections": "దిశలను పొందండి",
-  "action.writeReview": "సమీక్ష రాయండి",
-  "action.retry": "మళ్లీ ప్రయత్నించండి",
-  "action.clear": "తొలగించండి",
-  "action.openMenu": "మెనూ తెరవండి",
-  "action.closeMenu": "మెనూ మూసివేయండి",
-
-  "city.select": "నగరాన్ని ఎంచుకోండి",
-  "city.getMyLocation": "నా స్థానాన్ని పొందండి",
-  "city.searchCity": "నగరాన్ని వెతకండి",
-  "city.searchCityLabel": "మీ నగరాన్ని వెతకండి",
-  "city.allCities": "అన్ని నగరాలు",
-  "city.finding": "మిమ్మల్ని కనుగొంటున్నాం…",
-  "city.blocked": "ఈ సైట్‌కు స్థాన అనుమతి నిలిపివేయబడింది. బ్రౌజర్‌లో అనుమతించండి, లేదా క్రింద ఒక నగరాన్ని ఎంచుకోండి.",
-  "city.failed": "మీ స్థానాన్ని పొందలేకపోయాం. క్రింద ఒక నగరాన్ని ఎంచుకోండి.",
-  "city.notCovered": "మేము సేవలందించే నగరానికి మీరు దగ్గరగా లేరు — క్రింద సమీప నగరాన్ని ఎంచుకోండి.",
-  "city.unsupported": "మీ బ్రౌజర్ స్థానాన్ని పంచుకోలేదు.",
-  "city.noMatch": "ఏ నగరం సరిపోలలేదు",
-  "city.cities": "నగరాలు",
-
-  "search.placeholder": "వైద్యులు, చికిత్సలు, వ్యాధులను వెతకండి",
-  "search.label": "వైద్యులు, చికిత్సలు, వ్యాధులు మరియు నగరాలను వెతకండి",
-
-  "form.fullName": "పూర్తి పేరు",
-  "form.mobile": "మొబైల్ నంబర్",
-  "form.city": "నగరం",
-  "form.emailOptional": "ఇమెయిల్ (ఐచ్ఛికం)",
-  "form.treatmentOrCondition": "చికిత్స లేదా వ్యాధి",
-  "form.selectCity": "నగరాన్ని ఎంచుకోండి",
-  "form.selectTreatment": "చికిత్స లేదా వ్యాధిని ఎంచుకోండి",
-  "form.preferredDate": "ఇష్టమైన తేదీ",
-  "form.describeConcern": "మీ సమస్యను వివరించండి (ఐచ్ఛికం)",
-  "form.submit": "సంప్రదింపును బుక్ చేయండి",
-  "form.sending": "పంపుతోంది…",
-  "form.required": "తప్పనిసరి",
-  "form.optional": "ఐచ్ఛికం",
-
-  "common.language": "భాష",
-  "common.chooseLanguage": "భాషను ఎంచుకోండి",
-  "common.loading": "లోడ్ అవుతోంది…",
-  "common.home": "హోమ్",
-  "common.notFound": "పేజీ దొరకలేదు",
-  "common.notFoundBody": "మీరు వెతుకుతున్న పేజీ లేదు, లేదా తరలించబడింది. చాలా మంది ఇక్కడికి వెళ్తారు.",
-  "common.backHome": "హోమ్ పేజీకి తిరిగి వెళ్ళండి",
-  "common.page": "పేజీ",
-  "common.of": "లో",
-  "common.translatedNotice":
-    "ఈ పేజీ ఇంటర్‌ఫేస్ అనువదించబడింది. ఒక వైద్యుడు అనువాదాన్ని సమీక్షించే వరకు వైద్య సమాచారం ఆంగ్లంలో చూపబడుతుంది.",
-};
-
-const ml: Dict = {
-  "nav.forPatients": "രോഗികൾക്കായി",
-  "nav.ourCompany": "ഞങ്ങളുടെ കമ്പനി",
-  "nav.doctors": "ഡോക്ടർമാർ",
-  "nav.hospitals": "ആശുപത്രികൾ",
-  "nav.specialities": "സ്പെഷ്യാലിറ്റികൾ",
-  "nav.treatments": "ചികിത്സകൾ",
-  "nav.conditions": "രോഗങ്ങൾ",
-  "nav.surgeryCost": "ശസ്ത്രക്രിയ ചെലവ്",
-  "nav.insurance": "ഇൻഷുറൻസ്",
-  "nav.articles": "ലേഖനങ്ങൾ",
-  "nav.myAppointments": "എന്റെ അപ്പോയിന്റ്മെന്റുകൾ",
-  "nav.reviews": "രോഗികളുടെ അവലോകനങ്ങൾ",
-  "nav.faqs": "പതിവുചോദ്യങ്ങൾ",
-  "nav.about": "ഞങ്ങളെക്കുറിച്ച്",
-  "nav.contact": "ബന്ധപ്പെടുക",
-  "nav.locations": "സ്ഥലങ്ങൾ",
-  "nav.careers": "കരിയർ",
-  "nav.browse": "ബ്രൗസ് ചെയ്യുക",
-
-  "action.book": "കൺസൾട്ടേഷൻ ബുക്ക് ചെയ്യുക",
-  "action.bookShort": "ബുക്ക് ചെയ്യുക",
-  "action.viewProfile": "പ്രൊഫൈൽ കാണുക",
-  "action.viewDetails": "വിശദാംശങ്ങൾ കാണുക",
-  "action.call": "വിളിക്കുക",
-  "action.search": "തിരയുക",
-  "action.getDirections": "വഴി കാണുക",
-  "action.writeReview": "അവലോകനം എഴുതുക",
-  "action.retry": "വീണ്ടും ശ്രമിക്കുക",
-  "action.clear": "മായ്ക്കുക",
-  "action.openMenu": "മെനു തുറക്കുക",
-  "action.closeMenu": "മെനു അടയ്ക്കുക",
-
-  "city.select": "നഗരം തിരഞ്ഞെടുക്കുക",
-  "city.getMyLocation": "എന്റെ ലൊക്കേഷൻ കണ്ടെത്തുക",
-  "city.searchCity": "നഗരം തിരയുക",
-  "city.searchCityLabel": "നിങ്ങളുടെ നഗരം തിരയുക",
-  "city.allCities": "എല്ലാ നഗരങ്ങളും",
-  "city.finding": "നിങ്ങളെ കണ്ടെത്തുന്നു…",
-  "city.blocked": "ഈ സൈറ്റിന് ലൊക്കേഷൻ അനുമതി തടഞ്ഞിരിക്കുന്നു. ബ്രൗസറിൽ അനുവദിക്കുക, അല്ലെങ്കിൽ താഴെ ഒരു നഗരം തിരഞ്ഞെടുക്കുക.",
-  "city.failed": "നിങ്ങളുടെ ലൊക്കേഷൻ ലഭിച്ചില്ല. താഴെ ഒരു നഗരം തിരഞ്ഞെടുക്കുക.",
-  "city.notCovered": "ഞങ്ങൾ സേവനം നൽകുന്ന നഗരത്തിന് അടുത്ത് നിങ്ങളില്ല — താഴെ അടുത്തുള്ള നഗരം തിരഞ്ഞെടുക്കുക.",
-  "city.unsupported": "നിങ്ങളുടെ ബ്രൗസറിന് ലൊക്കേഷൻ പങ്കിടാനാകില്ല.",
-  "city.noMatch": "ഒരു നഗരവും പൊരുത്തപ്പെടുന്നില്ല",
-  "city.cities": "നഗരങ്ങൾ",
-
-  "search.placeholder": "ഡോക്ടർമാർ, ചികിത്സകൾ, രോഗങ്ങൾ തിരയുക",
-  "search.label": "ഡോക്ടർമാർ, ചികിത്സകൾ, രോഗങ്ങൾ, നഗരങ്ങൾ എന്നിവ തിരയുക",
-
-  "form.fullName": "മുഴുവൻ പേര്",
-  "form.mobile": "മൊബൈൽ നമ്പർ",
-  "form.city": "നഗരം",
-  "form.emailOptional": "ഇമെയിൽ (ഓപ്ഷണൽ)",
-  "form.treatmentOrCondition": "ചികിത്സ അല്ലെങ്കിൽ രോഗം",
-  "form.selectCity": "നഗരം തിരഞ്ഞെടുക്കുക",
-  "form.selectTreatment": "ചികിത്സ അല്ലെങ്കിൽ രോഗം തിരഞ്ഞെടുക്കുക",
-  "form.preferredDate": "ഇഷ്ടമുള്ള തീയതി",
-  "form.describeConcern": "നിങ്ങളുടെ പ്രശ്നം വിവരിക്കുക (ഓപ്ഷണൽ)",
-  "form.submit": "കൺസൾട്ടേഷൻ ബുക്ക് ചെയ്യുക",
-  "form.sending": "അയയ്ക്കുന്നു…",
-  "form.required": "ആവശ്യമാണ്",
-  "form.optional": "ഓപ്ഷണൽ",
-
-  "common.language": "ഭാഷ",
-  "common.chooseLanguage": "ഭാഷ തിരഞ്ഞെടുക്കുക",
-  "common.loading": "ലോഡ് ചെയ്യുന്നു…",
-  "common.home": "ഹോം",
-  "common.notFound": "പേജ് കണ്ടെത്തിയില്ല",
-  "common.notFoundBody": "നിങ്ങൾ തിരയുന്ന പേജ് നിലവിലില്ല, അല്ലെങ്കിൽ മാറ്റിയിരിക്കുന്നു. മിക്കവരും ഇവിടേക്കാണ് പോകുന്നത്.",
-  "common.backHome": "ഹോം പേജിലേക്ക് മടങ്ങുക",
-  "common.page": "പേജ്",
-  "common.of": "ൽ",
-  "common.translatedNotice":
-    "ഈ പേജിന്റെ ഇന്റർഫേസ് വിവർത്തനം ചെയ്തിട്ടുണ്ട്. ഒരു ഡോക്ടർ വിവർത്തനം പരിശോധിക്കുന്നതുവരെ വൈദ്യവിവരങ്ങൾ ഇംഗ്ലീഷിൽ കാണിക്കും.",
-};
-
-const kn: Dict = {
-  "nav.forPatients": "ರೋಗಿಗಳಿಗಾಗಿ",
-  "nav.ourCompany": "ನಮ್ಮ ಕಂಪನಿ",
-  "nav.doctors": "ವೈದ್ಯರು",
-  "nav.hospitals": "ಆಸ್ಪತ್ರೆಗಳು",
-  "nav.specialities": "ವಿಶೇಷತೆಗಳು",
-  "nav.treatments": "ಚಿಕಿತ್ಸೆಗಳು",
-  "nav.conditions": "ಕಾಯಿಲೆಗಳು",
-  "nav.surgeryCost": "ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ವೆಚ್ಚ",
-  "nav.insurance": "ವಿಮೆ",
-  "nav.articles": "ಲೇಖನಗಳು",
-  "nav.myAppointments": "ನನ್ನ ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್‌ಗಳು",
-  "nav.reviews": "ರೋಗಿಗಳ ವಿಮರ್ಶೆಗಳು",
-  "nav.faqs": "ಪದೇ ಪದೇ ಕೇಳುವ ಪ್ರಶ್ನೆಗಳು",
-  "nav.about": "ನಮ್ಮ ಬಗ್ಗೆ",
-  "nav.contact": "ಸಂಪರ್ಕಿಸಿ",
-  "nav.locations": "ಸ್ಥಳಗಳು",
-  "nav.careers": "ವೃತ್ತಿ ಅವಕಾಶಗಳು",
-  "nav.browse": "ಬ್ರೌಸ್ ಮಾಡಿ",
-
-  "action.book": "ಸಮಾಲೋಚನೆ ಬುಕ್ ಮಾಡಿ",
-  "action.bookShort": "ಬುಕ್ ಮಾಡಿ",
-  "action.viewProfile": "ಪ್ರೊಫೈಲ್ ನೋಡಿ",
-  "action.viewDetails": "ವಿವರಗಳನ್ನು ನೋಡಿ",
-  "action.call": "ಕರೆ ಮಾಡಿ",
-  "action.search": "ಹುಡುಕಿ",
-  "action.getDirections": "ದಾರಿ ಪಡೆಯಿರಿ",
-  "action.writeReview": "ವಿಮರ್ಶೆ ಬರೆಯಿರಿ",
-  "action.retry": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
-  "action.clear": "ಅಳಿಸಿ",
-  "action.openMenu": "ಮೆನು ತೆರೆಯಿರಿ",
-  "action.closeMenu": "ಮೆನು ಮುಚ್ಚಿ",
-
-  "city.select": "ನಗರ ಆಯ್ಕೆಮಾಡಿ",
-  "city.getMyLocation": "ನನ್ನ ಸ್ಥಳ ಪಡೆಯಿರಿ",
-  "city.searchCity": "ನಗರ ಹುಡುಕಿ",
-  "city.searchCityLabel": "ನಿಮ್ಮ ನಗರವನ್ನು ಹುಡುಕಿ",
-  "city.allCities": "ಎಲ್ಲಾ ನಗರಗಳು",
-  "city.finding": "ನಿಮ್ಮನ್ನು ಹುಡುಕುತ್ತಿದ್ದೇವೆ…",
-  "city.blocked": "ಈ ಸೈಟ್‌ಗೆ ಸ್ಥಳದ ಅನುಮತಿ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ. ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಅನುಮತಿಸಿ, ಅಥವಾ ಕೆಳಗೆ ನಗರ ಆಯ್ಕೆಮಾಡಿ.",
-  "city.failed": "ನಿಮ್ಮ ಸ್ಥಳ ಪಡೆಯಲಾಗಲಿಲ್ಲ. ಕೆಳಗೆ ನಗರ ಆಯ್ಕೆಮಾಡಿ.",
-  "city.notCovered": "ನಾವು ಸೇವೆ ನೀಡುವ ನಗರದ ಹತ್ತಿರ ನೀವಿಲ್ಲ — ಕೆಳಗೆ ಹತ್ತಿರದ ನಗರ ಆಯ್ಕೆಮಾಡಿ.",
-  "city.unsupported": "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಸ್ಥಳವನ್ನು ಹಂಚಿಕೊಳ್ಳಲಾಗದು.",
-  "city.noMatch": "ಯಾವ ನಗರವೂ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ",
-  "city.cities": "ನಗರಗಳು",
-
-  "search.placeholder": "ವೈದ್ಯರು, ಚಿಕಿತ್ಸೆಗಳು, ಕಾಯಿಲೆಗಳನ್ನು ಹುಡುಕಿ",
-  "search.label": "ವೈದ್ಯರು, ಚಿಕಿತ್ಸೆಗಳು, ಕಾಯಿಲೆಗಳು ಮತ್ತು ನಗರಗಳನ್ನು ಹುಡುಕಿ",
-
-  "form.fullName": "ಪೂರ್ಣ ಹೆಸರು",
-  "form.mobile": "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
-  "form.city": "ನಗರ",
-  "form.emailOptional": "ಇಮೇಲ್ (ಐಚ್ಛಿಕ)",
-  "form.treatmentOrCondition": "ಚಿಕಿತ್ಸೆ ಅಥವಾ ಕಾಯಿಲೆ",
-  "form.selectCity": "ನಗರ ಆಯ್ಕೆಮಾಡಿ",
-  "form.selectTreatment": "ಚಿಕಿತ್ಸೆ ಅಥವಾ ಕಾಯಿಲೆ ಆಯ್ಕೆಮಾಡಿ",
-  "form.preferredDate": "ಇಷ್ಟದ ದಿನಾಂಕ",
-  "form.describeConcern": "ನಿಮ್ಮ ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ (ಐಚ್ಛಿಕ)",
-  "form.submit": "ಸಮಾಲೋಚನೆ ಬುಕ್ ಮಾಡಿ",
-  "form.sending": "ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ…",
-  "form.required": "ಅಗತ್ಯ",
-  "form.optional": "ಐಚ್ಛಿಕ",
-
-  "common.language": "ಭಾಷೆ",
-  "common.chooseLanguage": "ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ",
-  "common.loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
-  "common.home": "ಮುಖಪುಟ",
-  "common.notFound": "ಪುಟ ಸಿಗಲಿಲ್ಲ",
-  "common.notFoundBody": "ನೀವು ಹುಡುಕುತ್ತಿರುವ ಪುಟ ಇಲ್ಲ, ಅಥವಾ ಸ್ಥಳಾಂತರಗೊಂಡಿದೆ. ಹೆಚ್ಚಿನವರು ಇಲ್ಲಿಗೆ ಹೋಗುತ್ತಾರೆ.",
-  "common.backHome": "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
-  "common.page": "ಪುಟ",
-  "common.of": "ರಲ್ಲಿ",
-  "common.translatedNotice":
-    "ಈ ಪುಟದ ಇಂಟರ್ಫೇಸ್ ಅನುವಾದಿಸಲಾಗಿದೆ. ವೈದ್ಯರೊಬ್ಬರು ಅನುವಾದವನ್ನು ಪರಿಶೀಲಿಸುವವರೆಗೆ ವೈದ್ಯಕೀಯ ಮಾಹಿತಿ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ತೋರಿಸಲಾಗುತ್ತದೆ.",
-};
-
-const mr: Dict = {
-  "nav.forPatients": "रुग्णांसाठी",
-  "nav.ourCompany": "आमची कंपनी",
-  "nav.doctors": "डॉक्टर",
-  "nav.hospitals": "रुग्णालये",
-  "nav.specialities": "विशेषता",
-  "nav.treatments": "उपचार",
-  "nav.conditions": "आजार",
-  "nav.surgeryCost": "शस्त्रक्रिया खर्च",
-  "nav.insurance": "विमा",
-  "nav.articles": "लेख",
-  "nav.myAppointments": "माझ्या भेटी",
-  "nav.reviews": "रुग्णांची पुनरावलोकने",
-  "nav.faqs": "वारंवार विचारले जाणारे प्रश्न",
-  "nav.about": "आमच्याबद्दल",
-  "nav.contact": "संपर्क साधा",
-  "nav.locations": "ठिकाणे",
-  "nav.careers": "करिअर",
-  "nav.browse": "ब्राउझ करा",
-
-  "action.book": "सल्लामसलत बुक करा",
-  "action.bookShort": "बुक करा",
-  "action.viewProfile": "प्रोफाइल पहा",
-  "action.viewDetails": "तपशील पहा",
-  "action.call": "कॉल करा",
-  "action.search": "शोधा",
-  "action.getDirections": "दिशा मिळवा",
-  "action.writeReview": "पुनरावलोकन लिहा",
-  "action.retry": "पुन्हा प्रयत्न करा",
-  "action.clear": "पुसा",
-  "action.openMenu": "मेनू उघडा",
-  "action.closeMenu": "मेनू बंद करा",
-
-  "city.select": "शहर निवडा",
-  "city.getMyLocation": "माझे स्थान मिळवा",
-  "city.searchCity": "शहर शोधा",
-  "city.searchCityLabel": "तुमचे शहर शोधा",
-  "city.allCities": "सर्व शहरे",
-  "city.finding": "तुम्हाला शोधत आहोत…",
-  "city.blocked": "या साइटसाठी स्थान परवानगी बंद आहे. ब्राउझरमध्ये परवानगी द्या, किंवा खाली शहर निवडा.",
-  "city.failed": "आम्हाला तुमचे स्थान मिळाले नाही. खाली शहर निवडा.",
-  "city.notCovered": "आम्ही सेवा देत असलेल्या शहराजवळ तुम्ही नाही — खाली जवळचे शहर निवडा.",
-  "city.unsupported": "तुमचा ब्राउझर स्थान सामायिक करू शकत नाही.",
-  "city.noMatch": "कोणतेही शहर जुळले नाही",
-  "city.cities": "शहरे",
-
-  "search.placeholder": "डॉक्टर, उपचार, आजार शोधा",
-  "search.label": "डॉक्टर, उपचार, आजार आणि शहरे शोधा",
-
-  "form.fullName": "पूर्ण नाव",
-  "form.mobile": "मोबाइल नंबर",
-  "form.city": "शहर",
-  "form.emailOptional": "ईमेल (पर्यायी)",
-  "form.treatmentOrCondition": "उपचार किंवा आजार",
-  "form.selectCity": "शहर निवडा",
-  "form.selectTreatment": "उपचार किंवा आजार निवडा",
-  "form.preferredDate": "पसंतीची तारीख",
-  "form.describeConcern": "तुमची समस्या सांगा (पर्यायी)",
-  "form.submit": "सल्लामसलत बुक करा",
-  "form.sending": "पाठवत आहे…",
-  "form.required": "आवश्यक",
-  "form.optional": "पर्यायी",
-
-  "common.language": "भाषा",
-  "common.chooseLanguage": "भाषा निवडा",
-  "common.loading": "लोड होत आहे…",
-  "common.home": "मुख्यपृष्ठ",
-  "common.notFound": "पृष्ठ सापडले नाही",
-  "common.notFoundBody": "तुम्ही शोधत असलेले पृष्ठ अस्तित्वात नाही, किंवा हलवले गेले आहे. बहुतेक लोक इथे जातात.",
-  "common.backHome": "मुख्यपृष्ठावर परत जा",
-  "common.page": "पृष्ठ",
-  "common.of": "पैकी",
-  "common.translatedNotice":
-    "या पृष्ठाचा इंटरफेस भाषांतरित आहे. डॉक्टरांनी भाषांतर तपासेपर्यंत वैद्यकीय माहिती इंग्रजीत दाखवली जाईल.",
-};
-
-const DICTS: Record<Locale, Dict> = { en, hi, ta, te, ml, kn, mr };
+function fill(text: string, vars?: TVars): string {
+  if (!vars) return text;
+  return text.replace(/\{(\w+)\}/g, (whole, name: string) =>
+    name in vars ? String(vars[name]) : whole,
+  );
+}
 
 /** Looks up a key, falling back to English and then to the key itself — never renders blank. */
-export function translate(locale: Locale, key: string): string {
-  return DICTS[locale]?.[key] ?? DICTS[DEFAULT_LOCALE]?.[key] ?? key;
+export function translate(locale: Locale, key: string, vars?: TVars): string {
+  return fill(REGISTRY[locale]?.[key] ?? en[key] ?? key, vars);
 }
 
-/** How much of the interface a language actually covers, for the switcher and for spotting gaps. */
+/** How much of the interface a language actually covers, for spotting gaps. */
 export function coverage(locale: Locale): number {
   const total = Object.keys(en).length;
-  const have = Object.keys(DICTS[locale] ?? {}).length;
+  const have = Object.keys(REGISTRY[locale] ?? {}).length;
   return total === 0 ? 1 : have / total;
 }
+
+export type { Dict, TVars };

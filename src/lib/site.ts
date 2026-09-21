@@ -180,3 +180,10 @@ export const CALLER = COORDINATOR ? "a care coordinator" : "our team";
 export const CALLBACK_PHRASE = SITE.callbackTime ? `within ${SITE.callbackTime}` : "shortly";
 /** Capitalise the first letter (for CALLER at the start of a sentence). */
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/**
+ * True while none of the flag-dependent wording above is switched on. The translated strings
+ * describe exactly that state ("our team will call you back shortly"), so they are only used while
+ * this holds; once someone enables a promise, the English text built from the flags is shown
+ * instead, rather than a translation that no longer matches what the site is promising.
+ */
+export const DEFAULT_WORDING = !FREE && !COORDINATOR && !SITE.callbackTime;

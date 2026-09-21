@@ -2,6 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { DEFAULT_LOCALE, localeFromPath, type Locale } from "./lib/i18n/locales";
+import { loadDictionary } from "./lib/i18n/strings";
 
 /**
  * The locale for this render, taken from the first path segment.
@@ -55,6 +56,9 @@ function localeRewrite(locale: Locale) {
 export const getRouter = async () => {
   const queryClient = new QueryClient();
   const locale = await currentLocale();
+  // Awaited here — on the server and again in the browser before hydration — so both sides render
+  // with the same dictionary. Loading it lazily inside a component would hydrate in English first.
+  await loadDictionary(locale);
 
   // Spread rather than pass undefined: exactOptionalPropertyTypes rejects an explicit undefined.
   const rewrite = localeRewrite(locale);

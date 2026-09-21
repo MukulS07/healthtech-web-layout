@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { A } from "@/components/common/A";
+import { useT } from "@/lib/i18n/context";
 
 /**
  * Crawlable pagination: real <A href="?page=N"> links (not JS-only buttons), so search engines
@@ -17,6 +18,7 @@ export function Pagination({
   hrefFor: (page: number) => string;
   className?: string;
 }) {
+  const t = useT();
   if (totalPages <= 1) return null;
   const pages = new Set<number>([1, totalPages, page - 1, page, page + 1]);
   if (page <= 3) [2, 3, 4].forEach((p) => pages.add(p));
@@ -25,9 +27,9 @@ export function Pagination({
 
   const base = "grid h-9 min-w-9 place-items-center rounded-lg border px-2 text-sm font-semibold transition-colors";
   return (
-    <nav aria-label="Pagination" className={cn("mt-10 flex flex-wrap items-center justify-center gap-1.5", className)}>
+    <nav aria-label={t("pager.label")} className={cn("mt-10 flex flex-wrap items-center justify-center gap-1.5", className)}>
       {page > 1 ? (
-        <A href={hrefFor(page - 1)} rel="prev" className={cn(base, "border-border text-navy hover:bg-cream")} aria-label="Previous page">
+        <A href={hrefFor(page - 1)} rel="prev" className={cn(base, "border-border text-navy hover:bg-cream")} aria-label={t("pager.prev")}>
           <ChevronLeft className="h-4 w-4" />
         </A>
       ) : null}
@@ -44,7 +46,7 @@ export function Pagination({
         </span>
       ))}
       {page < totalPages ? (
-        <A href={hrefFor(page + 1)} rel="next" className={cn(base, "border-border text-navy hover:bg-cream")} aria-label="Next page">
+        <A href={hrefFor(page + 1)} rel="next" className={cn(base, "border-border text-navy hover:bg-cream")} aria-label={t("pager.next")}>
           <ChevronRight className="h-4 w-4" />
         </A>
       ) : null}

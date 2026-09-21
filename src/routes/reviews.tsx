@@ -8,24 +8,26 @@ import { Pagination } from "@/components/common/Pagination";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { seo } from "@/lib/seo";
 import { A } from "@/components/common/A";
+import { useT } from "@/lib/i18n/context";
+import type { TVars } from "@/lib/i18n/types";
 
 const ratingOptions = [
-  { label: "All ratings", value: 0 },
-  { label: "5 stars", value: 5 },
-  { label: "4 stars & up", value: 4 },
-  { label: "3 stars & up", value: 3 },
+  { key: "reviews.all", value: 0 },
+  { key: "reviews.stars5", value: 5 },
+  { key: "reviews.stars4", value: 4 },
+  { key: "reviews.stars3", value: 3 },
 ];
 
-function timeAgo(iso: string) {
+function timeAgo(iso: string, t: (key: string, vars?: TVars) => string) {
   const diffMs = Date.now() - new Date(iso).getTime();
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (days <= 0) return "Today";
-  if (days === 1) return "1 day ago";
-  if (days < 30) return `${days} days ago`;
+  if (days <= 0) return t("reviews.today");
+  if (days === 1) return t("reviews.day1");
+  if (days < 30) return t("reviews.days", { n: days });
   const months = Math.floor(days / 30);
-  if (months < 12) return `${months} month${months > 1 ? "s" : ""} ago`;
+  if (months < 12) return months === 1 ? t("reviews.month1") : t("reviews.months", { n: months });
   const years = Math.floor(months / 12);
-  return `${years} year${years > 1 ? "s" : ""} ago`;
+  return years === 1 ? t("reviews.year1") : t("reviews.years", { n: years });
 }
 
 function StarRow({ rating }: { rating: number }) {
@@ -56,6 +58,7 @@ interface ReviewCard {
 }
 
 function ReviewCardItem({ review }: { review: ReviewCard }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   const isLong = review.comment.length > 220;
   const shown = expanded || !isLong ? review.comment : `${review.comment.slice(0, 220)}…`;
@@ -74,7 +77,7 @@ function ReviewCardItem({ review }: { review: ReviewCard }) {
           <div>
             <p className="text-sm font-semibold text-navy">{review.patientName}</p>
             <p className="text-[11px] text-muted-foreground">
-              {[review.treatment, review.city].filter(Boolean).join(" · ") || "Go Surgery patient"}
+              {[review.treatment, review.city].filter(Boolean).join(" · ") || t("reviews.patient")}
             </p>
           </div>
         </div>
@@ -90,19 +93,19 @@ function ReviewCardItem({ review }: { review: ReviewCard }) {
             onClick={() => setExpanded(!expanded)}
             className="ml-1 font-semibold text-brand-orange hover:underline"
           >
-            {expanded ? "Show less" : "Read More"}
+            {expanded ? t("reviews.showLess") : t("reviews.readMore")}
           </button>
         )}
       </p>
       {review.doctorResponse && (
         <div className="mt-3 rounded-lg bg-cream p-3">
           <p className="text-[11px] font-bold uppercase tracking-wide text-navy/70">
-            Response from the doctor
+            {t("reviews.doctorResponse")}
           </p>
           <p className="mt-1 text-xs text-ink/70">{review.doctorResponse}</p>
         </div>
       )}
-      <p className="mt-3 text-[11px] text-muted-foreground">{timeAgo(review.createdAt)}</p>
+      <p className="mt-3 text-[11px] text-muted-foreground">{timeAgo(review.createdAt, t)}</p>
     </article>
   );
 }
@@ -166,6 +169,7 @@ export const Route = createFileRoute("/reviews")({
 });
 
 function ReviewsPage() {
+  const t = useT();
   const data = Route.useLoaderData();
   const search = Route.useSearch();
   const reviews = data?.reviews ?? [];
@@ -182,14 +186,14 @@ function ReviewsPage() {
       <main>
         <section className="bg-navy py-14">
           <Container>
-            <Eyebrow tone="light">Reviews in our directory</Eyebrow>
+            <Eyebrow tone="light">{t("reviews.eyebrow")}</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
-              Patient Reviews & Stories
+              {t("reviews.title")}
             </h1>
             <div className="mt-6 flex items-center gap-2">
               <StarRow rating={averageRating} />
               <span className="ml-1 text-sm font-semibold text-navy-foreground">
-                {averageRating || "—"} out of 5 — from {totalReviews.toLocaleString("en-US")} reviews
+                {t("reviews.summary", { rating: averageRating || "—", count: totalReviews.toLocaleString("en-US") })}
               </span>
             </div>
           </Container>
@@ -198,12 +202,12 @@ function ReviewsPage() {
         <section className="py-14">
           <Container>
             <SectionHead
-              eyebrow="What our patients say"
-              title="Patient Reviews"
-              subtitle="Reviews held in our directory records for listed doctors. We're verifying where older reviews came from — any that fail our checks are held back, and very short reviews aren't shown."
+              eyebrow={t("reviews.wallEyebrow")}
+              title={t("nav.reviews")}
+              subtitle={t("reviews.wallSub")}
               action={
                 <A href="/reviews/write">
-                  <OrangeButton>Write a Review</OrangeButton>
+                  <OrangeButton>{t("action.writeReview")}</OrangeButton>
                 </A>
               }
             />
@@ -219,14 +223,14 @@ function ReviewsPage() {
                       : "border-border bg-background text-ink/70 hover:border-navy/30"
                   }`}
                 >
-                  {opt.label}
+                  {t(opt.key)}
                 </A>
               ))}
             </div>
 
             {reviews.length === 0 ? (
               <div className="py-16 text-center text-muted-foreground">
-                No reviews match this filter yet.
+                {t("reviews.none")}
               </div>
             ) : (
               <div className="columns-1 gap-5 sm:columns-2 lg:columns-3 [&>*]:mb-5">
@@ -243,7 +247,7 @@ function ReviewsPage() {
             />
             {totalPages > 1 && (
               <p className="mt-3 text-center text-sm text-muted-foreground">
-                Page {page.toLocaleString("en-IN")} of {totalPages.toLocaleString("en-IN")}
+                {t("pager.pageOf", { page: page.toLocaleString("en-IN"), total: totalPages.toLocaleString("en-IN") })}
               </p>
             )}
           </Container>

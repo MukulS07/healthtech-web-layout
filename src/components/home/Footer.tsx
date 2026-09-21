@@ -4,17 +4,23 @@ import { BOOK_LABEL, TOP_CITIES, promiseEnabled, SITE, telHref, whatsappHref } f
 import { SPECIALITIES } from "@/data/catalog";
 import { A } from "@/components/common/A";
 import { track } from "@/lib/track";
+import { useT } from "@/lib/i18n/context";
+import type { TVars } from "@/lib/i18n/types";
 
-const columns = [
+type T = (key: string, vars?: TVars) => string;
+
+// Speciality and treatment names are catalogue terms and stay English (see i18n/strings.ts); the
+// column titles and generic links are interface text and are translated.
+const buildColumns = (t: T) => [
   {
-    title: "Specialities",
+    title: t("nav.specialities"),
     links: [
       ...SPECIALITIES.slice(0, 8).map((s) => ({ label: s.name, href: `/specialities/${s.slug}` })),
-      { label: `All ${SPECIALITIES.length} specialities`, href: "/specialities" },
+      { label: t("footer.allSpecialities", { n: SPECIALITIES.length }), href: "/specialities" },
     ],
   },
   {
-    title: "Popular Treatments",
+    title: t("footer.colTreatments"),
     links: [
       { label: "Laser Piles Surgery", href: "/treatments/laser-piles-surgery" },
       { label: "Gallbladder Removal", href: "/treatments/laparoscopic-cholecystectomy" },
@@ -22,46 +28,48 @@ const columns = [
       { label: "Kidney Stone (RIRS)", href: "/treatments/rirs" },
       { label: "Cataract Surgery", href: "/treatments/phaco-cataract-surgery" },
       { label: "Knee Replacement", href: "/treatments/total-knee-replacement" },
-      { label: "All treatments", href: "/treatments" },
-      { label: "All conditions", href: "/conditions" },
+      { label: t("footer.allTreatments"), href: "/treatments" },
+      { label: t("footer.allConditions"), href: "/conditions" },
     ],
   },
   {
-    title: "For Patients",
+    title: t("nav.forPatients"),
     links: [
-      { label: BOOK_LABEL, href: "/contact" },
-      { label: "Find Doctors", href: "/doctors" },
-      { label: "Find Hospitals", href: "/hospitals" },
-      { label: "Ask a Question", href: "/ask-a-question" },
-      { label: "Patient Reviews", href: "/reviews" },
-      { label: "Write a Review", href: "/reviews/write" },
-      { label: "Treatment Cost", href: "/cost" },
-      { label: "No-Cost EMI", href: "/no-cost-emi" },
-      { label: "Insurance Eligibility", href: "/insurance-eligibility" },
-      { label: "Surgery Cost Calculator", href: "/surgery-cost-calculator" },
-      { label: "EMI Calculator", href: "/emi-calculator" },
-      { label: "Pregnancy Due Date Calculator", href: "/pregnancy-due-date-calculator" },
-      { label: "Patient Help", href: "/patient-help" },
-      { label: "FAQs", href: "/faqs" },
+      { label: promiseEnabled("free-consult") ? BOOK_LABEL : t("action.book"), href: "/contact" },
+      { label: t("footer.findDoctors"), href: "/doctors" },
+      { label: t("footer.findHospitals"), href: "/hospitals" },
+      { label: t("footer.askQuestion"), href: "/ask-a-question" },
+      { label: t("nav.reviews"), href: "/reviews" },
+      { label: t("action.writeReview"), href: "/reviews/write" },
+      { label: t("footer.treatmentCost"), href: "/cost" },
+      { label: t("footer.noCostEmi"), href: "/no-cost-emi" },
+      { label: t("footer.insuranceElig"), href: "/insurance-eligibility" },
+      { label: t("footer.costCalc"), href: "/surgery-cost-calculator" },
+      { label: t("footer.emiCalc"), href: "/emi-calculator" },
+      { label: t("footer.dueDate"), href: "/pregnancy-due-date-calculator" },
+      { label: t("footer.patientHelp"), href: "/patient-help" },
+      { label: t("nav.faqs"), href: "/faqs" },
     ],
   },
   {
-    title: "Company",
+    title: t("footer.colCompany"),
     links: [
-      { label: "About Us", href: "/about" },
-      { label: "Healthfeed", href: "/blog" },
-      { label: "Careers", href: "/careers" },
-      { label: "Partner With Us (Doctors)", href: "/doctor-onboarding" },
-      { label: "Contact Us", href: "/contact" },
-      { label: "Locations", href: "/locations" },
-      { label: "Editorial Policy", href: "/editorial-policy" },
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Terms of Use", href: "/terms" },
+      { label: t("nav.about"), href: "/about" },
+      { label: t("footer.healthfeed"), href: "/blog" },
+      { label: t("nav.careers"), href: "/careers" },
+      { label: t("footer.partner"), href: "/doctor-onboarding" },
+      { label: t("nav.contact"), href: "/contact" },
+      { label: t("nav.locations"), href: "/locations" },
+      { label: t("footer.editorial"), href: "/editorial-policy" },
+      { label: t("footer.privacy"), href: "/privacy" },
+      { label: t("footer.terms"), href: "/terms" },
     ],
   },
 ];
 
 export function Footer() {
+  const t = useT();
+  const columns = buildColumns(t);
   return (
     <>
       <footer className="bg-navy pb-10 pt-14 text-navy-foreground">
@@ -75,15 +83,14 @@ export function Footer() {
                 <span className="text-lg font-bold tracking-tight">{SITE.name}</span>
               </div>
               <p className="mt-4 max-w-xs text-sm leading-relaxed text-navy-foreground/75">
-                Helping patients find experienced surgeons, understand their treatment and get support
-                from first consultation to recovery.
+                {t("footer.about")}
               </p>
               <div className="mt-4 space-y-2 text-sm font-semibold">
                 <A href={telHref} className="flex items-center gap-2 hover:text-brand-orange" onClick={() => track({ type: "call", targetType: "site", targetName: "Care team" })}>
                   <Phone className="h-4 w-4 shrink-0 text-brand-orange" /> {SITE.phone.display}
                 </A>
                 <A href={whatsappHref()} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-brand-orange" onClick={() => track({ type: "whatsapp", targetType: "site", targetName: "Care team" })}>
-                  <MessageCircle className="h-4 w-4 shrink-0 text-brand-orange" /> WhatsApp us
+                  <MessageCircle className="h-4 w-4 shrink-0 text-brand-orange" /> {t("footer.whatsappUs")}
                 </A>
                 <A href={`mailto:${SITE.email}`} className="flex items-center gap-2 hover:text-brand-orange">
                   <Mail className="h-4 w-4 shrink-0 text-brand-orange" /> {SITE.email}
@@ -107,7 +114,7 @@ export function Footer() {
           </div>
 
           <div className="mt-12 border-t border-navy-foreground/15 pt-6">
-            <p className="text-xs font-bold uppercase tracking-wider text-navy-foreground/80">We are available in</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-navy-foreground/80">{t("footer.availableIn")}</p>
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
               {TOP_CITIES.map((c) => (
                 <A key={c.slug} href={`/locations/${c.slug}`} className="text-xs font-medium text-navy-foreground/70 hover:text-brand-orange">
@@ -115,14 +122,14 @@ export function Footer() {
                 </A>
               ))}
             </div>
-            <p className="mt-6 text-xs font-bold uppercase tracking-wider text-navy-foreground/80">Popular searches</p>
+            <p className="mt-6 text-xs font-bold uppercase tracking-wider text-navy-foreground/80">{t("footer.popular")}</p>
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
               {["proctology", "laparoscopy", "urology", "orthopaedics"].flatMap((spec) =>
                 TOP_CITIES.slice(0, 4).map((c) => {
                   const s = SPECIALITIES.find((x) => x.slug === spec)!;
                   return (
                     <A key={spec + c.slug} href={`/specialities/${spec}/${c.slug}`} className="text-xs text-navy-foreground/60 hover:text-brand-orange">
-                      {s.name} in {c.name}
+                      {t("footer.specInCity", { spec: s.name, city: c.name })}
                     </A>
                   );
                 }),
@@ -131,20 +138,18 @@ export function Footer() {
           </div>
 
           <p className="mt-8 text-[11px] leading-relaxed text-navy-foreground/55">
-            Hospital and insurer names and trademarks belong to their respective owners; a listing does
-            not imply affiliation or endorsement. Information on this website is for general education and
-            is not a substitute for professional medical advice. In an emergency, call 112.
+            {t("footer.disclaimer")}
           </p>
         </Container>
       </footer>
 
       <div className="border-t border-white/5 bg-navy-deep py-4 text-center text-xs text-navy-foreground/60">
         <Container className="flex flex-col items-center justify-between gap-2 sm:flex-row">
-          <p>© {new Date().getFullYear()} {SITE.name}. All rights reserved.</p>
+          <p>{t("footer.copyright", { year: new Date().getFullYear(), name: SITE.name })}</p>
           <div className="flex items-center gap-4">
-            <A href="/privacy" className="hover:text-brand-orange">Privacy Policy</A>
+            <A href="/privacy" className="hover:text-brand-orange">{t("footer.privacy")}</A>
             <span>·</span>
-            <A href="/terms" className="hover:text-brand-orange">Terms of Use</A>
+            <A href="/terms" className="hover:text-brand-orange">{t("footer.terms")}</A>
           </div>
         </Container>
       </div>
@@ -155,7 +160,7 @@ export function Footer() {
       {/* Sticky mobile CTA bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 gap-2 border-t border-border bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg backdrop-blur lg:hidden">
         <A href={telHref} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-navy/25 bg-background py-2.5 text-sm font-semibold text-navy" onClick={() => track({ type: "call", targetType: "site", targetName: "Care team" })}>
-          <Phone className="h-4 w-4 text-brand-orange" /> Call
+          <Phone className="h-4 w-4 text-brand-orange" /> {t("action.call")}
         </A>
         <A
           href={whatsappHref()}
@@ -167,7 +172,7 @@ export function Footer() {
           <MessageCircle className="h-4 w-4" /> WhatsApp
         </A>
         <A href="/contact" className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white shadow-md">
-          <CalendarCheck className="h-4 w-4" /> {promiseEnabled("free-consult") ? "Book Free" : "Book"}
+          <CalendarCheck className="h-4 w-4" /> {promiseEnabled("free-consult") ? "Book Free" : t("footer.barBook")}
         </A>
       </div>
 
@@ -176,7 +181,7 @@ export function Footer() {
         href={whatsappHref()}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Chat with Go Surgery on WhatsApp"
+        aria-label={t("footer.whatsappAria", { name: SITE.name })}
         className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 place-items-center rounded-full bg-emerald-600 text-white shadow-xl transition-transform hover:scale-105 lg:grid"
         onClick={() => track({ type: "whatsapp", targetType: "site", targetName: "Care team" })}
       >
