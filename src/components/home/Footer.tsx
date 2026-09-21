@@ -3,6 +3,7 @@ import { Container } from "./primitives";
 import { BOOK_LABEL, TOP_CITIES, promiseEnabled, SITE, telHref, whatsappHref } from "@/lib/site";
 import { SPECIALITIES } from "@/data/catalog";
 import { A } from "@/components/common/A";
+import { track } from "@/lib/track";
 
 const columns = [
   {
@@ -78,10 +79,10 @@ export function Footer() {
                 from first consultation to recovery.
               </p>
               <div className="mt-4 space-y-2 text-sm font-semibold">
-                <A href={telHref} className="flex items-center gap-2 hover:text-brand-orange">
+                <A href={telHref} className="flex items-center gap-2 hover:text-brand-orange" onClick={() => track({ type: "call", targetType: "site", targetName: "Care team" })}>
                   <Phone className="h-4 w-4 shrink-0 text-brand-orange" /> {SITE.phone.display}
                 </A>
-                <A href={whatsappHref()} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-brand-orange">
+                <A href={whatsappHref()} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-brand-orange" onClick={() => track({ type: "whatsapp", targetType: "site", targetName: "Care team" })}>
                   <MessageCircle className="h-4 w-4 shrink-0 text-brand-orange" /> WhatsApp us
                 </A>
                 <A href={`mailto:${SITE.email}`} className="flex items-center gap-2 hover:text-brand-orange">
@@ -153,7 +154,7 @@ export function Footer() {
 
       {/* Sticky mobile CTA bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 gap-2 border-t border-border bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg backdrop-blur lg:hidden">
-        <A href={telHref} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-navy/25 bg-background py-2.5 text-sm font-semibold text-navy">
+        <A href={telHref} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-navy/25 bg-background py-2.5 text-sm font-semibold text-navy" onClick={() => track({ type: "call", targetType: "site", targetName: "Care team" })}>
           <Phone className="h-4 w-4 text-brand-orange" /> Call
         </A>
         <A
@@ -161,6 +162,7 @@ export function Footer() {
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white"
+          onClick={() => track({ type: "whatsapp", targetType: "site", targetName: "Care team" })}
         >
           <MessageCircle className="h-4 w-4" /> WhatsApp
         </A>
@@ -176,6 +178,7 @@ export function Footer() {
         rel="noopener noreferrer"
         aria-label="Chat with Go Surgery on WhatsApp"
         className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 place-items-center rounded-full bg-emerald-600 text-white shadow-xl transition-transform hover:scale-105 lg:grid"
+        onClick={() => track({ type: "whatsapp", targetType: "site", targetName: "Care team" })}
       >
         <MessageCircle className="h-7 w-7" />
       </A>

@@ -25,6 +25,7 @@ import { BOOK_LABEL, CITIES, TOP_CITIES, CONSULT_PHRASE } from "@/lib/site";
 import { getDoctorsFn } from "@/lib/server-functions/doctors";
 import { getHospitalsFn } from "@/lib/server-functions/hospitals";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
+import { getPageFaqsFn } from "@/lib/server-functions/faqs";
 import { breadcrumbLd, faqLd, seo } from "@/lib/seo";
 import type { Locale } from "@/lib/i18n/locales";
 import hospital1 from "@/assets/hospital-1.jpg";
@@ -38,12 +39,16 @@ export function cityBySlug(slug?: string) {
 
 /** Server data for a speciality page (optionally narrowed to one city). */
 export async function loadSpecialityData(spec: Speciality, cityName?: string) {
-  const [doctors, hospitals, reviews] = await Promise.all([
+  const [doctors, hospitals, reviews, extraFaqs] = await Promise.all([
     getDoctorsFn({ data: { specialty: spec.slug, city: cityName, limit: 6, sort: "Rating: High to Low" } }).catch(() => null),
     getHospitalsFn({ data: { speciality: spec.slug, city: cityName, limit: 6 } }).catch(() => null),
     getReviewsFn({ data: { speciality: spec.slug, limit: 6 } }).catch(() => null),
+    // FAQs the care team added in the admin panel for this speciality, on top of the
+    // hand-written ones in the catalog. Failure here must not take the page down.
+    getPageFaqsFn({ data: { pageType: "speciality", pageSlug: spec.slug } }).catch(() => null),
   ]);
   return {
+    extraFaqs: extraFaqs?.success ? extraFaqs.faqs : [],
     doctors: doctors?.success ? doctors.doctors : [],
     doctorTotal: doctors?.success ? doctors.total : 0,
     hospitals: hospitals?.success ? hospitals.hospitals : [],
@@ -64,7 +69,7 @@ export function specialityHead(
   const cityName = city?.name;
   const where = cityName ? ` in ${cityName}` : "";
   const path = `/specialities/${spec.slug}${city ? `/${city.slug}` : ""}`;
-  const faqs = [...spec.faqs, ...BOOKING_FAQS];
+  const faqs = [...spec.faqs, ...(data?.extraFaqs ?? []), ...BOOKING_FAQS];
   return seo({ locale,
     title: cityName ? `Best ${spec.name} Doctors & Treatment${where}` : `${spec.name} — Conditions, Treatments & Specialists`,
     description: cityName
@@ -115,7 +120,7 @@ export function SpecialityPage({
   const where = city ? ` in ${city.name}` : "";
   const conditions = conditionsForSpeciality(spec.slug);
   const treatments = treatmentsForSpeciality(spec.slug);
-  const faqs = [...spec.faqs, ...BOOKING_FAQS];
+  const faqs = [...spec.faqs, ...(data?.extraFaqs ?? []), ...BOOKING_FAQS];
   const doctorsHref = `/doctors?specialty=${spec.slug}${city ? `&city=${encodeURIComponent(city.name)}` : ""}`;
   const hospitalsHref = `/hospitals?speciality=${spec.slug}${city ? `&city=${encodeURIComponent(city.name)}` : ""}`;
 

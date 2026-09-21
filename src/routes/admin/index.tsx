@@ -18,11 +18,22 @@ import {
   Database,
   Mail,
   Phone,
+  LayoutDashboard,
+  PhoneCall,
+  BarChart3,
+  ListOrdered,
+  HelpCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Container, OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { AdminLogin } from "@/components/auth/AdminLogin";
-import { ReviewModeration } from "@/components/admin/ReviewModeration";
+import { DashboardOverview } from "@/components/admin/DashboardOverview";
+import { ClickTracking } from "@/components/admin/ClickTracking";
+import { UserManagement } from "@/components/admin/UserManagement";
+import { SpecializationRankings } from "@/components/admin/SpecializationRankings";
+import { FaqManagement } from "@/components/admin/FaqManagement";
+import { PageReviews } from "@/components/admin/PageReviews";
+import { DoctorAnalytics } from "@/components/admin/DoctorAnalytics";
 import { SPECIALITIES, getCondition, getSpeciality, getTreatment } from "@/data/catalog";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { logoutFn, getRegisteredUsersFn } from "@/lib/server-functions/auth";
@@ -66,11 +77,22 @@ export const Route = createFileRoute("/admin/")({
   component: AdminRoute,
 });
 
-type TabType = "appointments" | "users" | "doctors" | "hospitals" | "treatments" | "reviews";
+type TabType =
+  | "overview"
+  | "appointments"
+  | "users"
+  | "tracking"
+  | "performance"
+  | "rankings"
+  | "reviews"
+  | "faqs"
+  | "doctors"
+  | "hospitals"
+  | "treatments";
 
 export function AdminRoute() {
   const { user, setUser, isLoading } = useCurrentUser();
-  const [activeTab, setActiveTab] = useState<TabType>("appointments");
+  const [activeTab, setActiveTab] = useState<TabType>("overview");
 
   // MongoDB Collection Data states
   const [consultations, setConsultations] = useState<any[]>([]);
@@ -602,58 +624,22 @@ export function AdminRoute() {
           </div>
         </div>
 
-        {/* Overview Stats Cards for all 5 MongoDB Collections */}
-        <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
-          <div className="rounded-xl border border-border bg-white p-4 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-medium text-muted-foreground">Bookings (`consultations`)</p>
-              <Calendar className="h-4 w-4 text-primary" />
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-navy">{consultations.length}</p>
-          </div>
-
-          <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold text-amber-800">Pending Approvals</p>
-              <Clock className="h-4 w-4 text-amber-600" />
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-amber-900">{pendingCount}</p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-white p-4 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-medium text-muted-foreground">Registered Users (`users`)</p>
-              <Users className="h-4 w-4 text-purple-600" />
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-navy">{usersList.length}</p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-white p-4 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-medium text-muted-foreground">Doctors (`doctors`)</p>
-              <UserCheck className="h-4 w-4 text-blue-600" />
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-navy">{doctors.length}</p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-white p-4 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-medium text-muted-foreground">Hospitals (`hospitals`)</p>
-              <Building2 className="h-4 w-4 text-emerald-600" />
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-navy">{hospitals.length}</p>
-          </div>
-        </div>
-
         {/* Tab Navigation for all MongoDB Collections */}
         <div className="mb-6 flex border-b border-border overflow-x-auto">
           {[
-            { id: "appointments", label: "Bookings (consultations)", icon: Calendar, badge: pendingCount },
-            { id: "users", label: "Patients (users)", icon: Users, badge: usersList.length },
-            { id: "doctors", label: "Doctors (doctors)", icon: UserCheck, badge: doctors.length },
-            { id: "hospitals", label: "Hospitals (hospitals)", icon: Building2, badge: hospitals.length },
-            { id: "treatments", label: "Treatments (treatments)", icon: Stethoscope, badge: treatments.length },
-            { id: "reviews", label: "Review moderation", icon: CheckCircle2, badge: undefined },
+            // Counts here would be the length of whatever page of data happens to be loaded (24
+            // doctors, 24 hospitals), not the real totals — the Overview tab queries those properly.
+            { id: "overview", label: "Overview", icon: LayoutDashboard, badge: undefined },
+            { id: "appointments", label: "Bookings", icon: Calendar, badge: pendingCount },
+            { id: "users", label: "Patients", icon: Users, badge: undefined },
+            { id: "tracking", label: "Call & WhatsApp", icon: PhoneCall, badge: undefined },
+            { id: "performance", label: "Doctor performance", icon: BarChart3, badge: undefined },
+            { id: "rankings", label: "Rankings", icon: ListOrdered, badge: undefined },
+            { id: "reviews", label: "Reviews", icon: CheckCircle2, badge: undefined },
+            { id: "faqs", label: "FAQs", icon: HelpCircle, badge: undefined },
+            { id: "doctors", label: "Doctor records", icon: UserCheck, badge: undefined },
+            { id: "hospitals", label: "Hospital records", icon: Building2, badge: undefined },
+            { id: "treatments", label: "Treatments", icon: Stethoscope, badge: undefined },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -685,7 +671,13 @@ export function AdminRoute() {
           })}
         </div>
 
-        {activeTab === "reviews" && <ReviewModeration />}
+        {activeTab === "overview" && <DashboardOverview onOpenTab={(tab) => setActiveTab(tab as TabType)} />}
+        {activeTab === "tracking" && <ClickTracking />}
+        {activeTab === "performance" && <DoctorAnalytics />}
+        {activeTab === "rankings" && <SpecializationRankings />}
+        {activeTab === "faqs" && <FaqManagement />}
+        {activeTab === "reviews" && <PageReviews />}
+        {activeTab === "users" && <UserManagement />}
 
         {/* TAB 1: Patient Bookings & Approvals */}
         {activeTab === "appointments" && (
@@ -980,50 +972,6 @@ export function AdminRoute() {
                 </table>
               </div>
             )}
-          </div>
-        )}
-
-        {/* TAB 2: Users List */}
-        {activeTab === "users" && (
-          <div className="overflow-x-auto rounded-xl border border-border bg-white shadow-xs">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-border bg-muted/40 font-semibold text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Full Name</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Phone</th>
-                  <th className="px-4 py-3">Role</th>
-                  <th className="px-4 py-3">Joined Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {usersList.map((u) => (
-                  <tr key={u.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3 font-bold text-navy">{u.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{u.phone}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${
-                          u.role === "admin"
-                            ? "bg-purple-100 text-purple-800"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(u.createdAt).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         )}
 

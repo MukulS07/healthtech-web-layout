@@ -26,6 +26,9 @@ export interface IReview extends Document {
    */
   flagReason?: ReviewFlag[];
   flaggedAt?: Date;
+  /** Editorially pinned: shows first on the public reviews wall. Reversible, changes nothing else. */
+  pinned?: boolean;
+  pinnedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,12 +47,17 @@ const ReviewSchema = new Schema<IReview>(
     source: { type: String, trim: true },
     flagReason: { type: [String], default: undefined },
     flaggedAt: { type: Date },
+    pinned: { type: Boolean },
+    pinnedAt: { type: Date },
   },
   { timestamps: true, strict: false, collection: "reviews" },
 );
 
 ReviewSchema.index({ rating: 1 });
 ReviewSchema.index({ createdAt: -1 });
+// Sparse: only the handful of pinned reviews are indexed, so finding them never scans the
+// 247k-document collection — and the wall's main query keeps using the createdAt index.
+ReviewSchema.index({ pinned: 1, pinnedAt: -1 }, { sparse: true });
 
 export const Review: Model<IReview> =
   (mongoose.models["Review"] as Model<IReview>) || mongoose.model<IReview>("Review", ReviewSchema);

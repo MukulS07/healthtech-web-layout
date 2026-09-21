@@ -3,12 +3,13 @@ import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { generateTotpSecret, generateQrCodeDataUrl, verifyTotpToken } from "@/lib/totp";
 import {
-  clearFailedLogins,
   createSession,
   hashPassword,
   loginLockMessage,
   recordFailedLogin,
+  recordSuccessfulLogin,
   requireAdminUser,
+  suspendedMessage,
   toPublicUser,
   verifyPassword,
 } from "@/lib/auth";
@@ -100,6 +101,9 @@ export const adminLogin = createServerFn({ method: "POST" })
     const locked = loginLockMessage(admin);
     if (locked) throw new Error(locked);
 
+    const suspended = suspendedMessage(admin);
+    if (suspended) throw new Error(suspended);
+
     const passwordOk = await verifyPassword(data.password, admin.passwordHash);
     const tokenOk =
       Boolean(admin.totpEnabled && admin.totpSecret) &&
@@ -111,7 +115,7 @@ export const adminLogin = createServerFn({ method: "POST" })
       throw new Error("Invalid email, password or authenticator code.");
     }
 
-    await clearFailedLogins(admin);
+    await recordSuccessfulLogin(admin);
     await createSession(admin._id.toString());
 
     return { success: true, name: admin.name, user: toPublicUser(admin) };

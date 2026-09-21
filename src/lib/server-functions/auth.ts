@@ -2,14 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { connectToDatabase } from "@/lib/db";
 import {
-  clearFailedLogins,
   endSession,
   getSessionUser,
   hashPassword,
   isAdmin,
   loginLockMessage,
   recordFailedLogin,
+  recordSuccessfulLogin,
   startSession,
+  suspendedMessage,
   toPublicUser,
   verifyPassword,
 } from "@/lib/auth";
@@ -111,7 +112,10 @@ export const loginFn = createServerFn({ method: "POST" })
         };
       }
 
-      await clearFailedLogins(user);
+      const suspended = suspendedMessage(user);
+      if (suspended) return { success: false as const, error: suspended };
+
+      await recordSuccessfulLogin(user);
       await startSession(String(user._id));
       return { success: true as const, user: toPublicUser(user) };
     } catch (error: unknown) {

@@ -130,3 +130,28 @@ export async function clearFailedLogins(user: IUser): Promise<void> {
     await user.save();
   }
 }
+
+/**
+ * Blocks a suspended account at login. Suspension is an admin action, not a security lockout, so
+ * the message points the person at support rather than telling them to wait or reset a password.
+ */
+export function suspendedMessage(user: Pick<IUser, "status">): string | null {
+  return user.status === "suspended"
+    ? "This account has been suspended. Please contact our support team if you think that's a mistake."
+    : null;
+}
+
+/** Clears any failed-login counter and stamps the login time, in one write. */
+export async function recordSuccessfulLogin(user: IUser): Promise<void> {
+  user.failedLoginCount = 0;
+  user.lockedUntil = null;
+  user.lastLoginAt = new Date();
+  await user.save();
+}
+
+/** Signs an account out everywhere — used when suspending, so access ends immediately. */
+export async function revokeAllSessions(userId: string): Promise<number> {
+  await connectToDatabase();
+  const res = await Session.deleteMany({ userId });
+  return res.deletedCount ?? 0;
+}

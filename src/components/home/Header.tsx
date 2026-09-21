@@ -22,6 +22,7 @@ import { useLocale, useT } from "@/lib/i18n/context";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { cn } from "@/lib/utils";
 import { A } from "@/components/common/A";
+import { track } from "@/lib/track";
 
 const CITY_KEY = "gs-city";
 
@@ -298,7 +299,7 @@ export function Header() {
             <A href="/account" className="hidden items-center gap-1.5 text-sm font-semibold text-navy transition-colors hover:text-brand-orange sm:flex">
               <UserRound className="h-4 w-4 text-brand-orange" /> {t("nav.myAppointments")}
             </A>
-            <A href={telHref} className="hidden items-center gap-2 text-sm font-semibold text-navy transition-colors hover:text-primary 2xl:flex">
+            <A href={telHref} className="hidden items-center gap-2 text-sm font-semibold text-navy transition-colors hover:text-primary 2xl:flex" onClick={() => track({ type: "call", targetType: "site", targetName: "Care team" })}>
               <Phone className="h-4 w-4 text-brand-orange" /> {SITE.phone.display}
             </A>
             <A href="/contact" className="hidden md:inline-flex">
@@ -388,7 +389,7 @@ export function Header() {
               <A href="/contact">
                 <OrangeButton className="w-full justify-center">{t("action.book")}</OrangeButton>
               </A>
-              <A href={telHref} className="flex items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-semibold text-navy">
+              <A href={telHref} className="flex items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-semibold text-navy" onClick={() => track({ type: "call", targetType: "site", targetName: "Care team" })}>
                 <Phone className="h-4 w-4 text-brand-orange" /> Call {SITE.phone.display}
               </A>
             </div>

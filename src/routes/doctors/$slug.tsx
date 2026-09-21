@@ -1,4 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { BadgeCheck, Briefcase, CheckCircle2, Languages, MapPin, Navigation, PenLine, Phone, Quote, Star } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
@@ -12,6 +13,7 @@ import { getTreatment } from "@/data/catalog";
 import { BOOK_LABEL, CONSULT_PHRASE, SITE, telHref } from "@/lib/site";
 import { breadcrumbLd, seo } from "@/lib/seo";
 import { A } from "@/components/common/A";
+import { track } from "@/lib/track";
 
 export const Route = createFileRoute("/doctors/$slug")({
   loader: async ({ params }) => {
@@ -101,6 +103,11 @@ function DoctorProfile() {
   const { doctor: d, reviews, reviewTotal, reviewAverage } = Route.useLoaderData();
   const procedures = d.surgeryTypes.map((s: string) => ({ slug: s, treatment: getTreatment(s), label: s.replace(/-/g, " ") }));
 
+  // One profile view per doctor per page load — the admin analytics compare views against calls.
+  useEffect(() => {
+    track({ type: "profile_click", targetType: "doctor", targetId: d.id, targetName: d.name, city: d.city });
+  }, [d.id, d.name, d.city]);
+
   return (
     <div className="bg-background">
       <Header />
@@ -145,7 +152,12 @@ function DoctorProfile() {
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
                 <A href="#book"><OrangeButton>{BOOK_LABEL}</OrangeButton></A>
-                <A href={telHref}>
+                <A
+                  href={telHref}
+                  onClick={() =>
+                    track({ type: "call", targetType: "doctor", targetId: d.id, targetName: d.name, city: d.city })
+                  }
+                >
                   <OutlineButton tone="light"><Phone className="h-4 w-4" /> Call {SITE.phone.display}</OutlineButton>
                 </A>
               </div>

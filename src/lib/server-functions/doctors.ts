@@ -22,6 +22,7 @@ import {
 import { getSpeciality, NON_PERSON_NAME_PATTERN, SPECIALITIES, SURGICAL_DOCTOR_MATCH } from "@/data/catalog";
 import { usableImageUrl } from "@/lib/utils";
 import { serverError } from "@/lib/server-error";
+import { pinnedDoctorIds } from "@/lib/rankings";
 
 const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 100;
@@ -182,34 +183,64 @@ export const getDoctorsFn = createServerFn({ method: "GET" })
       }
       if (and.length) filter["$and"] = and;
 
-      let queryBuilder = Doctor.find(filter);
-
+      let sortSpec: Record<string, 1 | -1>;
       if (data?.sort === "Experience: High to Low") {
-        queryBuilder = queryBuilder.sort({ experience: -1 });
+        sortSpec = { experience: -1 };
       } else if (data?.sort === "Experience: Low to High") {
-        queryBuilder = queryBuilder.sort({ experience: 1 });
+        sortSpec = { experience: 1 };
       } else if (data?.sort === "Rating: High to Low") {
         // Actually sorts by score now. It used to share the "Relevance" branch below, so choosing
         // it returned the identical order and the option looked broken. Review count breaks ties
         // so a lone 5-star rating doesn't outrank a well-reviewed 4.8.
-        queryBuilder = queryBuilder.sort({ "rating.average": -1, "rating.count": -1 });
+        sortSpec = { "rating.average": -1, "rating.count": -1 };
       } else {
         // "Relevance": most-reviewed first, then newest — served by the
         // { "rating.count": -1, createdAt: -1 } index on Doctor.
-        queryBuilder = queryBuilder.sort({ "rating.count": -1, createdAt: -1 });
+        sortSpec = { "rating.count": -1, createdAt: -1 };
       }
 
       const limit = Math.min(Math.max(data?.limit || DEFAULT_LIMIT, 1), MAX_LIMIT);
       const page = Math.max(data?.page || 1, 1);
-      queryBuilder = queryBuilder.skip((page - 1) * limit).limit(limit);
 
-      const [docs, total] = await Promise.all([
+      // Editorially pinned surgeons (admin → Specialisation rankings) lead the first page of a
+      // speciality-in-a-city listing. They still have to satisfy the same filter as everyone else,
+      // so a pin can never smuggle a non-surgical or wrong-city doctor into the list.
+      //
+      // Pins are resolved on EVERY page, not just the first, because they have to be excluded from
+      // the paged query throughout: excluding them only on page 1 shifts every later page's offset
+      // against a list that still contains them, which both repeats the pinned doctors further down
+      // and skips however many others got displaced. The skip is then pulled back by the number of
+      // pins so page 2 resumes exactly where page 1 stopped.
+      const pins =
+        data?.specialty && data?.city && data.city !== "All Cities"
+          ? await pinnedDoctorIds(data.specialty, data.city)
+          : [];
+      const pinnedDocs = pins.length
+        ? await Doctor.find({ ...filter, _id: { $in: pins } })
+            .select("-password")
+            .lean<RawDoctor[]>()
+        : [];
+      // find() ignores the order of $in, so restore the order the admin set.
+      const pinnedById = new Map(pinnedDocs.map((d) => [String(d._id), d]));
+      const orderedPins = pins.map((id) => pinnedById.get(id)).filter(Boolean) as RawDoctor[];
+      const shownPins = page === 1 ? orderedPins : [];
+
+      const listFilter = orderedPins.length
+        ? { ...filter, _id: { $nin: orderedPins.map((d) => d._id) } }
+        : filter;
+      const queryBuilder = Doctor.find(listFilter)
+        .sort(sortSpec)
+        .skip(Math.max((page - 1) * limit - orderedPins.length, 0))
+        .limit(Math.max(limit - shownPins.length, 0));
+
+      const [rest, total] = await Promise.all([
         // allowDiskUse so a deep page can't abort with "Sort exceeded memory limit of 33554432
         // bytes" if one of the sort indexes is missing or still building — that is exactly how the
         // hospital directory broke past page ~130.
         queryBuilder.allowDiskUse(true).select("-password").lean<RawDoctor[]>(),
         Doctor.countDocuments(filter),
       ]);
+      const docs = [...shownPins, ...rest];
       const hospitals = await primaryHospitals(docs.map((d) => d._id));
 
       return {

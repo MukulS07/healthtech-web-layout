@@ -101,14 +101,28 @@ export const getReviewsFn = createServerFn({ method: "GET" })
       const limit = Math.min(Math.max(data?.limit || DEFAULT_LIMIT, 1), MAX_LIMIT);
       const page = Math.max(data?.page || 1, 1);
 
+      // Reviews an admin pinned lead the first page of the public wall. They're fetched separately
+      // (sparse index on `pinned`) rather than by sorting the whole wall on a pinned flag — that
+      // would take the query off the createdAt index and re-introduce the deep-page sort blow-up
+      // that broke the hospital directory. They're excluded below so nobody shows up twice.
+      const pinned =
+        isPublicWall && page === 1
+          ? await Review.find({ ...filter, pinned: true })
+              .sort({ pinnedAt: -1 })
+              .limit(Math.min(6, limit))
+              .populate("doctorId", "firstName lastName specialization location slug")
+              .lean()
+          : [];
+      const listFilter = pinned.length ? { ...filter, _id: { $nin: pinned.map((p) => p._id) } } : filter;
+
       // Rating summary over the same set, ignoring the comment-length rule (a short "5 stars, great"
       // review is still a real rating even if we don't display its text).
       const { $expr: _len, ...statsMatch } = filter;
-      const [docs, total, agg] = await Promise.all([
-        Review.find(filter)
+      const [rest, total, agg] = await Promise.all([
+        Review.find(listFilter)
           .sort({ createdAt: -1 })
-          .skip((page - 1) * limit)
-          .limit(limit)
+          .skip(Math.max((page - 1) * limit - pinned.length, 0))
+          .limit(Math.max(limit - pinned.length, 0))
           .populate("doctorId", "firstName lastName specialization location slug")
           .lean(),
         Review.countDocuments(filter),
@@ -119,6 +133,7 @@ export const getReviewsFn = createServerFn({ method: "GET" })
       ]);
 
       const stats = (agg[0] as { avg?: number; count?: number } | undefined) || { avg: 0, count: 0 };
+      const docs = [...pinned, ...rest];
 
       return {
         success: true,
@@ -142,6 +157,7 @@ export const getReviewsFn = createServerFn({ method: "GET" })
             doctorSlug: doctor?.slug || "",
             treatment: extra.treatment || formatSpecialization(doctor?.specialization),
             city: extra.city || doctor?.location || "",
+            pinned: Boolean(doc.pinned),
           };
         }),
       };
@@ -269,4 +285,143 @@ export const moderateReviewFn = createServerFn({ method: "POST" })
     // Only website submissions are moderated here; flagged imports are handled by the script.
     await Review.updateOne({ _id: data.id, status: "pending", flagReason: { $exists: false } }, { status: data.decision });
     return { success: true as const };
+  });
+
+export type AdminReviewTab = "all" | "pending" | "approved" | "pinned" | "flagged";
+
+/**
+ * Admin: browse the review wall itself, not just the moderation queue.
+ *
+ * Deliberately paginated and search-first rather than "load all": the tab counts run into six
+ * figures. "Pending" here means website submissions awaiting a decision; imported reviews held
+ * back by scripts/flag-reviews.ts get their own tab so the two never get confused.
+ */
+export const getAdminReviewsFn = createServerFn({ method: "GET" })
+  .validator((data: { tab?: AdminReviewTab; query?: string; page?: number }) => data ?? {})
+  .handler(async ({ data }) => {
+    try {
+      const user = await getSessionUser();
+      if (!isAdmin(user)) return { success: false as const, error: "Unauthorized: Admin access required." };
+      await connectToDatabase();
+
+      const tab: AdminReviewTab = data?.tab ?? "all";
+      const page = Math.max(Number(data?.page) || 1, 1);
+      const limit = 25;
+
+      const filters: Record<AdminReviewTab, Record<string, unknown>> = {
+        all: {},
+        pending: { status: "pending", flagReason: { $exists: false } },
+        approved: { status: { $nin: ["pending", "rejected"] } },
+        pinned: { pinned: true },
+        flagged: { flagReason: { $exists: true } },
+      };
+      const filter: Record<string, unknown> = { ...filters[tab] };
+
+      const query = String(data?.query || "").trim();
+      if (query) {
+        const re = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+        filter["$or"] = [{ patientName: re }, { comment: re }, { city: re }];
+      }
+
+      const [docs, total, counts] = await Promise.all([
+        Review.find(filter)
+          .sort({ createdAt: -1 })
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .populate("doctorId", "firstName lastName specialization location slug")
+          .lean(),
+        // A filtered count can scan a lot of documents; an unfiltered one is instant metadata.
+        Object.keys(filter).length ? Review.countDocuments(filter) : Review.estimatedDocumentCount(),
+        Promise.all([
+          Review.countDocuments({ status: "pending", flagReason: { $exists: false } }),
+          Review.countDocuments({ pinned: true }),
+          Review.countDocuments({ flagReason: { $exists: true } }),
+        ]),
+      ]);
+
+      return {
+        success: true as const,
+        tab,
+        page,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+        counts: { pending: counts[0], pinned: counts[1], flagged: counts[2] },
+        reviews: docs.map((d) => {
+          const doc = d.doctorId as unknown as PopulatedDoctorRef | null;
+          const extra = d as unknown as { city?: string; treatment?: string };
+          return {
+            id: String(d._id),
+            patientName: d.patientName,
+            rating: d.rating,
+            comment: d.comment,
+            doctorName: doc ? formatDoctorName(doc.firstName, doc.lastName) : "",
+            doctorSlug: doc?.slug || "",
+            speciality: formatSpecialization(doc?.specialization),
+            city: extra.city || doc?.location || "",
+            status: d.status || "published",
+            pinned: Boolean(d.pinned),
+            flagReason: d.flagReason || [],
+            createdAt: new Date(d.createdAt).toISOString(),
+          };
+        }),
+      };
+    } catch (error: unknown) {
+      return { success: false as const, error: serverError("getAdminReviews", error) };
+    }
+  });
+
+/**
+ * Admin: pin or unpin a review so it leads the public wall.
+ *
+ * There is no delete here on purpose. The reference dashboard puts a red Delete next to every
+ * review; removing a patient's words is irreversible and, for the imported set, destroys the only
+ * evidence of what the original data said. Rejecting hides a review just as effectively and can
+ * be undone (CLAUDE.md: nothing is deleted from the database).
+ */
+export const pinReviewFn = createServerFn({ method: "POST" })
+  .validator((data: { id: string; pinned: boolean }) => data)
+  .handler(async ({ data }) => {
+    try {
+      const user = await getSessionUser();
+      if (!isAdmin(user)) return { success: false as const, error: "Unauthorized: Admin access required." };
+      await connectToDatabase();
+
+      const pinned = Boolean(data?.pinned);
+      const review = await Review.findById(data?.id);
+      if (!review) return { success: false as const, error: "That review no longer exists." };
+
+      // Pinning something the wall would never show (held back, rejected, or too short) would
+      // silently do nothing on the site, so say so instead.
+      if (pinned && (review.status === "pending" || review.status === "rejected")) {
+        return { success: false as const, error: "Approve this review before pinning it." };
+      }
+
+      review.pinned = pinned;
+      if (pinned) review.pinnedAt = new Date();
+      await review.save();
+      return { success: true as const, pinned };
+    } catch (error: unknown) {
+      return { success: false as const, error: serverError("pinReview", error) };
+    }
+  });
+
+/** Admin: hide a published review (reversible) or restore a hidden one. */
+export const setReviewVisibilityFn = createServerFn({ method: "POST" })
+  .validator((data: { id: string; visible: boolean }) => data)
+  .handler(async ({ data }) => {
+    try {
+      const user = await getSessionUser();
+      if (!isAdmin(user)) return { success: false as const, error: "Unauthorized: Admin access required." };
+      await connectToDatabase();
+
+      const visible = Boolean(data?.visible);
+      const update = visible
+        ? { status: "approved", $unset: { flaggedAt: "" } }
+        : { status: "rejected", pinned: false };
+      const res = await Review.findByIdAndUpdate(data?.id, update, { new: true });
+      if (!res) return { success: false as const, error: "That review no longer exists." };
+      return { success: true as const, visible };
+    } catch (error: unknown) {
+      return { success: false as const, error: serverError("setReviewVisibility", error) };
+    }
   });

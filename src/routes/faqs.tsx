@@ -8,6 +8,7 @@ import { ConsultForm } from "@/components/home/ConsultForm";
 import { SITE, promiseEnabled, telHref, whatsappHref } from "@/lib/site";
 import { A } from "@/components/common/A";
 import { seo } from "@/lib/seo";
+import { getPageFaqsFn } from "@/lib/server-functions/faqs";
 
 type Faq = { q: string; a: string };
 
@@ -113,6 +114,12 @@ const faqCategories: { label: string; faqs: Faq[] }[] = [
 ];
 
 export const Route = createFileRoute("/faqs")({
+  // FAQs the care team publishes from the admin panel get their own category here, so adding one
+  // doesn't need a deploy. The hand-written categories below stay in code.
+  loader: async () => {
+    const res = await getPageFaqsFn({ data: { pageType: "general" } }).catch(() => null);
+    return { extraFaqs: res?.success ? res.faqs : [] };
+  },
   head: ({ match }) =>
     seo({
       locale: match.context.locale,
@@ -148,9 +155,13 @@ function FaqAccordion({ faqs }: { faqs: Faq[] }) {
 }
 
 function FaqsPage() {
+  const { extraFaqs } = Route.useLoaderData();
   const [activeCategory, setActiveCategory] = useState("General");
 
-  const activeFaqs = faqCategories.find((c) => c.label === activeCategory)?.faqs ?? [];
+  const categories = extraFaqs.length
+    ? [...faqCategories, { label: "More questions", faqs: extraFaqs }]
+    : faqCategories;
+  const activeFaqs = categories.find((c) => c.label === activeCategory)?.faqs ?? [];
 
   return (
     <div className="bg-background">
@@ -174,7 +185,7 @@ function FaqsPage() {
             <div className="min-w-0">
               {/* Category tabs */}
               <div className="no-scrollbar mb-8 flex gap-2 overflow-x-auto">
-                {faqCategories.map((c) => (
+                {categories.map((c) => (
                   <button
                     key={c.label}
                     onClick={() => setActiveCategory(c.label)}

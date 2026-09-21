@@ -17,6 +17,7 @@ import { DoctorAvatar } from "@/components/doctors/DoctorCard";
 import { SITE, CONSULT_PHRASE } from "@/lib/site";
 import { breadcrumbLd, seo } from "@/lib/seo";
 import { A } from "@/components/common/A";
+import { track } from "@/lib/track";
 
 export const Route = createFileRoute("/hospitals/$slug")({
   loader: async ({ params }) => {
@@ -63,6 +64,8 @@ export const Route = createFileRoute("/hospitals/$slug")({
 
 function HospitalDetail() {
   const data = Route.useLoaderData();
+  // What the admin Call & WhatsApp report keys this hospital's interactions on.
+  const trackTarget = { targetType: "hospital" as const, targetId: data.id, targetName: data.name, city: data.city };
 
   return (
     <div className="bg-background">
@@ -132,6 +135,7 @@ function HospitalDetail() {
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${data.name} ${data.address}`)}`}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => track({ type: "directions", ...trackTarget })}
                 >
                   <OutlineButton className="px-3 py-2 text-xs">Get Directions</OutlineButton>
                 </A>
@@ -293,6 +297,7 @@ function HospitalDetail() {
                   <A
                     href={`tel:${data.emergencyContact}`}
                     className="mt-2 flex items-center gap-2 text-sm font-bold text-brand-orange"
+                    onClick={() => track({ type: "call", ...trackTarget, targetPhone: data.emergencyContact })}
                   >
                     <Phone className="h-4 w-4" /> {data.emergencyContact} (Emergency)
                   </A>
@@ -301,6 +306,7 @@ function HospitalDetail() {
                   <A
                     href={`tel:${data.phone}`}
                     className="mt-1 flex items-center gap-2 text-sm font-semibold text-navy"
+                    onClick={() => track({ type: "call", ...trackTarget, targetPhone: data.phone })}
                   >
                     <Phone className="h-4 w-4" /> {data.phone}
                   </A>

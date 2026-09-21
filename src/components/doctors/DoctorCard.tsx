@@ -3,6 +3,7 @@ import { OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { cn } from "@/lib/utils";
 import { BOOK_LABEL_SHORT, telHref } from "@/lib/site";
 import { A } from "@/components/common/A";
+import { track } from "@/lib/track";
 
 export interface DoctorCardData {
   id: string;
@@ -78,10 +79,17 @@ export function DoctorCard({
   const profileHref = d.slug ? `/doctors/${d.slug}` : "/doctors";
   const where = [d.hospital?.name, d.hospital?.locality || d.locality, d.city].filter(Boolean);
   const bookHref = `/contact?doctor=${encodeURIComponent(d.name)}${d.city ? `&city=${encodeURIComponent(d.city)}` : ""}`;
+  // Who patients actually ring and open, for the admin Call & WhatsApp report.
+  const trackTarget = { targetType: "doctor" as const, targetId: d.id, targetName: d.name, city: d.city };
 
   const actions = (
     <div className="flex gap-2">
-      <A href={telHref} className="flex-1" aria-label={`Call about ${d.name}`}>
+      <A
+        href={telHref}
+        className="flex-1"
+        aria-label={`Call about ${d.name}`}
+        onClick={() => track({ type: "call", ...trackTarget })}
+      >
         <OutlineButton className="w-full justify-center px-2 py-2 text-xs">
           <Phone className="h-3 w-3" /> Call
         </OutlineButton>
@@ -120,7 +128,7 @@ export function DoctorCard({
   if (layout === "row") {
     return (
       <article className={cn("min-w-0 rounded-lg border border-border bg-background p-3 shadow-sm", className)}>
-        <A href={profileHref} className="flex gap-3">
+        <A href={profileHref} className="flex gap-3" onClick={() => track({ type: "profile_click", ...trackTarget })}>
           <DoctorAvatar name={d.name} initials={d.initials} img={d.img} className="h-14 w-14 shrink-0 rounded-full text-base" />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
@@ -141,7 +149,7 @@ export function DoctorCard({
         className,
       )}
     >
-      <A href={profileHref} className="block">
+      <A href={profileHref} className="block" onClick={() => track({ type: "profile_click", ...trackTarget })}>
         <div className="relative">
           <DoctorAvatar name={d.name} initials={d.initials} img={d.img} className="h-44 w-full text-4xl" />
           <span className="absolute right-3 top-3">

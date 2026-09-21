@@ -3,6 +3,7 @@ import { CheckCircle2, Loader2, Lock, MessageCircle } from "lucide-react";
 import { OrangeButton } from "./primitives";
 import { cn } from "@/lib/utils";
 import { submitConsultationFn } from "@/lib/server-functions/consultations";
+import { track } from "@/lib/track";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useT } from "@/lib/i18n/context";
 import { CONDITIONS, SPECIALITIES, TREATMENTS } from "@/data/catalog";
@@ -114,6 +115,14 @@ export function ConsultForm({
       if (res.success) {
         setDoneMessage(res.message);
         setStatus("done");
+        // Counts alongside calls and WhatsApp clicks in the admin report, so the care team can see
+        // which pages actually produce enquiries rather than just traffic.
+        track({
+          type: "enquiry",
+          targetType: doctorName ? "doctor" : "site",
+          ...(doctorName ? { targetName: doctorName } : {}),
+          city,
+        });
         try {
           localStorage.setItem(PREFERRED_CITY_KEY, city);
         } catch {
