@@ -810,6 +810,65 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
         discovery); an SMS/OTP flow; a language preference cookie (the URL is the single source of
         truth on purpose).
 
+- [x] **2026-09-21 — admin panel built out to match the reference dashboard (commit `9a19656`,
+      pushed).** User supplied 8 screenshots of another admin product and asked for all of it. New
+      tabs: Overview, Call & WhatsApp, Doctor performance, Rankings, Reviews, FAQs (alongside the
+      existing Bookings / Doctor records / Hospital records / Treatments).
+      - **New models:** `ClickEvent` (call/whatsapp/profile_click/directions/enquiry; stores
+        listing, channel, city, page, locale, random `visitorId` — **no IP, no user agent**),
+        `Faq`, `DoctorRanking` (one doc per speciality+city, ordered `doctorIds`, max 20).
+        `User` gained `status`/`suspendedAt`/`suspendedReason`/`lastLoginAt`; `Review` gained
+        `pinned`/`pinnedAt` + a **sparse** `{pinned, pinnedAt}` index.
+      - **⚠️ `Faq` uses collection `sitefaqs`, NOT `faqs`.** The imported archive already has a
+        `faqs` collection (5 docs) of auto-generated local-SEO Q&A naming specific clinics
+        ("Clinics such as Apollo…") and quoting unverified prices — the fabrication trap flagged in
+        the 2026-09-19 audit. Mongoose pluralises `Faq` → `faqs`, so the admin FAQ screen listed
+        those as ours and one click would have published them. Caught during verification, after a
+        test write had already landed in that collection (removed; the 5 imported docs are intact).
+        **Don't rename the collection back.**
+      - **Honesty rules kept:** month-on-month change is shown only for records this site wrote
+        (patients, bookings, clicks). Doctors/hospitals/**reviews** are bulk-imported, so their
+        `createdAt` describes the source platform — reviews briefly had a change figure and it read
+        "-100%" purely because the import has nothing recent. Those cards return `change: null`.
+      - **Removed the old admin stat-card row**: it displayed `doctors.length` etc., i.e. the size
+        of whichever *page* of data was loaded — the "Doctors" card read **24**, not 227,415. Tab
+        badges for doctors/hospitals/treatments were the same lie and are gone; Overview queries
+        real counts. (The pending-bookings badge is real and stays.)
+      - **No deletes anywhere**, per the standing rule: patients are **suspended** (blocks login +
+        revokes live sessions, reversible) because a patient row is attached to their booking
+        history; reviews are **hidden/rejected**, never removed; FAQs are **unpublished** to draft.
+      - **`getDoctorsFn` pagination bug introduced and fixed in the same change**: pins were
+        excluded from the listing query only on page 1, so later pages skipped into a list that
+        still contained them — doctors appeared on two pages and others vanished. Pins are now
+        resolved on *every* page and the skip pulled back by the pin count. **Lesson: when you
+        prepend rows to page 1, the exclusion must apply to every page, not just the one that
+        shows them.** Verified: 24/24/24 per page, zero overlap across pages 1–4.
+      - **Tracking is wired** into DoctorCard (call + profile click), doctor profile (view + call),
+        hospital profile (call, emergency call, directions), header/footer call and WhatsApp, and
+        ConsultForm submission. `src/lib/track.ts` is fire-and-forget — a failed analytics write
+        must never block someone phoning a surgeon. **Counts start from deploy; there is no
+        historical data and the UI says so.**
+      - **Admin FAQs render publicly**: `getPageFaqsFn` feeds `/faqs` (as a "More questions"
+        category) and speciality pages (appended to the catalog FAQs, before the booking ones).
+        Without this the FAQ manager would have been write-only.
+      - **Verification method (no browser available — Chrome extension and Playwright MCP both
+        failed to connect):** called the real server-function endpoints over HTTP with a genuine
+        admin session cookie. Two gotchas worth keeping: TanStack Start needs the
+        **`x-tsr-serverFn: true` header** (without it the request is treated as a page navigation
+        and 500s) and an **`origin`** header (else 403), and payloads/responses are
+        **seroval-encoded**, not JSON (`toJSON` from the `seroval` package for requests; responses
+        are nodes of the form `{t,i,p:{k,v}}`). Results: all 12 admin endpoints refuse anonymous
+        callers; `trackClickFn` accepts valid events and drops invented types; published FAQs reach
+        both page types while drafts stay hidden; pinned doctors lead page 1 in order.
+      - Test fixtures (throwaway admin + session, 2 clicks, 3 FAQs, 1 ranking) were all removed;
+        doctors 227,415 / reviews 247,574 / imported faqs 5 confirmed untouched afterwards.
+      - `ReviewModeration.tsx` deleted — superseded by `PageReviews.tsx`.
+      - **Still open:** the imported `reviews` are the only source for the review tabs, so the
+        "held back" tab shows the 40,395 flagged locally — **Atlas still hasn't had
+        `scripts/flag-reviews.ts` run against it**. Doctor performance shows enquiries via
+        `Consultation.assignedDoctorId`, which is only set when an admin assigns a booking.
+
+
 ---
 
 ## Superseded original plan (historical record only — do not follow)
