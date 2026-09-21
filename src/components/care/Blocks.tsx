@@ -132,8 +132,8 @@ export function InsuranceEmiBlock() {
           If insurance doesn't cover your treatment, ask us about EMI options. Where plans are
           available, eligibility and terms are set by the lender.
         </p>
-        <a href="/no-cost-emi" className="mt-4 inline-block">
-          <OutlineButton className="px-4 py-2 text-sm">Learn about EMI</OutlineButton>
+        <a href="/emi-calculator" className="mt-4 inline-block">
+          <OutlineButton className="px-4 py-2 text-sm">Calculate EMI</OutlineButton>
         </a>
       </div>
     </div>

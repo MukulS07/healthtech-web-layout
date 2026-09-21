@@ -17,7 +17,7 @@ export const Route = createFileRoute("/cost_/$slug")({
     const t = getTreatment(slug);
     if (!t) throw notFound();
     if (t.slug !== params.slug) {
-      throw redirect({ to: "/cost_/$slug", params: { slug: t.slug }, statusCode: 301 });
+      throw redirect({ to: "/cost/$slug", params: { slug: t.slug }, statusCode: 301 });
     }
     return { slug: t.slug };
   },

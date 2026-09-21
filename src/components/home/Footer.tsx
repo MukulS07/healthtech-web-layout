@@ -36,6 +36,7 @@ const columns = [
       { label: "Treatment Cost", href: "/cost" },
       { label: "No-Cost EMI", href: "/no-cost-emi" },
       { label: "Insurance Eligibility", href: "/insurance-eligibility" },
+      { label: "EMI Calculator", href: "/emi-calculator" },
       { label: "Pregnancy Due Date Calculator", href: "/pregnancy-due-date-calculator" },
       { label: "Patient Help", href: "/patient-help" },
       { label: "FAQs", href: "/faqs" },

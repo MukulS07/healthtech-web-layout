@@ -18,6 +18,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CostRouteImport } from './routes/cost'
 import { Route as DoctorOnboardingRouteImport } from './routes/doctor-onboarding'
 import { Route as EditorialPolicyRouteImport } from './routes/editorial-policy'
+import { Route as EmiCalculatorRouteImport } from './routes/emi-calculator'
 import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as InsuranceEligibilityRouteImport } from './routes/insurance-eligibility'
@@ -96,6 +97,11 @@ const DoctorOnboardingRoute = DoctorOnboardingRouteImport.update({
 const EditorialPolicyRoute = EditorialPolicyRouteImport.update({
   id: '/editorial-policy',
   path: '/editorial-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmiCalculatorRoute = EmiCalculatorRouteImport.update({
+  id: '/emi-calculator',
+  path: '/emi-calculator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqsRoute = FaqsRouteImport.update({
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/editorial-policy': typeof EditorialPolicyRoute
+  '/emi-calculator': typeof EmiCalculatorRoute
   '/faqs': typeof FaqsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/insurance-eligibility': typeof InsuranceEligibilityRoute
@@ -325,6 +332,7 @@ export interface FileRoutesByTo {
   '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/editorial-policy': typeof EditorialPolicyRoute
+  '/emi-calculator': typeof EmiCalculatorRoute
   '/faqs': typeof FaqsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/insurance-eligibility': typeof InsuranceEligibilityRoute
@@ -371,6 +379,7 @@ export interface FileRoutesById {
   '/cost': typeof CostRoute
   '/doctor-onboarding': typeof DoctorOnboardingRoute
   '/editorial-policy': typeof EditorialPolicyRoute
+  '/emi-calculator': typeof EmiCalculatorRoute
   '/faqs': typeof FaqsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/insurance-eligibility': typeof InsuranceEligibilityRoute
@@ -418,6 +427,7 @@ export interface FileRouteTypes {
     | '/cost'
     | '/doctor-onboarding'
     | '/editorial-policy'
+    | '/emi-calculator'
     | '/faqs'
     | '/forgot-password'
     | '/insurance-eligibility'
@@ -463,6 +473,7 @@ export interface FileRouteTypes {
     | '/cost'
     | '/doctor-onboarding'
     | '/editorial-policy'
+    | '/emi-calculator'
     | '/faqs'
     | '/forgot-password'
     | '/insurance-eligibility'
@@ -508,6 +519,7 @@ export interface FileRouteTypes {
     | '/cost'
     | '/doctor-onboarding'
     | '/editorial-policy'
+    | '/emi-calculator'
     | '/faqs'
     | '/forgot-password'
     | '/insurance-eligibility'
@@ -554,6 +566,7 @@ export interface RootRouteChildren {
   CostRoute: typeof CostRoute
   DoctorOnboardingRoute: typeof DoctorOnboardingRoute
   EditorialPolicyRoute: typeof EditorialPolicyRoute
+  EmiCalculatorRoute: typeof EmiCalculatorRoute
   FaqsRoute: typeof FaqsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InsuranceEligibilityRoute: typeof InsuranceEligibilityRoute
@@ -653,6 +666,13 @@ declare module '@tanstack/react-router' {
       path: '/editorial-policy'
       fullPath: '/editorial-policy'
       preLoaderRoute: typeof EditorialPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/emi-calculator': {
+      id: '/emi-calculator'
+      path: '/emi-calculator'
+      fullPath: '/emi-calculator'
+      preLoaderRoute: typeof EmiCalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faqs': {
@@ -906,6 +926,7 @@ const rootRouteChildren: RootRouteChildren = {
   CostRoute: CostRoute,
   DoctorOnboardingRoute: DoctorOnboardingRoute,
   EditorialPolicyRoute: EditorialPolicyRoute,
+  EmiCalculatorRoute: EmiCalculatorRoute,
   FaqsRoute: FaqsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   InsuranceEligibilityRoute: InsuranceEligibilityRoute,

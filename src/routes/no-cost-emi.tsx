@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Wallet, ShieldCheck, FileText, Clock, ChevronDown } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
-import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
+import { Container, SectionHead, Eyebrow, OrangeButton, OutlineButton } from "@/components/home/primitives";
 import { BOOK_LABEL } from "@/lib/site";
 
 const benefits = [
@@ -113,12 +113,13 @@ function NoCostEmiPage() {
               No-Cost EMI
             </h1>
             <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-              Split your treatment cost into monthly instalments through our partner banks and
-              NBFCs, with no extra markup for choosing to pay this way.
+              Where a hospital or lender offers it, you can spread your treatment cost over
+              monthly instalments. Work out what those instalments would be before you commit.
             </p>
-            <a href="/contact" className="mt-6 inline-block">
-              <OrangeButton>Check My Eligibility</OrangeButton>
-            </a>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a href="/emi-calculator"><OrangeButton>Calculate my EMI</OrangeButton></a>
+              <a href="/contact"><OutlineButton tone="light">Ask about payment options</OutlineButton></a>
+            </div>
           </Container>
         </section>
 
