@@ -7,17 +7,19 @@ import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
 import { submitQuestionFn, getAnsweredQuestionsFn } from "@/lib/server-functions/questions";
 import { seo } from "@/lib/seo";
+import { useLocale, useT } from "@/lib/i18n/context";
 
+// `value` is what is stored and read by the care team, so it stays English; `key` is the label shown.
 const conditionOptions = [
-  "Proctology (Piles, Fistula, Fissure)",
-  "Gynaecology",
-  "ENT",
-  "Urology",
-  "Orthopedics",
-  "Ophthalmology",
-  "General Surgery",
-  "Cosmetic & Aesthetics",
-  "Something else",
+  { value: "Proctology (Piles, Fistula, Fissure)", key: "ask.cProctology" },
+  { value: "Gynaecology", key: "spec.gynaecology" },
+  { value: "ENT", key: "spec.ent" },
+  { value: "Urology", key: "spec.urology" },
+  { value: "Orthopedics", key: "spec.orthopaedics" },
+  { value: "Ophthalmology", key: "spec.ophthalmology" },
+  { value: "General Surgery", key: "spec.general-surgery" },
+  { value: "Cosmetic & Aesthetics", key: "ask.cCosmetic" },
+  { value: "Something else", key: "form.somethingElse" },
 ];
 
 export const Route = createFileRoute("/ask-a-question")({
@@ -39,6 +41,8 @@ export const Route = createFileRoute("/ask-a-question")({
 });
 
 function AskForm() {
+  const t = useT();
+  const locale = useLocale();
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
@@ -53,7 +57,7 @@ function AskForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone || !condition || !message) {
-      toast.error("Please fill in your name, phone number, condition, and question.");
+      toast.error(t("ask.fillAll"));
       return;
     }
     setIsSubmitting(true);
@@ -69,7 +73,7 @@ function AskForm() {
         },
       });
       if (res.success) {
-        toast.success(res.message);
+        toast.success(locale !== "en" ? t("ask.received") : res.message);
         setName("");
         setAge("");
         setGender("");
@@ -77,10 +81,10 @@ function AskForm() {
         setCondition("");
         setMessage("");
       } else {
-        toast.error(res.error || "Something went wrong. Please try again.");
+        toast.error((locale === "en" && res.error) || t("home.genericError"));
       }
     } catch {
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t("home.genericError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -90,11 +94,11 @@ function AskForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-navy">Full Name *</label>
+          <label className="mb-1.5 block text-xs font-semibold text-navy">{t("form.fullName")} *</label>
           <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-navy">Phone *</label>
+          <label className="mb-1.5 block text-xs font-semibold text-navy">{t("form.phone")} *</label>
           <input
             className={inputClass}
             inputMode="tel"
@@ -106,7 +110,7 @@ function AskForm() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-navy">Age</label>
+          <label className="mb-1.5 block text-xs font-semibold text-navy">{t("ask.age")}</label>
           <input
             type="number"
             className={inputClass}
@@ -115,37 +119,37 @@ function AskForm() {
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-navy">Gender</label>
+          <label className="mb-1.5 block text-xs font-semibold text-navy">{t("ask.gender")}</label>
           <select className={inputClass} value={gender} onChange={(e) => setGender(e.target.value)}>
-            <option value="">Prefer not to say</option>
-            <option value="Female">Female</option>
-            <option value="Male">Male</option>
-            <option value="Other">Other</option>
+            <option value="">{t("ask.genderNone")}</option>
+            <option value="Female">{t("ask.female")}</option>
+            <option value="Male">{t("ask.male")}</option>
+            <option value="Other">{t("ask.other")}</option>
           </select>
         </div>
       </div>
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-navy">Condition *</label>
+        <label className="mb-1.5 block text-xs font-semibold text-navy">{t("ask.condition")} *</label>
         <select
           className={inputClass}
           value={condition}
           onChange={(e) => setCondition(e.target.value)}
           required
         >
-          <option value="">Select a condition</option>
+          <option value="">{t("ask.selectCondition")}</option>
           {conditionOptions.map((c) => (
-            <option key={c} value={c}>
-              {c}
+            <option key={c.value} value={c.value}>
+              {t(c.key)}
             </option>
           ))}
         </select>
       </div>
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-navy">Your question *</label>
+        <label className="mb-1.5 block text-xs font-semibold text-navy">{t("ask.question")} *</label>
         <textarea
           className={`${inputClass} resize-none`}
           rows={4}
-          placeholder="Describe your symptoms or what you'd like to know…"
+          placeholder={t("ask.placeholder")}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
@@ -154,10 +158,10 @@ function AskForm() {
       <OrangeButton type="submit" disabled={isSubmitting} className="w-full py-3 text-base sm:w-auto">
         {isSubmitting ? (
           <span className="inline-flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+            <Loader2 className="h-4 w-4 animate-spin" /> {t("form.sending")}
           </span>
         ) : (
-          "Ask Your Question"
+          t("ask.submit")
         )}
       </OrangeButton>
     </form>
@@ -165,6 +169,7 @@ function AskForm() {
 }
 
 function AskAQuestionPage() {
+  const t = useT();
   const { questions } = Route.useLoaderData();
 
   return (
@@ -173,13 +178,12 @@ function AskAQuestionPage() {
       <main>
         <section className="bg-navy py-14">
           <Container>
-            <Eyebrow tone="light">Ask a doctor</Eyebrow>
+            <Eyebrow tone="light">{t("ask.eyebrow")}</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
-              Ask a Question
+              {t("footer.askQuestion")}
             </h1>
             <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-              Not ready to book yet? Ask our care team about your symptoms or a planned procedure
-              and get a real answer — no obligation.
+              {t("ask.intro")}
             </p>
           </Container>
         </section>
@@ -187,29 +191,25 @@ function AskAQuestionPage() {
         <section className="py-14">
           <Container className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
-              <SectionHead eyebrow="Get started" title="Submit your question" />
+              <SectionHead eyebrow={t("ask.getStarted")} title={t("ask.submitTitle")} />
               <AskForm />
             </div>
             <div className="rounded-xl bg-cream p-6">
               <MessageCircleQuestion className="h-8 w-8 text-brand-orange" />
-              <h3 className="mt-3 text-base font-bold text-navy">What happens next?</h3>
+              <h3 className="mt-3 text-base font-bold text-navy">{t("ask.next")}</h3>
               <ul className="mt-3 space-y-3 text-sm text-ink/80">
                 <li className="flex gap-2">
-                  <span className="font-bold text-brand-orange">1.</span> A member of our care
-                  team reviews your question.
+                  <span className="font-bold text-brand-orange">1.</span> {t("ask.step1")}
                 </li>
                 <li className="flex gap-2">
-                  <span className="font-bold text-brand-orange">2.</span> We connect you with a
-                  relevant specialist if a doctor's opinion is needed.
+                  <span className="font-bold text-brand-orange">2.</span> {t("ask.step2")}
                 </li>
                 <li className="flex gap-2">
-                  <span className="font-bold text-brand-orange">3.</span> You get a response by
-                  phone or WhatsApp.
+                  <span className="font-bold text-brand-orange">3.</span> {t("ask.step3")}
                 </li>
               </ul>
               <p className="mt-4 text-xs text-muted-foreground">
-                For urgent symptoms, please call 112 or visit your
-                nearest emergency room instead of waiting for a reply here.
+                {t("ask.urgent")}
               </p>
             </div>
           </Container>
@@ -218,7 +218,7 @@ function AskAQuestionPage() {
         {questions.length > 0 && (
           <section className="bg-cream py-14">
             <Container className="max-w-3xl">
-              <SectionHead eyebrow="From other patients" title="Recently answered questions" />
+              <SectionHead eyebrow={t("ask.fromOthers")} title={t("ask.recent")} />
               <div className="space-y-3">
                 {questions.map((q) => (
                   <div key={q.id} className="rounded-xl border border-border bg-background p-5">

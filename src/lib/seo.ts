@@ -1,5 +1,35 @@
 import { SITE } from "@/lib/site";
 import { DEFAULT_LOCALE, LOCALES, localeInfo, localePath, type Locale } from "@/lib/i18n/locales";
+import { translate } from "@/lib/i18n/strings";
+
+/**
+ * Static pages whose <title> and description are translated (keys `meta.<name>.title` / `.desc`).
+ * Deliberately limited to bare paths: a filtered or paginated URL ("/doctors?page=2") keeps its
+ * English title, which carries the page number and so stays unique — replacing it with the base
+ * title would give every page of a directory the same title.
+ */
+const PAGE_META_KEYS: Record<string, string> = {
+  "/": "home",
+  "/doctors": "doctors",
+  "/hospitals": "hospitals",
+  "/reviews": "reviews",
+  "/contact": "contact",
+  "/specialities": "specialities",
+  "/treatments": "treatments",
+  "/conditions": "conditions",
+  "/cost": "cost",
+  "/locations": "locations",
+  "/faqs": "faqs",
+  "/ask-a-question": "ask",
+  "/insurance-eligibility": "insurance",
+  "/no-cost-emi": "emi",
+  "/emi-calculator": "emiCalc",
+  "/surgery-cost-calculator": "costCalc",
+  "/pregnancy-due-date-calculator": "due",
+  "/about": "about",
+  "/patient-help": "patientHelp",
+  "/blog": "blog",
+};
 
 /**
  * Per-route <head> builder: unique title/description, self-referencing canonical, Open Graph +
@@ -20,13 +50,22 @@ export function seo(opts: {
   locale?: Locale;
 }) {
   const locale = opts.locale ?? DEFAULT_LOCALE;
-  const fullTitle = opts.title.includes(SITE.name) ? opts.title : `${opts.title} | ${SITE.name}`;
   // The canonical must point at THIS language's URL. Pointing every translation at the English
   // one would tell search engines the translations are duplicates and get them dropped.
   const [barePath = "/", query = ""] = splitQuery(opts.path);
+  const metaKey = locale !== DEFAULT_LOCALE && query === "" ? PAGE_META_KEYS[barePath] : undefined;
+  const localised = (suffix: "title" | "desc") => {
+    if (!metaKey) return undefined;
+    const key = `meta.${metaKey}.${suffix}`;
+    const value = translate(locale, key);
+    return value === key ? undefined : value;
+  };
+  const title = localised("title") ?? opts.title;
+  const fullTitle = title.includes(SITE.name) ? title : `${title} | ${SITE.name}`;
   const url = `${SITE.url}${absolutePath(localePath(barePath, locale))}${query}`;
   const image = opts.image?.startsWith("http") ? opts.image : `${SITE.url}${opts.image ?? "/og-default.png"}`;
-  const description = opts.description.length > 300 ? `${opts.description.slice(0, 297)}…` : opts.description;
+  const rawDescription = localised("desc") ?? opts.description;
+  const description = rawDescription.length > 300 ? `${rawDescription.slice(0, 297)}…` : rawDescription;
 
   return {
     meta: [

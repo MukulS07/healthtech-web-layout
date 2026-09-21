@@ -7,6 +7,8 @@ import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
 import { submitInsuranceCheckFn } from "@/lib/server-functions/insurance";
 import { seo } from "@/lib/seo";
+import { useLocale, useT } from "@/lib/i18n/context";
+import { DEFAULT_WORDING } from "@/lib/site";
 
 const insurers = [
   "Star Health",
@@ -20,21 +22,9 @@ const insurers = [
 ];
 
 const howItWorks = [
-  {
-    icon: FileCheck2,
-    title: "Share your policy details",
-    desc: "Tell us your insurer, city, and condition — no documents to upload upfront.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "We check your coverage",
-    desc: "Our team checks your policy for cashless eligibility using the details you share.",
-  },
-  {
-    icon: Clock3,
-    title: "Get a call back",
-    desc: "We explain what's likely to be covered, what isn't, and any co-pay, before you commit.",
-  },
+  { icon: FileCheck2, n: 1 },
+  { icon: ShieldCheck, n: 2 },
+  { icon: Clock3, n: 3 },
 ];
 
 const faqs = [
@@ -82,6 +72,8 @@ function FaqAccordion() {
 }
 
 function EligibilityForm() {
+  const t = useT();
+  const locale = useLocale();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
@@ -96,7 +88,7 @@ function EligibilityForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone || !city || !condition || !insurer) {
-      toast.error("Please fill in your name, phone, city, condition, and insurer.");
+      toast.error(t("ins.fillAll"));
       return;
     }
     setIsSubmitting(true);
@@ -105,7 +97,7 @@ function EligibilityForm() {
         data: { name, phone, city, condition, insurer, policyNumber: policyNumber || undefined },
       });
       if (res.success) {
-        toast.success(res.message);
+        toast.success(locale !== "en" && DEFAULT_WORDING ? t("ins.received") : res.message);
         setName("");
         setPhone("");
         setCity("");
@@ -113,10 +105,10 @@ function EligibilityForm() {
         setInsurer("");
         setPolicyNumber("");
       } else {
-        toast.error(res.error || "Something went wrong. Please try again.");
+        toast.error((locale === "en" && res.error) || t("home.genericError"));
       }
     } catch {
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t("home.genericError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -126,11 +118,11 @@ function EligibilityForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-navy">Full Name *</label>
+          <label className="mb-1.5 block text-xs font-semibold text-navy">{t("form.fullName")} *</label>
           <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-navy">Phone *</label>
+          <label className="mb-1.5 block text-xs font-semibold text-navy">{t("form.phone")} *</label>
           <input
             className={inputClass}
             inputMode="tel"
@@ -142,14 +134,14 @@ function EligibilityForm() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-navy">City *</label>
+          <label className="mb-1.5 block text-xs font-semibold text-navy">{t("form.city")} *</label>
           <input className={inputClass} value={city} onChange={(e) => setCity(e.target.value)} required />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-navy">Condition / Surgery *</label>
+          <label className="mb-1.5 block text-xs font-semibold text-navy">{t("ins.conditionSurgery")} *</label>
           <input
             className={inputClass}
-            placeholder="e.g. Piles, Hernia, Cataract"
+            placeholder={t("ins.conditionPh")}
             value={condition}
             onChange={(e) => setCondition(e.target.value)}
             required
@@ -158,25 +150,25 @@ function EligibilityForm() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-navy">Insurer *</label>
+          <label className="mb-1.5 block text-xs font-semibold text-navy">{t("ins.insurer")} *</label>
           <select
             className={inputClass}
             value={insurer}
             onChange={(e) => setInsurer(e.target.value)}
             required
           >
-            <option value="">Select your insurer</option>
+            <option value="">{t("ins.selectInsurer")}</option>
             {insurers.map((i) => (
               <option key={i} value={i}>
                 {i}
               </option>
             ))}
-            <option value="Something else">Something else</option>
+            <option value="Something else">{t("form.somethingElse")}</option>
           </select>
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-navy">
-            Policy Number <span className="font-normal text-muted-foreground">(optional)</span>
+            {t("ins.policyNumber")} <span className="font-normal text-muted-foreground">({t("form.optional")})</span>
           </label>
           <input
             className={inputClass}
@@ -188,10 +180,10 @@ function EligibilityForm() {
       <OrangeButton type="submit" disabled={isSubmitting} className="w-full py-3 text-base sm:w-auto">
         {isSubmitting ? (
           <span className="inline-flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" /> Checking...
+            <Loader2 className="h-4 w-4 animate-spin" /> {t("ins.checking")}
           </span>
         ) : (
-          "Check My Eligibility"
+          t("ins.submit")
         )}
       </OrangeButton>
     </form>
@@ -210,19 +202,19 @@ export const Route = createFileRoute("/insurance-eligibility")({
 });
 
 function InsuranceEligibilityPage() {
+  const t = useT();
   return (
     <div className="bg-background">
       <Header />
       <main>
         <section className="bg-navy py-14">
           <Container>
-            <Eyebrow tone="light">Insurance support</Eyebrow>
+            <Eyebrow tone="light">{t("ins.eyebrow")}</Eyebrow>
             <h1 className="mt-2 text-3xl font-bold text-navy-foreground sm:text-4xl">
-              Check Your Insurance Eligibility
+              {t("ins.title")}
             </h1>
             <p className="mt-3 max-w-xl text-sm text-navy-foreground/75 sm:text-base">
-              Find out what your policy is likely to cover before you commit to anything — free, with
-              no obligation to book.
+              {t("ins.intro")}
             </p>
           </Container>
         </section>
@@ -230,21 +222,21 @@ function InsuranceEligibilityPage() {
         <section className="py-14">
           <Container className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
-              <SectionHead eyebrow="Get started" title="Submit your policy details" />
+              <SectionHead eyebrow={t("ask.getStarted")} title={t("ins.submitTitle")} />
               <EligibilityForm />
             </div>
             <div>
               <div className="rounded-xl bg-cream p-6">
-                <SectionHead eyebrow="How it works" title="What happens next" />
+                <SectionHead eyebrow={t("home.howEyebrow")} title={t("ins.whatNext")} />
                 <div className="space-y-5">
                   {howItWorks.map((s, i) => (
-                    <div key={s.title} className="flex gap-4">
+                    <div key={s.n} className="flex gap-4">
                       <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-navy text-sm font-bold text-navy-foreground">
                         {i + 1}
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-navy">{s.title}</h3>
-                        <p className="mt-1 text-xs text-muted-foreground">{s.desc}</p>
+                        <h3 className="text-sm font-bold text-navy">{t(`ins.step${s.n}Title`)}</h3>
+                        <p className="mt-1 text-xs text-muted-foreground">{t(`ins.step${s.n}Desc`)}</p>
                       </div>
                     </div>
                   ))}
@@ -252,7 +244,7 @@ function InsuranceEligibilityPage() {
               </div>
               <div className="mt-5 rounded-xl border border-border bg-background p-5">
                 <p className="text-xs font-bold uppercase tracking-wide text-navy/70">
-                  Insurers we work with
+                  {t("ins.workWith")}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {insurers.map((i) => (
@@ -271,7 +263,7 @@ function InsuranceEligibilityPage() {
 
         <section className="bg-cream py-14">
           <Container className="max-w-3xl">
-            <SectionHead eyebrow="Good to know" title="Frequently asked questions" />
+            <SectionHead eyebrow={t("home.faqEyebrow")} title={t("home.faqTitle")} />
             <FaqAccordion />
           </Container>
         </section>
