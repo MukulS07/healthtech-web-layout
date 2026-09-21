@@ -752,6 +752,64 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
       (Psychiatrist, Dentist) still show on the wall, unlike `/doctors` which is filtered
       surgically — needs a denormalised field or a flagging pass, not a read-time join.
 
+- [x] **2026-09-21 — city selector with location detection, and a 7-language interface
+      (commit `f2e473f` + header fixes, pushed).**
+      - **City selector** (`src/components/common/CityPicker.tsx`, replaces the old 12-item
+        `<select>` that lived inside Header.tsx): type-to-filter, plus **"Get my location"**. The
+        reading is matched against city coordinates **on the device** (`CITIES` now carries
+        `lat`/`lng`; `nearestCity()` in `src/lib/site.ts` does a haversine search) — there is
+        **no reverse-geocoding call**, so a patient's coordinates never leave their browser and no
+        API key is needed. Beyond ~150km from every city it says so instead of picking a wrong one.
+      - **12 → 54 cities.** New names needed **spelling aliases** in `src/lib/city-aliases.ts`,
+        because the imported data spells several differently — `"Haora"` for Howrah, and both old
+        and new names for the cities renamed in the 2010s (Bengaluru/Bangalore,
+        Prayagraj/Allahabad, Trivandrum, Calicut, Baroda, Trichy, Hubballi, Mysuru, Mangaluru).
+        Without an alias a city silently returns zero results. Verified live: Howrah 619 doctors,
+        Mysore 439, Guwahati 446; Bangalore and Delhi NCR each gained doctors the old exact-match
+        filter was missing.
+      - **`TOP_CITIES`** (the leading 12) is what footer / "also available in" link lists and the
+        **sitemap** use, so widening the picker didn't turn pages into walls of city links or add
+        ~900 thin city × speciality URLs. Full `CITIES` drives the picker, site search and every
+        dropdown where a patient picks their own city.
+      - **Languages: English, Hindi, Tamil, Telugu, Malayalam, Kannada, Marathi.** **Interface
+        only** — user's explicit choice. Treatment/condition/speciality copy, blog posts and legal
+        pages stay English, because machine-translating clinical text would put unreviewed medical
+        claims in front of patients in six languages. Strings live in `src/lib/i18n/strings.ts`
+        with **English fallback** for any missing key, so a partial translation is always safe.
+        **⚠️ No native speaker has checked these — get each language reviewed before promoting it.**
+      - **Each language is a real URL** (`/hi/doctors`), with a self-referencing canonical,
+        hreflang for all seven plus `x-default`, and a matching `<html lang>`.
+      - **⚠️ Use the router's `rewrite` option, NOT `basepath`.** TanStack Start overwrites
+        `basepath` with the build-time `TSS_ROUTER_BASEPATH` on *every request*
+        (`router.update({ basepath })` in `start-server-core/createStartHandler`), so a per-request
+        basepath is silently discarded and every `/hi/*` URL 404s — confirmed by reading the
+        source after the 404s appeared. Start leaves `rewrite` alone, and it does the same job in
+        both directions. Documented in `src/router.tsx` so nobody retries basepath.
+      - **`<A>` (`src/components/common/A.tsx`) replaces plain `<a>` in 41 files.** This codebase
+        navigates with raw anchors, which bypass the router's rewrite — without `<A>` every link
+        on a Hindi page dropped the reader back into English and crawlers would never reach the
+        translated pages. `<A>` adds the prefix at render time on server *and* client, so there's
+        no hydration mismatch. (Post-processing the SSR HTML instead would have mismatched and
+        made React re-render the page.) It leaves alone: absolute/protocol-relative URLs,
+        mailto/tel, in-page anchors, `_serverFn`, sitemaps, assets and `/admin`.
+      - **Language picker** in the header, each option in its own script (हिन्दी, தமிழ்), linking
+        to the same page in that language.
+      - **10 pages that emitted a raw `head()`** (faqs, careers, privacy, terms, patient-help…)
+        now use `seo()`, so they get a canonical for the first time as well as hreflang.
+      - **Header layout had to be made translation-proof**: Tamil/Malayalam nav labels are far
+        longer than English and overlapped the search box. Desktop search now appears at `xl`+
+        only (below that it's in the menu panel), the city picker at `xl`+, the language picker at
+        `lg`+, and the right-hand control group may shrink. **When adding header items, re-check
+        at 1024/1280 in Tamil — English fits in roughly 60% of the width Tamil needs.**
+      - Verified: 133/133 page loads clean across all seven languages, 160/160 links stay
+        in-language after hydration with no console errors, geolocation resolves Bandra→Mumbai,
+        Koramangala→Bangalore, Gurugram→Delhi NCR and refuses from Port Blair/London, and English
+        output is unchanged.
+      - **Not translated (deliberate):** page `<title>`/meta descriptions, and all catalog/blog/
+        legal body copy. **Not done:** locale-prefixed URLs in the sitemap (hreflang covers
+        discovery); an SMS/OTP flow; a language preference cookie (the URL is the single source of
+        truth on purpose).
+
 ---
 
 ## Superseded original plan (historical record only — do not follow)
