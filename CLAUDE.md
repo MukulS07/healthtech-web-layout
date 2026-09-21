@@ -943,6 +943,25 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
         reported 10s when the code was actually 0.4s. **Always rebuild with the same preset you
         then run, and confirm your change is present in the built output before timing it.**
 
+- [x] **2026-09-21 — "Get my location" never asked for permission (commit `910a8fe`).**
+      `vercel.json` sent `Permissions-Policy: geolocation=()`, which forbids the API for the whole
+      site: Chrome never shows its prompt and `getCurrentPosition` fails at once with "Geolocation
+      has been disabled in this document by permissions policy". Now `geolocation=(self)`.
+      - **Why testing missed it:** headers in `vercel.json` only exist on Vercel. Every local check
+        used a mocked position and passed. **Anything a security header can switch off (geolocation,
+        camera, microphone, CSP-blocked scripts/connections) must be tested on the deployed URL.**
+        Quick proof of state on the live page: `document.featurePolicy.allowsFeature('geolocation')`
+        and `navigator.permissions.query({name:'geolocation'})` — `prompt` means the browser will ask.
+      - The prompt is deliberately **user-initiated** (the button), never on page load.
+      - **Reviewed live with a real browser (Playwright MCP) at 1440px and 390px:** 26 pages all 200,
+        hydrated, no console errors, no sideways scroll; language menu, city picker (Pune → 2,195
+        doctors / 584 hospitals), search, form validation, 404, admin gate, robots and all sitemaps OK.
+      - **Known limits, not bugs:** the header city applies to links you follow next
+        (`/doctors?city=…`), not to a directory page you're already on. Non-English pages translate
+        only ~11–13 strings (nav/footer/city picker) out of ~400–550 visible — headlines, hero copy,
+        form labels stay English. Click tracking and logged-in admin views were not exercised (would
+        write test rows to production / needs credentials).
+
 
 ---
 
