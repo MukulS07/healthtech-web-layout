@@ -118,7 +118,7 @@ export function DoctorCard({
 
   if (layout === "row") {
     return (
-      <article className={cn("rounded-lg border border-border bg-background p-3 shadow-sm", className)}>
+      <article className={cn("min-w-0 rounded-lg border border-border bg-background p-3 shadow-sm", className)}>
         <a href={profileHref} className="flex gap-3">
           <DoctorAvatar name={d.name} initials={d.initials} img={d.img} className="h-14 w-14 shrink-0 rounded-full text-base" />
           <div className="min-w-0 flex-1">
@@ -136,7 +136,7 @@ export function DoctorCard({
   return (
     <article
       className={cn(
-        "flex flex-col justify-between overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-shadow hover:shadow-md",
+        "flex min-w-0 flex-col justify-between overflow-hidden rounded-xl border border-border/80 bg-background shadow-sm transition-shadow hover:shadow-md",
         className,
       )}
     >

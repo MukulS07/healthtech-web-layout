@@ -1,6 +1,6 @@
 import { CalendarCheck, HeartPulse, Mail, MessageCircle, Phone } from "lucide-react";
 import { Container } from "./primitives";
-import { BOOK_LABEL, CITIES, SITE, telHref, whatsappHref } from "@/lib/site";
+import { BOOK_LABEL, CITIES, promiseEnabled, SITE, telHref, whatsappHref } from "@/lib/site";
 import { SPECIALITIES } from "@/data/catalog";
 
 const columns = [
@@ -162,7 +162,7 @@ export function Footer() {
           <MessageCircle className="h-4 w-4" /> WhatsApp
         </a>
         <a href="/contact" className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white shadow-md">
-          <CalendarCheck className="h-4 w-4" /> Book Free
+          <CalendarCheck className="h-4 w-4" /> {promiseEnabled("free-consult") ? "Book Free" : "Book"}
         </a>
       </div>
 

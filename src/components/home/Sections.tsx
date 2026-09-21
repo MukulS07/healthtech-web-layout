@@ -195,7 +195,9 @@ export function FindCare() {
             <a
               key={it.key}
               href={it.href}
-              className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-cream/60 px-4 py-3 transition-colors hover:border-primary/40 hover:bg-cream"
+              // min-w-0: the label inside uses `truncate` (white-space: nowrap), whose min-content
+              // width would otherwise stretch this grid column past the phone viewport.
+              className="group flex min-w-0 items-center justify-between gap-3 rounded-lg border border-border bg-cream/60 px-4 py-3 transition-colors hover:border-primary/40 hover:bg-cream"
             >
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-navy">{it.title}</span>
@@ -498,7 +500,7 @@ export function Stats({ stats }: { stats: SiteStats | null }) {
   const items = [
     { value: roundDownPlus(stats.surgeons), label: "Surgeons in our directory" },
     { value: roundDownPlus(stats.hospitals), label: "Hospitals listed" },
-    { value: String(stats.cities), label: "Cities covered" },
+    { value: String(stats.cities), label: "Cities listed" },
     ...(stats.reviews > 0 ? [{ value: roundDownPlus(stats.reviews), label: "Patient reviews" }] : []),
   ];
   return (

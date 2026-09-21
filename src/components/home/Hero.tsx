@@ -58,13 +58,13 @@ export function Hero({ stats }: { stats: SiteStats | null }) {
             {stats && stats.surgeons > 0 ? (
               <div className="mt-8 grid grid-cols-3 gap-3 border-t border-navy-foreground/15 pt-6 sm:gap-6">
                 {[
-                  { value: roundDownPlus(stats.surgeons), label: "Surgeons in directory" },
+                  { value: roundDownPlus(stats.surgeons), label: "Surgeons listed" },
                   { value: roundDownPlus(stats.hospitals), label: "Hospitals listed" },
-                  { value: String(stats.cities), label: "Cities covered" },
+                  { value: String(stats.cities), label: "Cities listed" },
                 ].map((stat) => (
                   <div key={stat.label} className="min-w-0">
                     <p className="text-xl font-bold text-brand-blue-light sm:text-2xl lg:text-3xl">{stat.value}</p>
-                    <p className="mt-1 truncate text-xs text-navy-foreground/70">{stat.label}</p>
+                    <p className="mt-1 text-xs leading-snug text-navy-foreground/70">{stat.label}</p>
                   </div>
                 ))}
               </div>
