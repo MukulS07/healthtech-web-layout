@@ -962,6 +962,37 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
         form labels stay English. Click tracking and logged-in admin views were not exercised (would
         write test rows to production / needs credentials).
 
+- [x] **2026-09-21 — interface translation extended from ~2% to ~45-70% of visible text (commits `6e97e8f`,
+      `7b8d6a1`, `8b50117`).** Prompted by "language dropdown is not working": the switcher worked, but only
+      ~12 strings per page were translated, so choosing Hindi looked like nothing happened.
+      - **Where strings live:** one file per language, `src/lib/i18n/dict/{en,hi,ta,te,ml,kn,mr}.ts`. English is
+        bundled; the others are **lazy chunks** loaded by `loadDictionary()` (awaited in `getRouter()` on server and
+        client, so SSR and hydration always agree; a visitor only downloads the language they read). Use
+        `const t = useT()`; `t("key", { n: 5 })` fills `{n}`. `*word*` in a string is emphasis (`<Emph>`) and
+        `{link}` marks where an anchor goes (`<WithLink>`), so each language controls its own word order.
+        `useSpecName()` gives the translated speciality name (short labels only).
+      - **Adding strings:** all seven languages for a key go in one batch file and are merged by a script that
+        refuses to write unless every language is present, `{placeholders}` match English and nothing was left
+        untranslated. (The batch/merge scripts lived in the session scratchpad, not the repo — recreate if needed;
+        the dict files are the source of truth.)
+      - **Still English on purpose (user's rule: interface only):** treatment/condition/speciality *descriptions*,
+        blog, legal, catalogue FAQs, generated doctor bios, the "why choose us" claims, doctor/hospital names.
+      - **Not yet converted** (fall back to English, safe): `/cost` + `/cost/$slug`, the three calculators,
+        `/no-cost-emi`, `/faqs` chrome, `/reviews/write`, `/account` + login panel, `/locations/$city`,
+        treatment/condition detail pages' chrome, `/about`, `/patient-help`, `/careers`, `/doctor-onboarding`,
+        the 404 page, admin. Titles/descriptions are translated for 20 static pages only (bare paths — a
+        `?page=2` URL keeps its English title so titles stay unique).
+      - **⚠️ No native speaker has reviewed any of this.** Wording is machine-quality; get each language checked,
+        especially the consent line, form errors and the insurance/EMI text, before promoting it.
+      - **Two unconfirmed "free consultation" claims were found live and gated** on
+        `promiseEnabled("free-consult")`: the homepage FAQ ("Is the first consultation really free? Yes") — also in
+        the FAQPage structured data — and the doctor-profile sidebar ("First consultation via Go Surgery ~~₹x~~
+        FREE"). Neither is translated. **Other promise-like lines remain** in homepage sections (e.g. "one person
+        guiding you", insurance/EMI help) and are translated as written — if any isn't true, fix English and all six
+        translations together.
+      - **Translated strings that describe flag-dependent wording** (callback "shortly", "our team") are only
+        used while `DEFAULT_WORDING` (site.ts) is true; otherwise the English text built from the flags shows.
+
 
 ---
 
