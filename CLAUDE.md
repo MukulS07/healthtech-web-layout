@@ -869,6 +869,46 @@ Hospital and Treatment. 5-phase plan to match it, user chose to start with Phase
         `Consultation.assignedDoctorId`, which is only set when an admin assigns a booking.
 
 
+- [x] **2026-09-21 — ⚠️ THE WHOLE SITE WENT DEAD AND STILL RETURNED 200 EVERYWHERE (fixed in
+      `b85129a`; language-picker follow-up `0342753`).** User reported "language dropdown is not
+      working", then "nothing is working". Every URL returned **200** and the pages looked right,
+      because the server-rendered HTML was fine — it was the **browser JavaScript that never ran**,
+      so nothing interactive worked anywhere: language picker, city picker, hamburger menu,
+      directory filters, forms.
+      - **Cause: Mongoose ended up in the client bundle.** Two admin components imported from
+        `src/models/**` for a single constant (`MAX_PINNED_DOCTORS`, `FAQ_PAGE_TYPES`), and
+        `src/lib/track.ts` imported a server-function module (`analytics.ts`) that had a top-level
+        `import mongoose`. Any one of those pulls Mongoose and the whole MongoDB driver in. Because
+        `lib/track` is used by Header, Footer, DoctorCard and ConsultForm, it reached **every
+        page**. The bundle referenced `require(` and `Buffer`, which don't exist in a browser, so it
+        threw while loading and React never hydrated.
+      - **Client entry was 2,337,749 bytes; it is 454,975 after the fix** — an 80% cut, and proof
+        that nothing else was pulling the driver in.
+      - **The rules to follow here:**
+        1. **Never import from `src/models/**` inside a component**, even for one constant or type.
+           Shared values go in **`src/lib/admin-constants.ts`**, which deliberately imports nothing.
+        2. **No top-level `import mongoose` in a server-function module that client code can
+           reach.** Queries and document writes cast 24-hex strings by themselves; **aggregation
+           `$match` does not**, so those handlers do `const { Types } = await import("mongoose")`
+           *inside the handler body*, which the client build strips. `import type { Types }` is
+           always safe (erased at compile time) — that is why `doctors.ts` never had the problem
+           while `analytics.ts`/`rankings.ts` did.
+      - **Guard added: `scripts/check-client-bundle.mjs`, wired into `npm run build`** (so it runs
+        on Vercel too). It fails the build if `mongoose#`, `MongoClient` or `mongodb://` appears in
+        any client asset. Verified it rejects the exact bundle that was live.
+      - **No credentials were exposed** — the `mongodb://` strings in the broken bundle were the
+        driver's own scheme-validation code and a literal `this_is_a_placeholder__`, not a
+        connection string. Checked explicitly for `user:pass@...mongodb.net`: none.
+      - **Lesson bigger than this bug: a 200 status proves nothing about whether the site works.**
+        SSR keeps rendering perfectly while the client bundle is dead. Page-level HTTP checks —
+        which is all the previous review passes did — cannot see this class of failure. Check the
+        client bundle, or drive a real browser.
+      - **Also fixed (`0342753`):** `LanguagePicker` read `window.location` once in a mount effect
+        with an empty dependency array, so after any in-app navigation it was stale — switching
+        language from `/doctors` sent the reader to the language's *homepage*. Now from
+        `useRouterState`, which is right during SSR and updates on every navigation.
+
+
 ---
 
 ## Superseded original plan (historical record only — do not follow)
