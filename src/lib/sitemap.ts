@@ -48,6 +48,7 @@ const STATIC_PATHS = [
   ["/insurance-eligibility", 0.6],
   ["/no-cost-emi", 0.6],
   ["/emi-calculator", 0.6],
+  ["/surgery-cost-calculator", 0.7],
   ["/ask-a-question", 0.5],
   ["/about", 0.5],
   ["/faqs", 0.5],

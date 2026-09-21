@@ -129,6 +129,7 @@ function TreatmentCostPage() {
             <div className="mt-6 flex flex-wrap gap-3">
               <a href="#book"><OrangeButton>Ask for an estimate</OrangeButton></a>
               <a href={`/treatments/${t.slug}`}><OutlineButton tone="light">About the procedure</OutlineButton></a>
+              <a href="/surgery-cost-calculator"><OutlineButton tone="light">Compare another procedure</OutlineButton></a>
             </div>
           </Container>
         </section>

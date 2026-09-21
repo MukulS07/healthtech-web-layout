@@ -33,6 +33,7 @@ import { Route as SitemapDoctorsDotxmlRouteImport } from './routes/sitemap-docto
 import { Route as SitemapHospitalsDotxmlRouteImport } from './routes/sitemap-hospitals[.]xml'
 import { Route as SitemapPagesDotxmlRouteImport } from './routes/sitemap-pages[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SurgeryCostCalculatorRouteImport } from './routes/surgery-cost-calculator'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSignupRouteImport } from './routes/admin/signup'
@@ -175,6 +176,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SurgeryCostCalculatorRoute = SurgeryCostCalculatorRouteImport.update({
+  id: '/surgery-cost-calculator',
+  path: '/surgery-cost-calculator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -301,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/sitemap-hospitals.xml': typeof SitemapHospitalsDotxmlRoute
   '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/surgery-cost-calculator': typeof SurgeryCostCalculatorRoute
   '/terms': typeof TermsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -347,6 +354,7 @@ export interface FileRoutesByTo {
   '/sitemap-hospitals.xml': typeof SitemapHospitalsDotxmlRoute
   '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/surgery-cost-calculator': typeof SurgeryCostCalculatorRoute
   '/terms': typeof TermsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -394,6 +402,7 @@ export interface FileRoutesById {
   '/sitemap-hospitals.xml': typeof SitemapHospitalsDotxmlRoute
   '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/surgery-cost-calculator': typeof SurgeryCostCalculatorRoute
   '/terms': typeof TermsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -442,6 +451,7 @@ export interface FileRouteTypes {
     | '/sitemap-hospitals.xml'
     | '/sitemap-pages.xml'
     | '/sitemap.xml'
+    | '/surgery-cost-calculator'
     | '/terms'
     | '/admin/signup'
     | '/blog/$slug'
@@ -488,6 +498,7 @@ export interface FileRouteTypes {
     | '/sitemap-hospitals.xml'
     | '/sitemap-pages.xml'
     | '/sitemap.xml'
+    | '/surgery-cost-calculator'
     | '/terms'
     | '/admin/signup'
     | '/blog/$slug'
@@ -534,6 +545,7 @@ export interface FileRouteTypes {
     | '/sitemap-hospitals.xml'
     | '/sitemap-pages.xml'
     | '/sitemap.xml'
+    | '/surgery-cost-calculator'
     | '/terms'
     | '/admin/signup'
     | '/blog/$slug'
@@ -581,6 +593,7 @@ export interface RootRouteChildren {
   SitemapHospitalsDotxmlRoute: typeof SitemapHospitalsDotxmlRoute
   SitemapPagesDotxmlRoute: typeof SitemapPagesDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SurgeryCostCalculatorRoute: typeof SurgeryCostCalculatorRoute
   TermsRoute: typeof TermsRoute
   AdminSignupRoute: typeof AdminSignupRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -773,6 +786,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/surgery-cost-calculator': {
+      id: '/surgery-cost-calculator'
+      path: '/surgery-cost-calculator'
+      fullPath: '/surgery-cost-calculator'
+      preLoaderRoute: typeof SurgeryCostCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -941,6 +961,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapHospitalsDotxmlRoute: SitemapHospitalsDotxmlRoute,
   SitemapPagesDotxmlRoute: SitemapPagesDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SurgeryCostCalculatorRoute: SurgeryCostCalculatorRoute,
   TermsRoute: TermsRoute,
   AdminSignupRoute: AdminSignupRoute,
   BlogSlugRoute: BlogSlugRoute,

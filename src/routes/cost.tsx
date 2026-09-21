@@ -5,6 +5,7 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Container, SectionHead, Eyebrow, OrangeButton } from "@/components/home/primitives";
 import { Breadcrumbs, FaqList, MedicalDisclaimer } from "@/components/care/Blocks";
+import { CostEstimator } from "@/components/tools/CostEstimator";
 import { SPECIALITIES, TREATMENTS } from "@/data/catalog";
 import { costIndex } from "@/data/cost";
 import { seo } from "@/lib/seo";
@@ -100,7 +101,14 @@ function CostIndexPage() {
           </Container>
         </section>
 
-        <section className="py-12">
+        <section className="py-10">
+          <Container>
+            <SectionHead eyebrow="Cost calculator" title="Look up a procedure" />
+            <CostEstimator />
+          </Container>
+        </section>
+
+        <section className="pb-12">
           <Container>
             <SectionHead eyebrow="Popular procedures" title="Most-asked-about costs" />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
