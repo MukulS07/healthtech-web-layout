@@ -124,6 +124,12 @@ const HospitalSchema = new Schema<IHospital>(
 
 HospitalSchema.index({ city: 1 });
 HospitalSchema.index({ locality: 1 });
+// Every hospital listing sorts by totalDoctors. Without an index Mongo has to sort the whole
+// 34k-document match set in memory, which blows the 32MB limit once the skip gets deep — the
+// directory died past page ~130 and sitemap-hospitals.xml came back empty. The city-prefixed
+// index serves the filtered listings; the plain one serves the unfiltered listing and sitemap.
+HospitalSchema.index({ totalDoctors: -1 });
+HospitalSchema.index({ city: 1, totalDoctors: -1 });
 
 export const Hospital: Model<IHospital> =
   (mongoose.models["Hospital"] as Model<IHospital>) ||

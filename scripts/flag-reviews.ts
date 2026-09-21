@@ -12,6 +12,8 @@
  *  - blank-doctor-name:    the text has an empty slot where a name should be ("Dr.  and I…", "Dr. 's")
  *  - duplicate-text:       the exact same comment (40+ characters) appears on more than one review
  *  - non-standard-rating:  rating isn't a whole 1–5 value (e.g. 4.1, 4.2 — not possible from star input)
+ *  - gibberish:            keyboard mash that clears the length bar but says nothing
+ *                          ("dxgfhghjil aaaaaaaaaaaa", "bhui bhjk fgh fgh dgf fyu gghq gfsqgd")
  */
 import mongoose from "mongoose";
 import { Review, type ReviewFlag } from "../src/models/Review";
@@ -55,6 +57,41 @@ async function main() {
   for (const doc of await Review.find({ ...unmoderated, rating: { $nin: [1, 2, 3, 4, 5] } }).select("_id").lean()) {
     add(doc._id, "non-standard-rating");
   }
+  // Real prose is full of words that contain a vowel; mashed consonants aren't. Count letter-runs
+  // of 3+ characters containing a vowel and flag anything with almost none. Mirrors the read-time
+  // guard in getReviewsFn, so running this just makes the same decision durable and visible in admin.
+  const gibberish = await Review.aggregate<{ _id: unknown }>(
+    [
+      { $match: { ...unmoderated, $expr: { $gte: [{ $strLenCP: { $ifNull: ["$comment", ""] } }, 20] } } },
+      {
+        $match: {
+          $expr: {
+            $lt: [
+              {
+                $size: {
+                  $filter: {
+                    input: {
+                      $regexFindAll: {
+                        input: { $toLower: { $ifNull: ["$comment", ""] } },
+                        regex: "[a-z]*[aeiou][a-z]*",
+                      },
+                    },
+                    as: "w",
+                    cond: { $gte: [{ $strLenCP: "$$w.match" }, 3] },
+                  },
+                },
+              },
+              5,
+            ],
+          },
+        },
+      },
+      { $project: { _id: 1 } },
+    ],
+    { allowDiskUse: true },
+  );
+  for (const doc of gibberish) add(doc._id, "gibberish");
+
   const dupes = await Review.aggregate<{ ids: unknown[] }>(
     [
       // Only long texts: identical short reviews ("Good doctor") are normal; identical paragraphs aren't.

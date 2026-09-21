@@ -137,6 +137,9 @@ DoctorSchema.index({ specialization: 1 });
 // listing sorted ~78k surgical doctors in memory (3–4 s per page); with them it's tens of ms.
 DoctorSchema.index({ "rating.count": -1, createdAt: -1 });
 DoctorSchema.index({ experience: -1 });
+// "Rating: High to Low" used to fall through to the rating.count sort, so picking it changed
+// nothing. It now sorts on the average, which needs its own index for the same reason.
+DoctorSchema.index({ "rating.average": -1, "rating.count": -1 });
 
 export const Doctor: Model<IDoctor> =
   (mongoose.models["Doctor"] as Model<IDoctor>) || mongoose.model<IDoctor>("Doctor", DoctorSchema);

@@ -3,6 +3,7 @@ import { connectToDatabase } from "@/lib/db";
 import { getSessionUser, isAdmin, requireAdminUser } from "@/lib/auth";
 import { Treatment } from "@/models/Treatment";
 import surgeryCatalog from "@/data/surgery-catalog.json";
+import { serverError } from "@/lib/server-error";
 
 export interface GetTreatmentsParams {
   category?: string;
@@ -49,7 +50,7 @@ export const getTreatmentsFn = createServerFn({ method: "GET" })
         })),
       };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("treatments", error);
       return {
         success: false,
         count: 0,
@@ -79,7 +80,7 @@ export const getTreatmentCategoriesFn = createServerFn({ method: "GET" }).handle
       categories: categories.map((c) => ({ category: c._id, count: c.count })),
     };
   } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = serverError("treatments", error);
     return { success: false as const, categories: [], error: errMessage };
   }
 });
@@ -107,7 +108,7 @@ export const createTreatmentFn = createServerFn({ method: "POST" })
 
       return { success: true as const, id: String(treatment._id), message: "Treatment added successfully!" };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("treatments", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -128,7 +129,7 @@ export const updateTreatmentFn = createServerFn({ method: "POST" })
 
       return { success: true as const, message: "Treatment updated successfully!" };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("treatments", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -142,7 +143,7 @@ export const deleteTreatmentFn = createServerFn({ method: "POST" })
       await Treatment.findByIdAndDelete(data.id);
       return { success: true as const, message: "Treatment deleted successfully." };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("treatments", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -227,7 +228,7 @@ export const importSurgeryCatalogFn = createServerFn({ method: "POST" }).handler
       message: `Imported ${inserted} new procedures (${skipped} already existed).`,
     };
   } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = serverError("treatments", error);
     return { success: false as const, error: errMessage };
   }
 });

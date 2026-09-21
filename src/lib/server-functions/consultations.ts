@@ -8,6 +8,7 @@ import { Doctor } from "@/models/Doctor";
 import { getCondition, getSpeciality, getTreatment } from "@/data/catalog";
 import { CALLBACK_PHRASE, CALLER, cap } from "@/lib/site";
 import { formatDoctorName } from "@/lib/doctor-format";
+import { serverError } from "@/lib/server-error";
 
 /**
  * Enforces the claim lock: once a booking is claimed, only that admin may act on it
@@ -193,7 +194,7 @@ export const getMyConsultationsFn = createServerFn({ method: "GET" }).handler(as
       }),
     };
   } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = serverError("consultations", error);
     return {
       success: false as const,
       authenticated: true,
@@ -254,7 +255,7 @@ export const getAllConsultationsFn = createServerFn({ method: "GET" }).handler(a
       }),
     };
   } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = serverError("consultations", error);
     return { success: false as const, error: errMessage };
   }
 });
@@ -289,7 +290,7 @@ export const updateConsultationStatusFn = createServerFn({ method: "POST" })
 
       return { success: true as const, message: `Status updated to ${data.status}!` };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("consultations", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -342,7 +343,7 @@ export const assignConsultationFn = createServerFn({ method: "POST" })
       const doctorName = [doctor.firstName, doctor.lastName].filter(Boolean).join(" ").trim() || "doctor";
       return { success: true as const, message: `Assigned to ${doctorName}.` };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("consultations", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -370,7 +371,7 @@ export const deleteConsultationFn = createServerFn({ method: "POST" })
       await existing.deleteOne();
       return { success: true as const, message: "Consultation deleted successfully." };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("consultations", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -411,7 +412,7 @@ export const claimConsultationFn = createServerFn({ method: "POST" })
 
       return { success: true as const, message: "Booking claimed — it's yours to handle." };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("consultations", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -443,7 +444,7 @@ export const releaseConsultationFn = createServerFn({ method: "POST" })
 
       return { success: true as const, message: "Released back to the shared queue." };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("consultations", error);
       return { success: false as const, error: errMessage };
     }
   });

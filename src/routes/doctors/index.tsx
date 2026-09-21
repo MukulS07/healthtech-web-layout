@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AlertTriangle, LayoutGrid, List, Loader2, Search, SearchX } from "lucide-react";
 import { Header } from "@/components/home/Header";
@@ -33,12 +33,20 @@ export const Route = createFileRoute("/doctors/")({
   }),
   loaderDeps: ({ search }) => search,
   loader: async ({ deps }) => {
+    // An unknown ?specialty= used to render "<slug> Surgeons" with zero results and a 200, so any
+    // made-up value minted an indexable empty page. Same for a page number past the end.
+    if (deps.specialty && !getSpeciality(deps.specialty)) throw notFound();
+
     const [list, facets] = await Promise.all([
       getDoctorsFn({
         data: { city: deps.city, specialty: deps.specialty, query: deps.q, sort: deps.sort, page: deps.page, limit: PAGE_SIZE },
       }).catch(() => null),
       getDoctorFacetsFn().catch(() => null),
     ]);
+
+    if (deps.page && list?.success && list.total > 0 && deps.page > Math.ceil(list.total / PAGE_SIZE)) {
+      throw notFound();
+    }
     return { list, facets };
   },
   head: ({ match }) => {

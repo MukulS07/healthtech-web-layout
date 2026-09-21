@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
 import { InsuranceCheck } from "@/models/InsuranceCheck";
 import { CALLBACK_PHRASE } from "@/lib/site";
+import { serverError } from "@/lib/server-error";
 
 export interface SubmitInsuranceCheckInput {
   name: string;
@@ -47,7 +48,7 @@ export const submitInsuranceCheckFn = createServerFn({ method: "POST" })
         message: `Request received. Our team will call you ${CALLBACK_PHRASE} about your eligibility.`,
       };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("insurance", error);
       return { success: false as const, error: errMessage };
     }
   });

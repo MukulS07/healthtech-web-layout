@@ -6,6 +6,7 @@ import { CITIES } from "@/lib/site";
 import { NON_PERSON_NAME_PATTERN, SPECIALITIES, SURGICAL_DOCTOR_MATCH } from "@/data/catalog";
 import { getDoctorFacetsFn } from "./doctors";
 import { getHospitalFacetsFn } from "./hospitals";
+import { serverError } from "@/lib/server-error";
 
 /**
  * Cities come from the site's own city list (src/lib/site.ts CITIES), not the `City` collection.
@@ -32,7 +33,7 @@ export const getCitiesFn = createServerFn({ method: "GET" }).handler(async () =>
       })),
     };
   } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = serverError("cities", error);
     return { success: false as const, cities: [], error: errMessage };
   }
 });
@@ -88,7 +89,7 @@ export const getCityBySlugFn = createServerFn({ method: "GET" })
         },
       };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("cities", error);
       return { success: false as const, error: errMessage };
     }
   });

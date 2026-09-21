@@ -660,8 +660,11 @@ export function Testimonials({
             {summary && summary.totalReviews > 0 ? (
               <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                 <Stars value={summary.averageRating} />
+                {/* roundDownPlus, not the exact count: the hero states the same figure as
+                    "2,40,000+" and printing "2,47,591" here made one page claim two different
+                    review totals. */}
                 <strong className="text-navy">{summary.averageRating}/5</strong> average from{" "}
-                {summary.totalReviews.toLocaleString("en-IN")} patient reviews
+                {roundDownPlus(summary.totalReviews)} patient reviews
               </p>
             ) : null}
           </div>
@@ -701,14 +704,17 @@ export function Testimonials({
           <p className="py-10 text-center text-sm text-muted-foreground">No detailed reviews in this department yet.</p>
         ) : (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {/* min-w-0 + break-words on the cards below: grid items default to min-width:auto, so a
+                review containing one long unbroken token stretched the card past the viewport and
+                gave the whole homepage a horizontal scrollbar on phones. */}
             {items.map((t) => (
-              <article key={t.id} className="flex flex-col justify-between rounded-xl border border-border/80 bg-background p-6 shadow-sm">
-                <div>
+              <article key={t.id} className="flex min-w-0 flex-col justify-between rounded-xl border border-border/80 bg-background p-6 shadow-sm">
+                <div className="min-w-0">
                   <div className="flex items-center justify-between">
                     <Quote className="h-6 w-6 text-brand-orange" />
                     {t.rating ? <Stars value={t.rating} /> : null}
                   </div>
-                  <p className="mt-4 line-clamp-5 text-sm leading-relaxed text-ink/80">"{t.comment}"</p>
+                  <p className="mt-4 line-clamp-5 break-words text-sm leading-relaxed text-ink/80">"{t.comment}"</p>
                 </div>
                 <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">

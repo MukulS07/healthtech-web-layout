@@ -57,7 +57,9 @@ export function ConsultForm({
   const [email, setEmail] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
   const [message, setMessage] = useState("");
-  const [consent, setConsent] = useState(true);
+  // Unticked by default. A pre-ticked box isn't affirmative consent under the DPDP Act, and it
+  // makes the consent record worth little if someone later disputes being called.
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
   const [doneMessage, setDoneMessage] = useState("");

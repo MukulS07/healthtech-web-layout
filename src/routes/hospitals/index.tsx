@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AlertTriangle, Building2, Loader2, MapPin, Search, SearchX, Star } from "lucide-react";
 import { Header } from "@/components/home/Header";
@@ -32,10 +32,17 @@ export const Route = createFileRoute("/hospitals/")({
   }),
   loaderDeps: ({ search }) => search,
   loader: async ({ deps }) => {
+    // Unknown speciality slugs and out-of-range pages are real 404s, not empty 200s.
+    if (deps.speciality && !getSpeciality(deps.speciality)) throw notFound();
+
     const [list, facets] = await Promise.all([
       getHospitalsFn({ data: { city: deps.city, speciality: deps.speciality, query: deps.q, page: deps.page, limit: PAGE_SIZE } }).catch(() => null),
       getHospitalFacetsFn().catch(() => null),
     ]);
+
+    if (deps.page && list?.success && list.total > 0 && deps.page > Math.ceil(list.total / PAGE_SIZE)) {
+      throw notFound();
+    }
     return { list, facets };
   },
   head: ({ match }) => {

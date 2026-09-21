@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { connectToDatabase } from "@/lib/db";
 import { Question } from "@/models/Question";
+import { serverError } from "@/lib/server-error";
 
 export interface SubmitQuestionInput {
   name: string;
@@ -45,7 +46,7 @@ export const submitQuestionFn = createServerFn({ method: "POST" })
         message: "Your question has been received. A doctor from our team will get back to you.",
       };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("questions", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -74,7 +75,7 @@ export const getAnsweredQuestionsFn = createServerFn({ method: "GET" }).handler(
       })),
     };
   } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = serverError("questions", error);
     return { success: false as const, questions: [], error: errMessage };
   }
 });

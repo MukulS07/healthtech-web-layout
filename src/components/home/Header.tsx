@@ -317,11 +317,13 @@ export function Header() {
 
       <div className="border-t border-border bg-cream/70 backdrop-blur-sm">
         <Container>
-          <nav aria-label="Browse" className="no-scrollbar flex items-center gap-5 overflow-x-auto py-2.5 text-sm font-medium">
-            <a href={`/doctors${q}`} className="flex shrink-0 items-center gap-1.5 font-semibold text-navy hover:text-brand-orange">
+          {/* min-h-11 on every entry: these were 20px tall, under the 24px WCAG 2.2 minimum, and
+              this strip is the main way people navigate on a phone. */}
+          <nav aria-label="Browse" className="no-scrollbar flex items-center gap-5 overflow-x-auto text-sm font-medium">
+            <a href={`/doctors${q}`} className="flex min-h-11 shrink-0 items-center gap-1.5 font-semibold text-navy hover:text-brand-orange">
               <Stethoscope className="h-4 w-4 text-emerald-600" /> Doctors{city ? ` in ${city}` : ""}
             </a>
-            <a href={`/hospitals${q}`} className="flex shrink-0 items-center gap-1.5 font-semibold text-navy hover:text-brand-orange">
+            <a href={`/hospitals${q}`} className="flex min-h-11 shrink-0 items-center gap-1.5 font-semibold text-navy hover:text-brand-orange">
               <Building2 className="h-4 w-4 text-primary" /> Hospitals{city ? ` in ${city}` : ""}
             </a>
             {[
@@ -332,7 +334,7 @@ export function Header() {
               ["Insurance", "/insurance-eligibility"],
               ["Articles", "/blog"],
             ].map(([label, href]) => (
-              <a key={href} href={href} className="shrink-0 text-navy/80 hover:text-brand-orange">
+              <a key={href} href={href} className="flex min-h-11 shrink-0 items-center text-navy/80 hover:text-brand-orange">
                 {label}
               </a>
             ))}
@@ -340,8 +342,12 @@ export function Header() {
         </Container>
       </div>
 
+      {/* The panel is positioned off the header itself (top-full, and the 100% in the height calc
+          resolves to the header's height) rather than a hardcoded top-[105px], which left a gap or
+          an overlap whenever the header's height changed — as it just did when the browse strip
+          grew to 44px tap targets. */}
       {mobileMenuOpen ? (
-        <div className="fixed inset-x-0 bottom-0 top-[105px] z-40 overflow-y-auto border-b border-border bg-background p-5 shadow-2xl xl:hidden">
+        <div className="absolute inset-x-0 top-full z-40 h-[calc(100vh-100%)] overflow-y-auto border-b border-border bg-background p-5 shadow-2xl xl:hidden">
           <div className="space-y-5">
             <GlobalSearch className="lg:hidden" onNavigate={() => setMobileMenuOpen(false)} />
             <CityPicker city={city} onChange={setCity} className="w-full lg:hidden" />
@@ -362,7 +368,12 @@ export function Header() {
                 <ul className="grid grid-cols-2 gap-x-3 gap-y-1">
                   {items.map((it) => (
                     <li key={it.href + it.label}>
-                      <a href={it.href} className="block py-1.5 text-sm text-navy hover:text-brand-orange">
+                      {/* min-h-11 gives these a 44px tap target. They were 20px tall, under even
+                          the 24px WCAG 2.2 minimum, which made the mobile menu fiddly to use. */}
+                      <a
+                        href={it.href}
+                        className="flex min-h-11 items-center text-sm text-navy hover:text-brand-orange"
+                      >
                         {it.label}
                       </a>
                     </li>

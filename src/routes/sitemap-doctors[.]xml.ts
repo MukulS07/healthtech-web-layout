@@ -9,7 +9,8 @@ export const Route = createFileRoute("/sitemap-doctors.xml")({
           return xmlResponse(urlset(await doctorUrls()));
         } catch (err) {
           console.error("sitemap-doctors failed:", err);
-          return xmlResponse(urlset([]));
+          // 500 rather than an empty urlset — see the note in sitemap-hospitals[.]xml.ts.
+          return new Response("sitemap generation failed", { status: 500 });
         }
       },
     },

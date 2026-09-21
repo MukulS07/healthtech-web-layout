@@ -106,6 +106,10 @@ export async function hospitalUrls(limit = 45000): Promise<Url[]> {
     .select("slug updatedAt")
     .sort({ totalDoctors: -1 })
     .limit(limit)
+    // Sorting 34k documents by totalDoctors exceeded Mongo's 32MB in-memory sort limit, which threw
+    // and left this sitemap empty (every hospital page invisible to search engines). See the
+    // matching indexes in src/models/Hospital.ts.
+    .allowDiskUse(true)
     .lean<{ slug: string; updatedAt?: Date }[]>();
   return docs.map((h) => ({
     loc: `${SITE.url}/hospitals/${encodeURIComponent(h.slug)}`,

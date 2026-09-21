@@ -6,6 +6,7 @@ import { Doctor } from "@/models/Doctor";
 import { getSessionUser, isAdmin } from "@/lib/auth";
 import { formatDoctorName, formatSpecialization } from "@/lib/doctor-format";
 import { getSpeciality } from "@/data/catalog";
+import { serverError } from "@/lib/server-error";
 // Doctor is imported (and used) above, which also registers the model the populate("doctorId")
 // below needs — see CLAUDE.md on the MissingSchemaError populate bug.
 
@@ -13,6 +14,8 @@ const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 60;
 /** Public review walls hide empty, "-", or one-line reviews — they read as low-effort or fake. */
 const PUBLIC_MIN_COMMENT_LENGTH = 40;
+/** Vowel-bearing words of 3+ letters a comment needs before it can appear on a public wall. */
+const MIN_REAL_WORDS = 5;
 
 export interface GetReviewsParams {
   minRating?: number | undefined;
@@ -61,10 +64,30 @@ export const getReviewsFn = createServerFn({ method: "GET" })
       await connectToDatabase();
 
       const minLength = data?.minLength ?? (data?.doctorId ? 1 : PUBLIC_MIN_COMMENT_LENGTH);
+      const isPublicWall = !data?.doctorId;
       const filter: Record<string, unknown> = {
         status: { $nin: ["pending", "rejected"] },
-        // Mongo $expr keeps "-" / "ok" / whitespace-only comments out of public lists.
-        $expr: { $gte: [{ $strLenCP: { $trim: { input: { $ifNull: ["$comment", ""] } } } }, minLength] },
+        $expr: {
+          $and: [
+            // Keeps "-" / "ok" / whitespace-only comments out of public lists.
+            { $gte: [{ $strLenCP: { $trim: { input: { $ifNull: ["$comment", ""] } } } }, minLength] },
+            // ...and keyboard mash. The imported collection contains test rows that clear the
+            // length bar but say nothing ("dxgfhghjil aaaaaaaaaaaaaaaa", "bhui bhjk fgh fgh dgf
+            // fyu gghq gfsqgd"), and two of them were the first thing a visitor saw on /reviews.
+            // Real prose has many vowel-containing words; mashed consonants have almost none, so
+            // count letter-runs of 3+ characters that contain a vowel and require a handful.
+            ...(isPublicWall ? [{ $gte: [{ $size: { $filter: {
+              input: {
+                $regexFindAll: {
+                  input: { $toLower: { $ifNull: ["$comment", ""] } },
+                  regex: "[a-z]*[aeiou][a-z]*",
+                },
+              },
+              as: "w",
+              cond: { $gte: [{ $strLenCP: "$$w.match" }, 3] },
+            } } }, MIN_REAL_WORDS] }] : []),
+          ],
+        },
       };
       if (data?.minRating) filter["rating"] = { $gte: data.minRating };
       if (data?.doctorId && mongoose.isValidObjectId(data.doctorId)) {
@@ -123,7 +146,7 @@ export const getReviewsFn = createServerFn({ method: "GET" })
         }),
       };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("reviews", error);
       return {
         success: false,
         page: 1,

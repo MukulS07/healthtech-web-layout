@@ -21,6 +21,7 @@ import {
 } from "@/lib/doctor-format";
 import { getSpeciality, NON_PERSON_NAME_PATTERN, SPECIALITIES, SURGICAL_DOCTOR_MATCH } from "@/data/catalog";
 import { usableImageUrl } from "@/lib/utils";
+import { serverError } from "@/lib/server-error";
 
 const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 100;
@@ -187,8 +188,13 @@ export const getDoctorsFn = createServerFn({ method: "GET" })
         queryBuilder = queryBuilder.sort({ experience: -1 });
       } else if (data?.sort === "Experience: Low to High") {
         queryBuilder = queryBuilder.sort({ experience: 1 });
+      } else if (data?.sort === "Rating: High to Low") {
+        // Actually sorts by score now. It used to share the "Relevance" branch below, so choosing
+        // it returned the identical order and the option looked broken. Review count breaks ties
+        // so a lone 5-star rating doesn't outrank a well-reviewed 4.8.
+        queryBuilder = queryBuilder.sort({ "rating.average": -1, "rating.count": -1 });
       } else {
-        // "Relevance" and "Rating": most-reviewed first, then newest — both served by the
+        // "Relevance": most-reviewed first, then newest — served by the
         // { "rating.count": -1, createdAt: -1 } index on Doctor.
         queryBuilder = queryBuilder.sort({ "rating.count": -1, createdAt: -1 });
       }
@@ -198,7 +204,10 @@ export const getDoctorsFn = createServerFn({ method: "GET" })
       queryBuilder = queryBuilder.skip((page - 1) * limit).limit(limit);
 
       const [docs, total] = await Promise.all([
-        queryBuilder.select("-password").lean<RawDoctor[]>(),
+        // allowDiskUse so a deep page can't abort with "Sort exceeded memory limit of 33554432
+        // bytes" if one of the sort indexes is missing or still building — that is exactly how the
+        // hospital directory broke past page ~130.
+        queryBuilder.allowDiskUse(true).select("-password").lean<RawDoctor[]>(),
         Doctor.countDocuments(filter),
       ]);
       const hospitals = await primaryHospitals(docs.map((d) => d._id));
@@ -213,7 +222,7 @@ export const getDoctorsFn = createServerFn({ method: "GET" })
         doctors: docs.map((doc) => ({ ...toDoctorCard(doc), hospital: hospitals.get(String(doc._id)) ?? null })),
       };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("doctors", error);
       return {
         success: false,
         count: 0,
@@ -283,7 +292,7 @@ export const getDoctorFacetsFn = createServerFn({ method: "GET" }).handler(async
     facetCache = { at: Date.now(), value };
     return { success: true as const, ...value };
   } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = serverError("doctors", error);
     return { success: false as const, specialities: [], cities: [], cityCount: 0, total: 0, error: errMessage };
   }
 });
@@ -343,7 +352,7 @@ export const getDoctorBySlugFn = createServerFn({ method: "GET" })
         },
       };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("doctors", error);
       return { success: false, error: errMessage };
     }
   });
@@ -384,7 +393,7 @@ export const createDoctorFn = createServerFn({ method: "POST" })
 
       return { success: true as const, id: String(doctor._id), message: "Doctor added successfully!" };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("doctors", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -405,7 +414,7 @@ export const updateDoctorFn = createServerFn({ method: "POST" })
 
       return { success: true as const, message: "Doctor updated successfully!" };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("doctors", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -419,7 +428,7 @@ export const deleteDoctorFn = createServerFn({ method: "POST" })
       await Doctor.findByIdAndDelete(data.id);
       return { success: true as const, message: "Doctor deleted successfully." };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("doctors", error);
       return { success: false as const, error: errMessage };
     }
   });

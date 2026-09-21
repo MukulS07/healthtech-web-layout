@@ -19,13 +19,18 @@ export function CostEstimator({ className, defaultTreatment }: { className?: str
 
   const term = q.trim().toLowerCase();
   const options = useMemo(() => {
+    // The chosen procedure always stays in the list, even when the filter text doesn't match it.
+    // Without this the <select> lost its option while React still held the slug, so the dropdown
+    // read "Select a procedure" while the panel beside it still showed the previous result.
     const list = term
-      ? TREATMENTS.filter((t) => `${t.name} ${(t.aka ?? []).join(" ")}`.toLowerCase().includes(term))
+      ? TREATMENTS.filter(
+          (t) => t.slug === slug || `${t.name} ${(t.aka ?? []).join(" ")}`.toLowerCase().includes(term),
+        )
       : TREATMENTS;
     return SPECIALITIES.map((s) => ({ speciality: s, items: list.filter((t) => t.speciality === s.slug) })).filter(
       (g) => g.items.length > 0,
     );
-  }, [term]);
+  }, [term, slug]);
 
   const treatment = TREATMENTS.find((t) => t.slug === slug);
   const band = treatment ? costFor(treatment.slug) : null;

@@ -14,6 +14,7 @@ import { usableImageUrl } from "@/lib/utils";
 import { displayCityFor } from "@/lib/city-aliases";
 import { escapeRegex, formatDoctorName, formatExperience, formatQualification, formatSpecialization } from "@/lib/doctor-format";
 import { getSpeciality, SPECIALITIES } from "@/data/catalog";
+import { serverError } from "@/lib/server-error";
 
 /**
  * Raw hospital `departments` are free text with near-duplicates ("Nephrologist" vs
@@ -36,6 +37,34 @@ function tidyDepartments(departments: string[]): string[] {
 
 const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 100;
+
+/**
+ * Auto-generated blurbs that came in with the imported archive, e.g.
+ *   "Max Super Speciality Hospital is a dental clinic in Delhi. It has around 300 beds.
+ *    Core specialties include ..."
+ * The facility-type word in these is essentially random: in a 16-hospital sample every single one
+ * was wrong — a 300-bed multi-speciality hospital called a dental clinic, Medanta (1,250 beds) and
+ * Artemis called "a clinic", Indraprastha Apollo called "a diagnostic center", and the private
+ * Sir Ganga Ram Hospital called "a government hospital". Bed counts in the same sentence are off
+ * too (Manipal Bangalore: "around 68 beds"). These are false statements of fact about real, named
+ * third parties, published on 34k pages, so we don't render them.
+ */
+const GENERATED_ABOUT = [
+  /\bis an?\s+[a-z /-]{3,40}\bin\s+[A-Z]/, // "... is a <type> in <City>"
+  /\bIt has around\s+\d+\s+beds\b/i,
+  /\bCore specialt(y|ies) include\b/i,
+];
+
+/**
+ * Only lets a hospital blurb through if it doesn't look machine-generated. Hand-written copy added
+ * later survives this; everything currently in the imported data does not. Returns "" so the
+ * "About the Hospital" section is omitted rather than shown with a fabricated claim.
+ */
+function verifiedHospitalAbout(text: string): string {
+  const trimmed = String(text || "").trim();
+  if (!trimmed) return "";
+  return GENERATED_ABOUT.some((re) => re.test(trimmed)) ? "" : trimmed;
+}
 
 export interface GetHospitalsParams {
   city?: string | undefined;
@@ -125,6 +154,10 @@ export const getHospitalsFn = createServerFn({ method: "GET" })
           .sort({ totalDoctors: -1 })
           .skip((page - 1) * limit)
           .limit(limit)
+          // Belt-and-braces with the { totalDoctors: -1 } indexes on the schema: if an index is
+          // still building (or was never created because autoIndex is off), this keeps deep pages
+          // working instead of aborting with "Sort exceeded memory limit of 33554432 bytes".
+          .allowDiskUse(true)
           .lean(),
         Hospital.countDocuments(filter),
       ]);
@@ -158,7 +191,7 @@ export const getHospitalsFn = createServerFn({ method: "GET" })
         }),
       };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("hospitals", error);
       return {
         success: false,
         count: 0,
@@ -214,7 +247,7 @@ export const getHospitalBySlugFn = createServerFn({ method: "GET" })
           locality: hospital.locality || "",
           pincode: hospital.pincode || "",
           address: hospital.address || "",
-          about: hospital.description || hospital.about || "",
+          about: verifiedHospitalAbout(hospital.description || hospital.about || ""),
           phone: hospital.phone || "",
           website: hospital.website || "",
           emergency24x7: Boolean(hospital.emergency24x7),
@@ -257,7 +290,7 @@ export const getHospitalBySlugFn = createServerFn({ method: "GET" })
         },
       };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("hospitals", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -302,7 +335,7 @@ export const getHospitalFacetsFn = createServerFn({ method: "GET" }).handler(asy
     hospitalFacetCache = { at: Date.now(), value };
     return { success: true as const, ...value };
   } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = serverError("hospitals", error);
     return { success: false as const, cities: [], specialities: [], error: errMessage };
   }
 });
@@ -333,7 +366,7 @@ export const createHospitalFn = createServerFn({ method: "POST" })
 
       return { success: true as const, id: String(hospital._id), message: "Hospital added successfully!" };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("hospitals", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -354,7 +387,7 @@ export const updateHospitalFn = createServerFn({ method: "POST" })
 
       return { success: true as const, message: "Hospital updated successfully!" };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("hospitals", error);
       return { success: false as const, error: errMessage };
     }
   });
@@ -368,7 +401,7 @@ export const deleteHospitalFn = createServerFn({ method: "POST" })
       await Hospital.findByIdAndDelete(data.id);
       return { success: true as const, message: "Hospital deleted successfully." };
     } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : String(error);
+      const errMessage = serverError("hospitals", error);
       return { success: false as const, error: errMessage };
     }
   });

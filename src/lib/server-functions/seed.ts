@@ -5,6 +5,7 @@ import { Doctor } from "@/models/Doctor";
 import { Hospital } from "@/models/Hospital";
 import { Treatment } from "@/models/Treatment";
 import { City } from "@/models/City";
+import { serverError } from "@/lib/server-error";
 
 const initialCities = [
   { name: "Delhi NCR", slug: "delhi-ncr", state: "Delhi / Haryana / UP" },
@@ -309,7 +310,7 @@ export async function runSeed() {
       },
     };
   } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = serverError("seed", error);
     return {
       success: false,
       error: errMessage,

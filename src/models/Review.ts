@@ -5,7 +5,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
  * reviews, keyed by doctorId) — field names are taken directly from that data. See CLAUDE.md
  * "Data model" for context on the wider restore this belongs to.
  */
-export type ReviewFlag = "blank-doctor-name" | "duplicate-text" | "non-standard-rating";
+export type ReviewFlag = "blank-doctor-name" | "duplicate-text" | "non-standard-rating" | "gibberish";
 
 export interface IReview extends Document {
   doctorId: mongoose.Types.ObjectId;

@@ -10,6 +10,7 @@ const FLAG_LABELS: Record<string, string> = {
   "blank-doctor-name": "doctor's name missing from the text",
   "duplicate-text": "same text as other reviews",
   "non-standard-rating": "rating isn't a whole 1–5 star value",
+  gibberish: "text is keyboard mash, not a real review",
 };
 
 /** Admin queue for reviews submitted through /reviews/write — nothing is public until approved. */

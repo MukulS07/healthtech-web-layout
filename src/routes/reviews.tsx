@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Star, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Star } from "lucide-react";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
-import { OrangeButton, Container, SectionHead, Eyebrow, OutlineButton } from "@/components/home/primitives";
+import { OrangeButton, Container, SectionHead, Eyebrow } from "@/components/home/primitives";
+import { Pagination } from "@/components/common/Pagination";
 import { getReviewsFn } from "@/lib/server-functions/reviews";
 import { seo } from "@/lib/seo";
 
@@ -78,7 +79,9 @@ function ReviewCardItem({ review }: { review: ReviewCard }) {
         </div>
         <StarRow rating={review.rating} />
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-ink/80">
+      {/* break-words so a single long unbroken token can't widen the column (see the matching
+          note on the homepage testimonial cards). */}
+      <p className="mt-3 break-words text-sm leading-relaxed text-ink/80">
         "{shown}"
         {isLong && (
           <button
@@ -103,10 +106,30 @@ function ReviewCardItem({ review }: { review: ReviewCard }) {
   );
 }
 
+type ReviewsSearch = { page?: number | undefined; rating?: number | undefined };
+
+/** "?rating=4&page=3" — omits defaults so page 1 / all ratings stays on the bare /reviews URL. */
+function reviewsHref(search: ReviewsSearch, patch: Partial<ReviewsSearch>) {
+  const next = { ...search, ...patch };
+  const params = new URLSearchParams();
+  if (next.rating) params.set("rating", String(next.rating));
+  if (next.page && next.page > 1) params.set("page", String(next.page));
+  const qs = params.toString();
+  return `/reviews${qs ? `?${qs}` : ""}`;
+}
+
 export const Route = createFileRoute("/reviews")({
-  loader: async () => {
+  // Paging and the rating filter live in the URL, like /doctors and /hospitals. They used to be
+  // React state only, so all 10,316 pages shared one URL: a page couldn't be linked or bookmarked,
+  // the back button skipped the whole wall, and crawlers only ever saw the first 24 reviews.
+  validateSearch: (s: Record<string, unknown>): ReviewsSearch => ({
+    page: Number(s["page"]) > 1 ? Math.floor(Number(s["page"])) : undefined,
+    rating: [3, 4, 5].includes(Number(s["rating"])) ? Number(s["rating"]) : undefined,
+  }),
+  loaderDeps: ({ search }) => search,
+  loader: async ({ deps }) => {
     try {
-      return await getReviewsFn({ data: { page: 1 } });
+      return await getReviewsFn({ data: { page: deps.page ?? 1, minRating: deps.rating } });
     } catch {
       return {
         success: false,
@@ -114,53 +137,35 @@ export const Route = createFileRoute("/reviews")({
         total: 0,
         page: 1,
         limit: 24,
+        totalPages: 1,
         averageRating: 0,
         totalReviews: 0,
       };
     }
   },
-  head: () =>
-    seo({
-      title: "Patient Reviews & Stories",
-      description: "Read what patients say about doctors in the Go Surgery directory — ratings, treatments and cities — and share your own experience.",
-      path: "/reviews",
-    }),
+  head: ({ match }) => {
+    const { page, rating } = match.search as ReviewsSearch;
+    const suffix = [rating ? `${rating}★ and up` : "", page ? `Page ${page}` : ""].filter(Boolean).join(" — ");
+    return seo({
+      title: `Patient Reviews & Stories${suffix ? ` — ${suffix}` : ""}`,
+      description:
+        "Read what patients say about doctors in the Go Surgery directory — ratings, treatments and cities — and share your own experience.",
+      path: reviewsHref({}, { page, rating }),
+    });
+  },
   component: ReviewsPage,
 });
 
 function ReviewsPage() {
-  const initialData = Route.useLoaderData();
-  const [reviews, setReviews] = useState<ReviewCard[]>(initialData?.reviews || []);
-  const [page, setPage] = useState(initialData?.page || 1);
-  const [minRating, setMinRating] = useState(0);
-  const [total, setTotal] = useState(initialData?.total || 0);
-  const [averageRating] = useState(initialData?.averageRating || 0);
-  const [totalReviews] = useState(initialData?.totalReviews || 0);
-  const [isLoading, setIsLoading] = useState(false);
-  const limit = initialData?.limit || 24;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      setIsLoading(true);
-      try {
-        const res = await getReviewsFn({ data: { page, minRating: minRating || undefined } });
-        if (isMounted && res.success) {
-          setReviews(res.reviews);
-          setTotal(res.total);
-        }
-      } catch (err) {
-        console.error("Failed to load reviews:", err);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    })();
-    return () => {
-      isMounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, minRating]);
+  const data = Route.useLoaderData();
+  const search = Route.useSearch();
+  const reviews = data?.reviews ?? [];
+  const page = data?.page || 1;
+  const minRating = search.rating ?? 0;
+  const averageRating = data?.averageRating || 0;
+  const totalReviews = data?.totalReviews || 0;
+  const limit = data?.limit || 24;
+  const totalPages = Math.max(1, Math.ceil((data?.total || 0) / limit));
 
   return (
     <div className="bg-background">
@@ -195,13 +200,10 @@ function ReviewsPage() {
             />
             <div className="mb-6 flex flex-wrap items-center gap-2">
               {ratingOptions.map((opt) => (
-                <button
+                <a
                   key={opt.value}
-                  type="button"
-                  onClick={() => {
-                    setMinRating(opt.value);
-                    setPage(1);
-                  }}
+                  href={reviewsHref({}, { rating: opt.value || undefined })}
+                  aria-current={minRating === opt.value ? "true" : undefined}
                   className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${
                     minRating === opt.value
                       ? "border-primary bg-primary text-white"
@@ -209,16 +211,11 @@ function ReviewsPage() {
                   }`}
                 >
                   {opt.label}
-                </button>
+                </a>
               ))}
-              {isLoading && (
-                <span className="flex items-center gap-1.5 text-xs text-brand-orange font-medium">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading...
-                </span>
-              )}
             </div>
 
-            {reviews.length === 0 && !isLoading ? (
+            {reviews.length === 0 ? (
               <div className="py-16 text-center text-muted-foreground">
                 No reviews match this filter yet.
               </div>
@@ -230,26 +227,15 @@ function ReviewsPage() {
               </div>
             )}
 
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              hrefFor={(p) => reviewsHref(search, { page: p })}
+            />
             {totalPages > 1 && (
-              <div className="mt-10 flex items-center justify-center gap-3">
-                <OutlineButton
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-2"
-                >
-                  <ChevronLeft className="h-4 w-4" /> Prev
-                </OutlineButton>
-                <span className="text-sm text-muted-foreground">
-                  Page {page} of {totalPages.toLocaleString("en-US")}
-                </span>
-                <OutlineButton
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-3 py-2"
-                >
-                  Next <ChevronRight className="h-4 w-4" />
-                </OutlineButton>
-              </div>
+              <p className="mt-3 text-center text-sm text-muted-foreground">
+                Page {page.toLocaleString("en-IN")} of {totalPages.toLocaleString("en-IN")}
+              </p>
             )}
           </Container>
         </section>

@@ -3,6 +3,7 @@ import { connectToDatabase } from "@/lib/db";
 import { Hospital } from "@/models/Hospital";
 import { Review } from "@/models/Review";
 import { getDoctorFacetsFn } from "./doctors";
+import { serverError } from "@/lib/server-error";
 
 export interface SiteStats {
   surgeons: number;
@@ -45,7 +46,7 @@ export const getSiteStatsFn = createServerFn({ method: "GET" }).handler(async ()
     cache = { at: Date.now(), value };
     return { success: true as const, ...value };
   } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
+    const errMessage = serverError("site-stats", error);
     return { success: false as const, surgeons: 0, hospitals: 0, cities: 0, reviews: 0, averageRating: null, error: errMessage };
   }
 });
